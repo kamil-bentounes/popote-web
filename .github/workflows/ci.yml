@@ -25,6 +25,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx tsc -b
+      - run: npx tsc -p relais
       - run: npm test
       - run: npm run build -- --mode development
       - run: npm audit --omit=dev --audit-level=high
