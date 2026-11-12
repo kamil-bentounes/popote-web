@@ -76,3 +76,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # Un échec ici fait échouer le job : l'essai est déployé mais ne répond pas comme attendu.
+      # Quelques essais espacés (le temps que le Worker et le conteneur soient prêts), délai borné.
+      - name: Fumée après déploiement
+        run: bash scripts/fumee-essai.sh
+        timeout-minutes: 5
+        env:
+          BASE_URL: https://essai.notre-popote.fr
+          ESSAIS: "6"
+          PAUSE: "10"

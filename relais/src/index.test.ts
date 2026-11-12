@@ -10,6 +10,7 @@ function environnement(surcharge: Partial<Env> = {}) {
     ASSETS: { fetch: assets } as unknown as Fetcher,
     API_ORIGIN: ORIGINE,
     RELAY_SECRET: SECRET,
+    ENVIRONNEMENT: 'essai',
     CSP_MODE: 'report-only',
     CSP: "default-src 'self'",
     ...surcharge,
@@ -28,11 +29,31 @@ describe('relais — les fichiers du front', () => {
     const r = await appelle(env, '/')
 
     expect(r.status).toBe(200)
-    expect(r.headers.get('Strict-Transport-Security')).toBe('max-age=63072000; includeSubDomains; preload')
+    expect(r.headers.get('Strict-Transport-Security')).toBe('max-age=63072000; includeSubDomains')
     expect(r.headers.get('X-Content-Type-Options')).toBe('nosniff')
     expect(r.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin')
     expect(r.headers.get('Permissions-Policy')).toContain('microphone=()')
     expect(r.headers.get('Cross-Origin-Opener-Policy')).toBe('same-origin')
+  })
+
+  it('pose preload sur la prod seulement', async () => {
+    const { env } = environnement({ ENVIRONNEMENT: 'prod' })
+
+    const r = await appelle(env, '/')
+
+    expect(r.headers.get('Strict-Transport-Security')).toBe('max-age=63072000; includeSubDomains; preload')
+  })
+
+  it.each([
+    ['essai', 'essai'],
+    ['absent', undefined],
+    ['inconnu', 'Prod'],
+  ])('ne pose pas preload quand l’environnement est %s (échec fermé)', async (_cas, valeur) => {
+    const { env } = environnement({ ENVIRONNEMENT: valeur as Env['ENVIRONNEMENT'] })
+
+    const r = await appelle(env, '/')
+
+    expect(r.headers.get('Strict-Transport-Security')).not.toContain('preload')
   })
 
   it('envoie la CSP en rapport seul tant que le mode est report-only', async () => {
@@ -172,6 +193,54 @@ describe('relais — /api/*', () => {
     const r = await appelle(env, '/api/healthz')
 
     expect(r.headers.get('Cache-Control')).toBe('no-store')
+  })
+
+  it('interdit le cache de Cloudflare pour le sous-appel, quel que soit le statut', async () => {
+    const { env } = environnement()
+
+    await appelle(env, '/api/photos/x.png')
+
+    const init = requeteAmont().init as RequestInit & { cf?: { cacheTtlByStatus?: Record<string, number> } }
+    expect(init.cache).toBe('no-store')
+    expect(init.cf?.cacheTtlByStatus).toEqual({ '100-599': -1 })
+  })
+
+  it('pose les en-têtes de sécurité d’une réponse JSON', async () => {
+    const { env } = environnement()
+
+    const r = await appelle(env, '/api/healthz')
+
+    expect(r.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    expect(r.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin')
+    expect(r.headers.get('Strict-Transport-Security')).toBe('max-age=63072000; includeSubDomains')
+    expect(r.headers.get('Cache-Control')).toBe('no-store')
+  })
+
+  it('pose preload sur les réponses de l’API en prod seulement', async () => {
+    const { env } = environnement({ ENVIRONNEMENT: 'prod' })
+
+    const r = await appelle(env, '/api/healthz')
+
+    expect(r.headers.get('Strict-Transport-Security')).toContain('preload')
+  })
+
+  it('n’écrase pas les en-têtes de sécurité posés par l’API', async () => {
+    amont.mockResolvedValue(new Response('{}', {
+      headers: {
+        'X-Content-Type-Options': 'nosniff, autre',
+        'Referrer-Policy': 'no-referrer',
+        'Strict-Transport-Security': 'max-age=1',
+        'Cache-Control': 'private, no-cache',
+      },
+    }))
+    const { env } = environnement()
+
+    const r = await appelle(env, '/api/semaine')
+
+    expect(r.headers.get('X-Content-Type-Options')).toBe('nosniff, autre')
+    expect(r.headers.get('Referrer-Policy')).toBe('no-referrer')
+    expect(r.headers.get('Strict-Transport-Security')).toBe('max-age=1')
+    expect(r.headers.get('Cache-Control')).toBe('private, no-cache')
   })
 
   it('respecte le Cache-Control de l’amont', async () => {

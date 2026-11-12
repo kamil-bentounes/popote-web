@@ -13,6 +13,7 @@
   "vars": {
     // Le conteneur d'essai chez Scaleway (Paris). Il refuse tout appel sans l'en-tête secret du relais.
     "API_ORIGIN": "https://popoteessaib8c709c6-api.functions.fnc.fr-par.scw.cloud",
+    "ENVIRONNEMENT": "essai",
     "CSP_MODE": "report-only",
     "CSP": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests"
   }
