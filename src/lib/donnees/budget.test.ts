@@ -41,7 +41,7 @@ describe('enCentimes : la borne du champ est celle de la colonne', () => {
   })
 
   it('lit les montants ordinaires', () => {
-    expect(enCentimes('2 400,50')).toBe(240_050)
+    expect(enCentimes('2 100,50')).toBe(210_050)
     expect(enCentimes('12,3')).toBe(1_230)
     expect(enCentimes('abc')).toBeNull()
     expect(enCentimes('-5')).toBeNull()

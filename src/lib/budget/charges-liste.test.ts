@@ -9,7 +9,7 @@ const charge = (o: Partial<ChargeDeListe> & { id: string }): ChargeDeListe => ({
   libelle: o.id, montant_cents: 10_000, periodicite: 'mensuel', mode: 'fixe', categorie: 'maison',
   debut: '2026-01-01', participants: ['k', 't'], cle: null, commun: true, compte_id: 'c', modifie_par: null, ...o,
 })
-const prenoms = new Map([['k', 'Kamil'], ['t', 'Thauba']])
+const prenoms = new Map([['k', 'Kamil'], ['t', 'Léa']])
 /* `toLocaleString('fr-FR')` sépare les milliers d'une espace fine insécable : on la lit comme une espace. */
 const lis = (s: string | null) => s?.replace(/[\u202f\u00a0]/g, ' ') ?? null
 const tous = new Set(['k', 't'])
@@ -45,7 +45,7 @@ describe('les filtres', () => {
 describe('le rangement par catégorie', () => {
   const cs = [
     charge({ id: 'petit', categorie: 'maison', montant_cents: 1_000 }),
-    charge({ id: 'gros', categorie: 'maison', montant_cents: 58_000 }),
+    charge({ id: 'gros', categorie: 'maison', montant_cents: 60_000 }),
     charge({ id: 'courses', categorie: 'vie_courante', montant_cents: 50_000 }),
     charge({ id: 'taxe', categorie: 'maison', montant_cents: 120_000, periodicite: 'annuel' }),
     charge({ id: 'plus-tard', categorie: 'maison', montant_cents: 999_999, debut: '2031-01-01' }),
@@ -59,7 +59,7 @@ describe('le rangement par catégorie', () => {
     expect(g[2].lignes.map(c => c.id)).toEqual(['inconnue'])
   })
   it('somme par mois ce qui court, sans ce qui commence plus tard', () => {
-    expect(g[0].total).toBe(1_000 + 58_000 + 10_000)
+    expect(g[0].total).toBe(1_000 + 60_000 + 10_000)
   })
   it('trie les lignes : le plus lourd par mois, puis ce qui commence plus tard', () => {
     expect(g[0].lignes.map(c => c.id)).toEqual(['gros', 'taxe', 'petit', 'plus-tard'])
@@ -72,9 +72,9 @@ describe('le rangement par catégorie', () => {
     expect(egal.map(x => x.cle)).toEqual(['vie_courante', 'sante'])
   })
   it('le total d’un mois est celui de ce qui court', () => {
-    expect(totalDuMois(cs, '2026-11-01', tous)).toBe(1_000 + 58_000 + 10_000 + 50_000 + 500)
+    expect(totalDuMois(cs, '2026-11-01', tous)).toBe(1_000 + 60_000 + 10_000 + 50_000 + 500)
     /* Avant le départ de la charge de 2031, elle ne compte pas ; à partir de là, si. */
-    expect(totalDuMois(cs, '2031-01-01', tous)).toBe(1_000 + 58_000 + 10_000 + 50_000 + 500 + 999_999)
+    expect(totalDuMois(cs, '2031-01-01', tous)).toBe(1_000 + 60_000 + 10_000 + 50_000 + 500 + 999_999)
   })
 })
 
@@ -83,8 +83,8 @@ describe('le sous-titre d’une ligne', () => {
     expect(ligne(charge({ id: 'a', montant_cents: 120_000, periodicite: 'annuel', mode: 'mis_de_cote',
                           participants: ['k'], commun: false }))).toBe('1 200 € par an · Kamil seul · mise de côté')
     expect(ligne(charge({ id: 'b', montant_cents: 70_000, mode: 'au_fil' })))
-      .toBe('700 € par mois · Kamil et Thauba · plusieurs dépenses dans le mois')
-    expect(ligne(charge({ id: 'c', montant_cents: 1_070 }))).toBe('10,70 € par mois · Kamil et Thauba')
+      .toBe('700 € par mois · Kamil et Léa · plusieurs dépenses dans le mois')
+    expect(ligne(charge({ id: 'c', montant_cents: 1_070 }))).toBe('10,70 € par mois · Kamil et Léa')
   })
   it('ne dit rien de la façon « Fixe », ni de « sans compte » (une pastille à part)', () => {
     const t = ligne(charge({ id: 'a', compte_id: null }))
@@ -95,10 +95,10 @@ describe('le sous-titre d’une ligne', () => {
   })
   it('dit la clé et le départ à venir', () => {
     expect(ligne(charge({ id: 'a', cle: 'moitie', debut: '2027-03-01' })))
-      .toBe('100 € par mois · Kamil et Thauba · moitié-moitié · commence en mars 2027')
+      .toBe('100 € par mois · Kamil et Léa · moitié-moitié · commence en mars 2027')
   })
   it('dit qui a corrigé la ligne d’un autre, et seulement d’un autre', () => {
-    expect(ligne(charge({ id: 'a', modifie_par: 't' }))).toMatch(/✎ Thauba$/)
+    expect(ligne(charge({ id: 'a', modifie_par: 't' }))).toMatch(/✎ Léa$/)
     expect(ligne(charge({ id: 'a', modifie_par: 'k' }))).not.toMatch(/✎/)
   })
   it('dit qu’une charge commune attend quelqu’un quand on est seul', () => {
@@ -113,7 +113,7 @@ describe('le sous-titre d’une ligne', () => {
 
 describe('l’ordre des participants', () => {
   it('suit le foyer, pas la base', () => {
-    expect(ligne(charge({ id: 'a', participants: ['t', 'k'] }))).toBe('100 € par mois · Kamil et Thauba')
+    expect(ligne(charge({ id: 'a', participants: ['t', 'k'] }))).toBe('100 € par mois · Kamil et Léa')
     expect(dansLOrdreDuFoyer(['t', 'x', 'k'], ['k', 't'])).toEqual(['k', 't', 'x'])
   })
 })
@@ -144,7 +144,7 @@ describe('le total suit le mois type', () => {
   const cs: ChargeDeListe[] = [
     charge({ id: 'commune', participants: ['k', 't'], montant_cents: 50_000 }),
     charge({ id: 'kamil', participants: ['k'], montant_cents: 30_000, commun: false }),
-    charge({ id: 'thauba', participants: ['t'], montant_cents: 20_000, commun: false, categorie: 'sante' }),
+    charge({ id: 'lea', participants: ['t'], montant_cents: 20_000, commun: false, categorie: 'sante' }),
     charge({ id: 'annuelle', participants: ['k', 't'], montant_cents: 120_000, periodicite: 'annuel', mode: 'mis_de_cote' }),
     charge({ id: 'lointaine', participants: ['t'], montant_cents: 99_900, debut: '2031-01-01', commun: false }),
     charge({ id: 'sans-date', participants: ['x'], montant_cents: 12_345, commun: false }),
@@ -170,7 +170,7 @@ describe('le total suit le mois type', () => {
     })
   }
 
-  it('Thauba seule présente en octobre : la charge de Kamil seul ne compte pas, et la ligne le dit', () => {
+  it('Léa seule présente en octobre : la charge de Kamil seul ne compte pas, et la ligne le dit', () => {
     const presents = presentsAuMois(membres, '2026-10-01')
     const kamil = cs.find(c => c.id === 'kamil')!
     expect(totalDuMois([kamil], '2026-10-01', presents)).toBe(0)

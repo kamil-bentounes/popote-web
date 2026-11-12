@@ -150,7 +150,7 @@ test.describe('un revenu de 0,50 € se confirme', () => {
   const question = (page: Page) =>
     page.getByRole('alertdialog', { name: 'Tu déclares 0,50 € par mois. C’est bien ça ?' })
 
-  test('réglages du budget : Échap et « Non » n’écrivent rien, « Oui » écrit, 2 400 passe sans question', async ({ page }) => {
+  test('réglages du budget : Échap et « Non » n’écrivent rien, « Oui » écrit, 2 100 passe sans question', async ({ page }) => {
     await connecte(page, foyer)
     await page.goto('/budget-reglages')
     const champ = page.getByLabel('Mon net mensuel (€)')
@@ -185,11 +185,11 @@ test.describe('un revenu de 0,50 € se confirme', () => {
     await oui.click()
     await expect.poll(() => dernierRevenu(foyer)).toBe(50)
 
-    // Une re-saisie à 2 400 s'enregistre sans question.
-    await champ.fill('2 400')
+    // Une re-saisie à 2 100 s'enregistre sans question.
+    await champ.fill('2 100')
     await page.getByRole('button', { name: 'Mettre à jour mon revenu' }).click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect.poll(() => dernierRevenu(foyer)).toBe(240_000)
+    await expect.poll(() => dernierRevenu(foyer)).toBe(210_000)
   })
 
   test('profil : la même question, avant tout enregistrement', async ({ page }) => {
@@ -204,9 +204,9 @@ test.describe('un revenu de 0,50 € se confirme', () => {
     await page.getByRole('button', { name: 'Non, je corrige' }).click()
     expect(await revenuEnBase(foyer), 'le « Non » a écrit').toHaveLength(0)
 
-    await champ.fill('2 400')
+    await champ.fill('2 100')
     await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect.poll(() => dernierRevenu(foyer)).toBe(240_000)
+    await expect.poll(() => dernierRevenu(foyer)).toBe(210_000)
   })
 })

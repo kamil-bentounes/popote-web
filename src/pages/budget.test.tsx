@@ -133,13 +133,13 @@ describe('Budget — la ligne sans revenu', () => {
   })
 
   it('à deux, quand l’un n’a pas dit son revenu : le partage à parts égales se dit', () => {
-    const h = ecran(tout({ foyer: foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')]),
+    const h = ecran(tout({ foyer: foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')]),
                            revenus: [revenu('u1')] }))
-    expect(texte(h)).toContain('Thauba n’a pas encore dit son revenu : tant qu’il manque, le partage se fait à parts égales.')
+    expect(texte(h)).toContain('Léa n’a pas encore dit son revenu : tant qu’il manque, le partage se fait à parts égales.')
   })
 
   it('à deux, sans aucun revenu : le dit une seule fois, pour tout le foyer', () => {
-    const h = ecran(tout({ foyer: foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')]),
+    const h = ecran(tout({ foyer: foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')]),
                            revenus: [] }))
     expect(texte(h)).toContain('Aucun revenu n’est posé : le partage se fait à parts égales.')
   })

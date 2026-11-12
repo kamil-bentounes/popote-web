@@ -28,7 +28,7 @@ const porte = (p: Partial<Parameters<typeof porteDeLaCloture>[0]> = {}) =>
 
 describe('porteDeLaCloture — ce que la page ouvre', () => {
   it('quelqu’un qui n’était pas encore dans le foyer ce mois-là n’a ni revenu à ajouter ni mois à clore', () => {
-    /* Thauba entre le 1er octobre : « Ajoute ton revenu de septembre » était un cul-de-sac. */
+    /* Léa entre le 1er octobre : « Ajoute ton revenu de septembre » était un cul-de-sac. */
     expect(porte({ revenu: null, present: false })).toBe('pas-encore-la')
     expect(porte({ revenu: null, present: true })).toBe('sans-revenu')
     /* Un mois déjà clos se lit toujours — sauf s'il est d'avant mon arrivée : il n'est pas le mien,
@@ -214,14 +214,14 @@ describe('envoiDeLaCloture — l’appel de cloture_le_mois', () => {
 describe('clotureParLesAutres — qui a clôturé quand ce n’est pas moi', () => {
   const c = (qui: string): Choix =>
     ({ user_profile_id: qui, reste_cents: 1000_00, mis_de_cote_cents: 0, poche_id: null, versement_id: null })
-  const membres = [{ id: 'u1', display_name: 'Kamil' }, { id: 'u2', display_name: 'Thauba' }]
+  const membres = [{ id: 'u1', display_name: 'Kamil' }, { id: 'u2', display_name: 'Léa' }]
 
   it('j’ai un choix : la clôture est la mienne, personne à nommer', () => {
     expect(clotureParLesAutres([c('u1')], 'u1', membres)).toBeNull()
     expect(clotureParLesAutres([c('u1'), c('u2')], 'u1', membres)).toBeNull()
   })
   it('seul l’autre a un choix : son prénom', () => {
-    expect(clotureParLesAutres([c('u2')], 'u1', membres)).toBe('Thauba')
+    expect(clotureParLesAutres([c('u2')], 'u1', membres)).toBe('Léa')
   })
   it('celui qui a clôturé n’est plus dans le foyer : on le dit sans nom', () => {
     expect(clotureParLesAutres([c('parti')], 'u1', membres)).toBe('quelqu’un du foyer')
@@ -231,7 +231,7 @@ describe('clotureParLesAutres — qui a clôturé quand ce n’est pas moi', () 
   })
   it('à plusieurs : les prénoms se joignent', () => {
     const trois = [...membres, { id: 'u3', display_name: 'Camille' }]
-    expect(clotureParLesAutres([c('u2'), c('u3')], 'u1', trois)).toBe('Thauba et Camille')
+    expect(clotureParLesAutres([c('u2'), c('u3')], 'u1', trois)).toBe('Léa et Camille')
   })
   it('aucun choix du tout : rien à nommer', () => {
     expect(clotureParLesAutres([], 'u1', membres)).toBeNull()

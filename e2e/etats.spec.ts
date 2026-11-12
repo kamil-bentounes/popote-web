@@ -235,7 +235,7 @@ test.describe('les états du foyer rempli', () => {
       'la porte ne mène pas à l’écran des charges').toBeVisible({ timeout: 15_000 })
   })
 
-  test('ce que Thauba voit d’elle-même', async ({ page }) => {
+  test('ce que Léa voit d’elle-même', async ({ page }) => {
     /* Elle n'a posé aucun de ces chiffres. Les écrans lui parlent-ils d'elle,
        ou de celui qui a rempli ? Le parcours d'invitation la crée mais ne
        photographie que la liste des charges. */
@@ -266,13 +266,13 @@ test.describe('les états du foyer rempli', () => {
     /* ── Retirer quelqu'un d'une charge commune, puis le remettre ───────── */
     await ouvreLaLigne(page, 'Internet')
     await page.getByRole('button', { name: 'Changer qui participe' }).click()
-    const thauba = page.getByRole('checkbox', { name: 'Thauba' }).first()
-    await expect(thauba).toHaveAttribute('aria-checked', 'true')
-    await thauba.click()
-    await expect(thauba).toHaveAttribute('aria-checked', 'false', { timeout: 15_000 })
+    const lea = page.getByRole('checkbox', { name: 'Léa' }).first()
+    await expect(lea).toHaveAttribute('aria-checked', 'true')
+    await lea.click()
+    await expect(lea).toHaveAttribute('aria-checked', 'false', { timeout: 15_000 })
     await prend(page, 'gestes-01-qui-participe')
-    await thauba.click()
-    await expect(thauba).toHaveAttribute('aria-checked', 'true', { timeout: 15_000 })
+    await lea.click()
+    await expect(lea).toHaveAttribute('aria-checked', 'true', { timeout: 15_000 })
     await page.getByRole('button', { name: 'Fermer' }).click()
 
     /* ── Rattacher une charge sans compte ──────────────────────────────── */

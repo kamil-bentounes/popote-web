@@ -178,7 +178,7 @@ test('le frigo fermé dit le dîner de ce soir et ce qui presse', async ({ page 
   await page.reload()
   await expect(page.locator('[data-afficheur]')).toContainText('Rien de prévu ce soir')
   await expect(page.locator('[data-afficheur]')).not.toContainText('Burger')
-  /* … et le magnet reste : la part de Thauba est encore posée sur ce soir (1 burger). */
+  /* … et le magnet reste : la part de Léa est encore posée sur ce soir (1 burger). */
   await expect(page.locator('[data-magnet]')).toHaveText('Sors la barquette de burger de feuilles de riz : c’est ce soir')
   /* On remet le repas. */
   const burgers = await parts('Burger de feuilles de riz')
@@ -578,7 +578,7 @@ const ouvreLe = async (page: Page, porte: 'frigo' | 'congelo') => {
 test('H1 · la fiche montre la part de chacun, et « En manger une maintenant » prend LA MIENNE', async ({ page }) => {
   test.setTimeout(120_000)
   const t = 'Chili de la revue'
-  /* La part de Thauba est la plus pressée, puis la mienne : l'ordre de péremption ne doit pas décider. */
+  /* La part de Léa est la plus pressée, puis la mienne : l'ordre de péremption ne doit pas décider. */
   const { parts: ps } = await seme(t, [
     { pour: ELLE(), expire: 1, grams: 610, kcal: 530, protein_g: 44 },
     { pour: MOI(), expire: 3, grams: 784, kcal: 682, protein_g: 56 },
@@ -594,7 +594,7 @@ test('H1 · la fiche montre la part de chacun, et « En manger une maintenant »
     await expect(f).toBeVisible()
     /* Pas de moyenne qui ne correspond à aucune part : une ligne par personne. */
     await expect(f.getByText('Kamil : 784 g, 682 kcal, 56 g de protéines')).toBeVisible()
-    await expect(f.getByText('Thauba : 610 g, 530 kcal, 44 g de protéines')).toBeVisible()
+    await expect(f.getByText('Léa : 610 g, 530 kcal, 44 g de protéines')).toBeVisible()
     await expect(f.getByText(/la part$/)).toHaveCount(0)
     await capture(page, '11-fiche-par-personne')
     await page.setViewportSize({ width: 320, height: 700 })
@@ -607,7 +607,7 @@ test('H1 · la fiche montre la part de chacun, et « En manger une maintenant »
       .eq('user_profile_id', MOI()).eq('day', jourLocal(0)).eq('meal', repasEnCours()).single()).data!
     expect(ma.state).toBe('mange')
     const mangee = ps.find(p => p.id === ma.portion_id)!
-    expect(mangee.for_user_id, 'Kamil a mangé la part de Thauba (ses calories, pas les siennes)').toBe(MOI())
+    expect(mangee.for_user_id, 'Kamil a mangé la part de Léa (ses calories, pas les siennes)').toBe(MOI())
     expect((await db.from('portion').select('state').eq('id', ma.portion_id!).single()).data!.state).toBe('mangee')
 
     /* Un repas déjà noté mangé n'est pas écrasé : on le dit. */

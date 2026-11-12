@@ -41,7 +41,7 @@ test.describe('l’écran du mois', () => {
       await page.goto('/budget')
       const recap = page.getByRole('region', { name: 'Ce qui reste' })
       await expect(recap.getByText('Il te reste')).toBeVisible({ timeout: 15_000 })
-      await expect(recap.getByText(/sur 3\s700 € de revenus/)).toBeVisible()
+      await expect(recap.getByText(/sur 3\s100 € de revenus/)).toBeVisible()
       await expect(page.getByText(/à verser/i)).toHaveCount(0)
 
       const cartes = page.getByRole('region', { name: /^Catégorie / })
@@ -114,12 +114,12 @@ test.describe('l’écran du mois', () => {
       await expect(page.getByText(/Entretien auto — facture \d{4}/)).toBeVisible({ timeout: 10_000 })
     })
 
-  test('D80 : Thauba voit toutes les lignes, son « Il te reste » ne compte que ses parts',
+  test('D80 : Léa voit toutes les lignes, son « Il te reste » ne compte que ses parts',
     async ({ page }) => {
       await connecte(page, foyer.elleEmail)
       await page.goto('/budget')
       const recap = page.getByRole('region', { name: 'Ce qui reste' })
-      await expect(recap.getByText(/sur 2\s400 € de revenus/)).toBeVisible({ timeout: 15_000 })
+      await expect(recap.getByText(/sur 2\s100 € de revenus/)).toBeVisible({ timeout: 15_000 })
       await ouvreLaCategorie(page, 'Abonnements')
       await expect(page.getByRole('region', { name: 'Catégorie Abonnements' })
         .getByText('Forfait mobile'), 'la ligne de Kamil est cachée').toBeVisible()
@@ -129,10 +129,10 @@ test.describe('l’écran du mois', () => {
         .eq('household_id', foyer.householdId).eq('mois', mois)
       const siennes = (data ?? []).reduce((t, l) => t + (l.depense_part
         .find((p: { user_profile_id: string }) => p.user_profile_id === foyer.elleId)?.part_cents ?? 0), 0)
-      const attendu = ((240_000 - siennes) / 100).toLocaleString('fr-FR',
-        { minimumFractionDigits: (240_000 - siennes) % 100 === 0 ? 0 : 2, maximumFractionDigits: 2 })
+      const attendu = ((210_000 - siennes) / 100).toLocaleString('fr-FR',
+        { minimumFractionDigits: (210_000 - siennes) % 100 === 0 ? 0 : 2, maximumFractionDigits: 2 })
       await expect(recap.getByText(`${attendu} €`)).toBeVisible()
-      await prend(page, '05-mois-vu-par-thauba')
+      await prend(page, '05-mois-vu-par-lea')
     })
 
   test('la carte Budget du hub : ce qui reste, et la ligne qui suit', async ({ page }) => {

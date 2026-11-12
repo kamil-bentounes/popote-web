@@ -95,11 +95,11 @@ test('une question : la réponse, sa source, l’écran à ouvrir — et le bout
   await connecte(page, foyer.email)
   await bouton(page).click()
 
-  await page.getByRole('button', { name: 'Comment inviter Thauba ?' }).click()
+  await page.getByRole('button', { name: 'Comment inviter Léa ?' }).click()
   await expect(page.getByText('Aucun mail ne part', { exact: false })).toBeVisible()
   await expect(page.getByText(/Source\s:\smanuel\s«\sInviter quelqu’un\s», vérifié le 23 octobre/)).toBeVisible()
   await expect(page.getByRole('note'), 'une réponse confirmée ne porte aucune mise en garde').toHaveCount(0)
-  expect(corps[0]).toMatchObject({ question: 'Comment inviter Thauba ?', precedent: null, ecran: '/' })
+  expect(corps[0]).toMatchObject({ question: 'Comment inviter Léa ?', precedent: null, ecran: '/' })
   await page.screenshot({ path: '.shots/aide/03-reponse.png' })
 
   await page.getByRole('button', { name: 'Ouvrir « Inviter quelqu’un »' }).click()
@@ -118,14 +118,14 @@ test('la seconde question emporte la première, et la réponse non confirmée le
   await connecte(page, foyer.email)
   await bouton(page).click()
 
-  await page.getByRole('button', { name: 'Comment inviter Thauba ?' }).click()
+  await page.getByRole('button', { name: 'Comment inviter Léa ?' }).click()
   await expect(page.getByText('Aucun mail ne part', { exact: false })).toBeVisible()
   await page.getByLabel('Ta question').fill('Et elle dure combien de temps ?')
   await page.getByRole('button', { name: 'Envoyer' }).click()
   await expect(page.getByText('Elle vaut 90 jours.')).toBeVisible()
   expect(corps[1]).toMatchObject({
     question: 'Et elle dure combien de temps ?',
-    precedent: { question: 'Comment inviter Thauba ?', reponse: expect.stringContaining('Aucun mail ne part') },
+    precedent: { question: 'Comment inviter Léa ?', reponse: expect.stringContaining('Aucun mail ne part') },
   })
   await expect(page.getByRole('note')).toContainText('Je n’ai pas pu confirmer dans le manuel : 90')
   await page.screenshot({ path: '.shots/aide/04-non-confirmee.png' })
@@ -136,14 +136,14 @@ test('« Cette réponse est fausse » écrit le signalement en base et remercie'
   await simule(page, [INVITER])
   await connecte(page, foyer.email)
   await bouton(page).click()
-  await page.getByRole('button', { name: 'Comment inviter Thauba ?' }).click()
+  await page.getByRole('button', { name: 'Comment inviter Léa ?' }).click()
   await expect(page.getByText('Aucun mail ne part', { exact: false })).toBeVisible()
 
   await page.getByRole('button', { name: 'Cette réponse est fausse' }).click()
   await expect(page.getByText('Merci, c’est noté.')).toBeVisible({ timeout: 10_000 })
   const { data } = await db.from('aide_signalement').select('question, pages, user_profile_id')
     .eq('household_id', foyer.householdId)
-  expect(data).toEqual([{ question: 'Comment inviter Thauba ?', pages: ['foyer-inviter'], user_profile_id: foyer.userId }])
+  expect(data).toEqual([{ question: 'Comment inviter Léa ?', pages: ['foyer-inviter'], user_profile_id: foyer.userId }])
 })
 
 test('un refus de la fonction se dit, et la question revient dans le champ', async ({ page }) => {

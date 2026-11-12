@@ -319,7 +319,7 @@ describe('les trois étapes, tout lu', () => {
   })
 
   it('un solde d’année à deux : le total du foyer se dit, MA part non — « avant les soldes d’année »', () => {
-    const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')])
+    const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')])
     const soldes = [{ charge: 'c1', libelle: 'Entretien auto', annee: 2026, cents: -166_68 }]
     const t = texte(page({ foyer: deux, apercu: soldes }))
     expect(t).toContain('Entretien auto : 166,68 € non dépensés en 2026 reviennent.')
@@ -345,7 +345,7 @@ describe('les trois étapes, tout lu', () => {
   })
 
   it('à deux sans solde (onze mois sur douze) : « Il te reste ce mois-ci » comme avant', () => {
-    const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')])
+    const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')])
     expect(texte(page({ foyer: deux }))).toContain('Il te reste ce mois-ci')
   })
 
@@ -365,7 +365,7 @@ describe('les trois étapes, tout lu', () => {
   })
 
   it('à deux, le revenu et les parts sont les MIENS', () => {
-    const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')])
+    const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')])
     const partage = (id: string, dep: ReturnType<typeof depense>) => ({
       ...dep, parts: [{ user_profile_id: 'u1', part_cents: dep.montant_cents / 2, part_bps: 5000 },
                       { user_profile_id: 'u2', part_cents: dep.montant_cents / 2, part_bps: 5000 }], id })

@@ -9,7 +9,7 @@
  *  · les mails arrivent à l'adresse de connexion, de la part de « Popote ».
  *
  * La maquette est `Rappels.dc.html` (hors dépôt, `~/PERSO/sauvegardes-popote/maquettes-2026-10-26-frigo/`). Elle
- * montrait un onglet « Ceux de Thauba » : il n'y est pas, par décision de Kamil (« chacun ne règle que les siens »).
+ * montrait un onglet « Ceux de Léa » : il n'y est pas, par décision de Kamil (« chacun ne règle que les siens »).
  */
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'

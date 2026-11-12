@@ -12,8 +12,8 @@ import type { Part, Prevu } from './frigo.ts'
 const LUNDI = new Date(2026, 9, 26, 10, 0)
 const LUNDI_SOIR = new Date(2026, 9, 26, 20, 0)
 const KAMIL = 'u-kamil'
-const THAUBA = 'u-thauba'
-const MEMBRES = [{ id: KAMIL, prenom: 'Kamil' }, { id: THAUBA, prenom: 'Thauba' }]
+const LEA = 'u-lea'
+const MEMBRES = [{ id: KAMIL, prenom: 'Kamil' }, { id: LEA, prenom: 'Léa' }]
 
 let n = 0
 function part(o: Partial<Part> & { label: string; location: 'frigo' | 'congelateur' }): Part {
@@ -99,7 +99,7 @@ describe('le bandeau : sept jours passés, aujourd’hui, six jours à venir', (
 describe('un jour passé : ce qui reste à noter', () => {
   const burger = part({ label: 'Burger de feuilles de riz', location: 'congelateur' })
   const carte = (etats: ('prevu' | 'mange')[]) => cartesDuRepas(
-    etats.map((state, i) => case_({ qui: [KAMIL, THAUBA][i], day: '2026-10-25', state, portion: burger })), MEMBRES, KAMIL,
+    etats.map((state, i) => case_({ qui: [KAMIL, LEA][i], day: '2026-10-25', state, portion: burger })), MEMBRES, KAMIL,
   ).cartes[0]
   it('un repas posé et pas marqué mangé le dit : « pas encore noté »', () => {
     expect(ligneDeLaCarte(carte(['prevu', 'prevu']), MEMBRES, true)).toBe('Du congélateur, pour vous deux · pas encore noté')
@@ -112,7 +112,7 @@ describe('un jour passé : ce qui reste à noter', () => {
   })
   it('à moitié noté : qui l’a mangé, et pour qui il reste à noter', () => {
     expect(ligneDeLaCarte(carte(['mange', 'prevu']), MEMBRES, true))
-      .toBe('Du congélateur, pour vous deux · Kamil l’a mangé, pas encore noté pour Thauba')
+      .toBe('Du congélateur, pour vous deux · Kamil l’a mangé, pas encore noté pour Léa')
     expect(ligneDeLaCarte(carte(['mange', 'prevu']), MEMBRES, false)).toBe('Du congélateur, pour vous deux · Kamil l’a mangé')
   })
   it('« On saute ce repas » n’est pas « pas encore noté » : c’est une réponse', () => {
@@ -134,7 +134,7 @@ describe('la carte vide', () => {
   it('à venir : « + Choisir le midi », avec les prénoms quand une autre carte existe', () => {
     expect(texteDeLaCarteVide('dejeuner', false)).toBe('+ Choisir le midi')
     expect(texteDeLaCarteVide('diner', false)).toBe('+ Choisir le soir')
-    expect(texteDeLaCarteVide('diner', false, ids(THAUBA))).toBe('+ Choisir le soir pour Thauba')
+    expect(texteDeLaCarteVide('diner', false, ids(LEA))).toBe('+ Choisir le soir pour Léa')
   })
   it('passé : « + Noter ce que j’ai mangé ce midi » (ou ce soir)', () => {
     expect(texteDeLaCarteVide('dejeuner', true)).toBe('+ Noter ce que j’ai mangé ce midi')
@@ -142,10 +142,10 @@ describe('la carte vide', () => {
     expect(texteDeLaCarteVide('diner', true, ids(KAMIL))).toBe('+ Noter ce que j’ai mangé ce soir')
   })
   it('passé, pour quelqu’un d’autre : son prénom, au singulier ou au pluriel', () => {
-    expect(texteDeLaCarteVide('diner', true, ids(THAUBA))).toBe('+ Noter ce que Thauba a mangé ce soir')
+    expect(texteDeLaCarteVide('diner', true, ids(LEA))).toBe('+ Noter ce que Léa a mangé ce soir')
     const trois = [...MEMBRES, { id: 'u-marc', prenom: 'Marc' }]
-    expect(texteDeLaCarteVide('dejeuner', true, { ids: [THAUBA, 'u-marc'], membres: trois, moi: KAMIL }))
-      .toBe('+ Noter ce que Thauba et Marc ont mangé ce midi')
+    expect(texteDeLaCarteVide('dejeuner', true, { ids: [LEA, 'u-marc'], membres: trois, moi: KAMIL }))
+      .toBe('+ Noter ce que Léa et Marc ont mangé ce midi')
   })
   it('le moment, en mots', () => {
     expect(MOT_DU_MOMENT.diner).toEqual({ au: 'au soir', du: 'du soir' })
@@ -184,55 +184,55 @@ describe('les cartes d’un repas', () => {
   const wraps = fois(2, { label: 'Wrap', location: 'congelateur' })
   it('un plat pour deux : UNE carte, « Du frigo, pour vous deux »', () => {
     const { cartes, sansChoix } = cartesDuRepas([
-      case_({ qui: THAUBA, portion: lasagnes[1] }), case_({ qui: KAMIL, portion: lasagnes[0] }),
+      case_({ qui: LEA, portion: lasagnes[1] }), case_({ qui: KAMIL, portion: lasagnes[0] }),
     ], MEMBRES, KAMIL)
     expect(cartes).toHaveLength(1)
     expect(sansChoix).toEqual([])
-    expect(cartes[0].personnes).toEqual([KAMIL, THAUBA])
+    expect(cartes[0].personnes).toEqual([KAMIL, LEA])
     expect(ligneDeLaCarte(cartes[0], MEMBRES)).toBe('Du frigo, pour vous deux')
     expect(nomDeLaCarte(cartes[0])).toBe('Lasagnes saumon-poireaux')
   })
   it('un plat congelé pour une personne : « Du congélateur, pour Kamil » ; l’autre reste sans choix', () => {
     const { cartes, sansChoix } = cartesDuRepas([case_({ qui: KAMIL, portion: wraps[0] })], MEMBRES, KAMIL)
     expect(ligneDeLaCarte(cartes[0], MEMBRES)).toBe('Du congélateur, pour Kamil')
-    expect(sansChoix).toEqual([THAUBA])
+    expect(sansChoix).toEqual([LEA])
   })
   it('deux plats différents : deux cartes, la mienne d’abord ; une case vide ne fait pas de carte', () => {
     const { cartes, sansChoix } = cartesDuRepas([
-      case_({ qui: THAUBA, portion: wraps[0] }), case_({ qui: KAMIL, portion: lasagnes[0] }),
+      case_({ qui: LEA, portion: wraps[0] }), case_({ qui: KAMIL, portion: lasagnes[0] }),
     ], MEMBRES, KAMIL)
     expect(cartes.map(c => nomDeLaCarte(c))).toEqual(['Lasagnes saumon-poireaux', 'Wrap'])
     expect(sansChoix).toEqual([])
-    const vide = cartesDuRepas([case_({ qui: KAMIL }), case_({ qui: THAUBA })], MEMBRES, KAMIL)
+    const vide = cartesDuRepas([case_({ qui: KAMIL }), case_({ qui: LEA })], MEMBRES, KAMIL)
     expect(vide.cartes).toEqual([])
-    expect(vide.sansChoix).toEqual([KAMIL, THAUBA])
+    expect(vide.sansChoix).toEqual([KAMIL, LEA])
   })
   it('autre chose et sauté', () => {
     const { cartes } = cartesDuRepas([
-      case_({ qui: KAMIL, extras: [{ label: 'Restaurant' }] }), case_({ qui: THAUBA, state: 'saute' }),
+      case_({ qui: KAMIL, extras: [{ label: 'Restaurant' }] }), case_({ qui: LEA, state: 'saute' }),
     ], MEMBRES, KAMIL)
     expect(cartes.map(c => [nomDeLaCarte(c), ligneDeLaCarte(c, MEMBRES)])).toEqual([
-      ['Restaurant', 'Pour Kamil'], ['On saute ce repas', 'Pour Thauba'],
+      ['Restaurant', 'Pour Kamil'], ['On saute ce repas', 'Pour Léa'],
     ])
   })
   it('qui l’a mangé', () => {
     const tous = cartesDuRepas([
-      case_({ qui: KAMIL, portion: lasagnes[0], state: 'mange' }), case_({ qui: THAUBA, portion: lasagnes[1], state: 'mange' }),
+      case_({ qui: KAMIL, portion: lasagnes[0], state: 'mange' }), case_({ qui: LEA, portion: lasagnes[1], state: 'mange' }),
     ], MEMBRES, KAMIL).cartes[0]
     expect(ligneDeLaCarte(tous, MEMBRES)).toBe('Du frigo, pour vous deux · mangé')
     const un = cartesDuRepas([
-      case_({ qui: KAMIL, portion: lasagnes[0], state: 'mange' }), case_({ qui: THAUBA, portion: lasagnes[1] }),
+      case_({ qui: KAMIL, portion: lasagnes[0], state: 'mange' }), case_({ qui: LEA, portion: lasagnes[1] }),
     ], MEMBRES, KAMIL).cartes[0]
     expect(ligneDeLaCarte(un, MEMBRES)).toBe('Du frigo, pour vous deux · Kamil l’a mangé')
   })
   it('pour qui : tout le foyer, une personne, ou plusieurs dans un grand foyer', () => {
-    expect(pourDit([KAMIL, THAUBA], MEMBRES)).toBe('vous deux')
+    expect(pourDit([KAMIL, LEA], MEMBRES)).toBe('vous deux')
     expect(pourDit([KAMIL], MEMBRES)).toBe('Kamil')
     const trois = [...MEMBRES, { id: 'u-3', prenom: 'Léa' }]
-    expect(pourDit([KAMIL, THAUBA], trois)).toBe('Kamil et Thauba')
-    expect(pourDit([KAMIL, THAUBA, 'u-3'], trois)).toBe('vous trois')
-    expect(personnesDuChoix('tous', MEMBRES)).toEqual([KAMIL, THAUBA])
-    expect(personnesDuChoix(THAUBA, MEMBRES)).toEqual([THAUBA])
+    expect(pourDit([KAMIL, LEA], trois)).toBe('Kamil et Léa')
+    expect(pourDit([KAMIL, LEA, 'u-3'], trois)).toBe('vous trois')
+    expect(personnesDuChoix('tous', MEMBRES)).toEqual([KAMIL, LEA])
+    expect(personnesDuChoix(LEA, MEMBRES)).toEqual([LEA])
   })
 })
 
@@ -265,7 +265,7 @@ describe('le bandeau bleu d’un plat congelé', () => {
     expect(phraseDuBandeau(q)).toBe('C’est pour demain soir : sors-les maintenant, une part décongelée se mange dans les 24 heures.')
     const wraps = fois(2, { label: 'Wrap', location: 'congelateur' })
     const g = groupeLesParts(wraps)[0]
-    const prevus = wraps.map((p, i) => prevu(p, '2026-10-27', 'diner', i ? THAUBA : KAMIL))
+    const prevus = wraps.map((p, i) => prevu(p, '2026-10-27', 'diner', i ? LEA : KAMIL))
     expect(phraseDuBandeau(q), 'le bandeau et la fiche du frigo divergent').toBe(noteDeLaFiche(g, prevus, LUNDI_SOIR))
   })
   it('demain, UNE barquette : « sors-la », jamais « sors-les » (revue du 26/10) — et la fiche du frigo dit pareil', () => {
@@ -292,14 +292,14 @@ describe('le bandeau bleu d’un plat congelé', () => {
 })
 
 describe('les parts libres et le choix de la part de chacun', () => {
-  const cible = { jour: '2026-10-28', repas: 'diner', personnes: [KAMIL, THAUBA] }
+  const cible = { jour: '2026-10-28', repas: 'diner', personnes: [KAMIL, LEA] }
   it('les parts réclamées par un repas à venir ne sont pas libres ; celles de la cible le redeviennent', () => {
     const lasagnes = fois(4, { label: 'Lasagnes', location: 'frigo' })
     const g = groupeLesParts(lasagnes)[0]
     const prevus = [
       prevu(lasagnes[0], '2026-10-27', 'diner'),                 // un autre repas : retenue
-      prevu(lasagnes[1], '2026-10-28', 'diner', THAUBA),         // la cible : redevient libre
-      prevu(lasagnes[2], '2026-10-20', 'diner', THAUBA),         // un repas passé : ne retient pas
+      prevu(lasagnes[1], '2026-10-28', 'diner', LEA),         // la cible : redevient libre
+      prevu(lasagnes[2], '2026-10-20', 'diner', LEA),         // un repas passé : ne retient pas
     ]
     const libres = libresPourLeChoix(g, prevus, cible, LUNDI).map(p => p.id).sort()
     expect(libres).toEqual([lasagnes[1].id, lasagnes[2].id, lasagnes[3].id].sort())
@@ -311,23 +311,23 @@ describe('les parts libres et le choix de la part de chacun', () => {
   it('la sienne d’abord, puis celle de personne, puis celle d’un autre ; la plus pressée d’abord', () => {
     const tard = part({ label: 'P', location: 'frigo', for_user_id: null, expires_at: new Date(2026, 10, 3).toISOString() })
     const tot = part({ label: 'P', location: 'frigo', for_user_id: null, expires_at: new Date(2026, 9, 28).toISOString() })
-    const deThauba = part({ label: 'P', location: 'frigo', for_user_id: THAUBA, expires_at: new Date(2026, 9, 27).toISOString() })
+    const deLea = part({ label: 'P', location: 'frigo', for_user_id: LEA, expires_at: new Date(2026, 9, 27).toISOString() })
     const deKamil = part({ label: 'P', location: 'frigo', for_user_id: KAMIL, expires_at: new Date(2026, 10, 5).toISOString() })
-    const deux = choisirLesParts([tard, tot, deThauba, deKamil], [KAMIL, THAUBA])!
+    const deux = choisirLesParts([tard, tot, deLea, deKamil], [KAMIL, LEA])!
     expect(deux.get(KAMIL)!.id).toBe(deKamil.id)
-    expect(deux.get(THAUBA)!.id).toBe(deThauba.id)
-    // Kamil seul : celle de personne la plus pressée, jamais celle de Thauba.
-    expect(choisirLesParts([tard, tot, deThauba], [KAMIL])!.get(KAMIL)!.id).toBe(tot.id)
+    expect(deux.get(LEA)!.id).toBe(deLea.id)
+    // Kamil seul : celle de personne la plus pressée, jamais celle de Léa.
+    expect(choisirLesParts([tard, tot, deLea], [KAMIL])!.get(KAMIL)!.id).toBe(tot.id)
     // Plus rien pour personne : celle d'un autre.
-    expect(choisirLesParts([deThauba], [KAMIL])!.get(KAMIL)!.id).toBe(deThauba.id)
+    expect(choisirLesParts([deLea], [KAMIL])!.get(KAMIL)!.id).toBe(deLea.id)
   })
 
-  it('toutes personnes confondues : la part de Thauba ne part pas chez Kamil tant qu’il en reste une pour Kamil', () => {
-    const deThauba = part({ label: 'P', location: 'frigo', for_user_id: THAUBA, expires_at: new Date(2026, 9, 27).toISOString() })
+  it('toutes personnes confondues : la part de Léa ne part pas chez Kamil tant qu’il en reste une pour Kamil', () => {
+    const deLea = part({ label: 'P', location: 'frigo', for_user_id: LEA, expires_at: new Date(2026, 9, 27).toISOString() })
     const deKamil = part({ label: 'P', location: 'frigo', for_user_id: KAMIL, expires_at: new Date(2026, 9, 28).toISOString() })
-    const r = choisirLesParts([deThauba, deKamil], [THAUBA, KAMIL])!
+    const r = choisirLesParts([deLea, deKamil], [LEA, KAMIL])!
     expect(r.get(KAMIL)!.id).toBe(deKamil.id)
-    expect(r.get(THAUBA)!.id).toBe(deThauba.id)
+    expect(r.get(LEA)!.id).toBe(deLea.id)
   })
 
   it('la part que la case porte déjà passe avant les autres', () => {
@@ -337,7 +337,7 @@ describe('les parts libres et le choix de la part de chacun', () => {
   })
 
   it('pas assez de parts pour tout le monde : rien', () => {
-    expect(choisirLesParts([part({ label: 'P', location: 'frigo' })], [KAMIL, THAUBA])).toBeNull()
+    expect(choisirLesParts([part({ label: 'P', location: 'frigo' })], [KAMIL, LEA])).toBeNull()
     expect(choisirLesParts([], [KAMIL])).toBeNull()
   })
 
@@ -426,7 +426,7 @@ describe('la péremption : la feuille annonce ce que la base posera, la carte le
   it('dejaPosees : les parts que les cases visées portent déjà (la base les reprend en premier)', () => {
     const a = part({ label: 'P', location: 'frigo' })
     const b = part({ label: 'P', location: 'frigo' })
-    const prevus = [prevu(a, '2026-10-28', 'diner', KAMIL), prevu(b, '2026-10-28', 'diner', THAUBA), prevu(b, '2026-10-29', 'diner', KAMIL)]
+    const prevus = [prevu(a, '2026-10-28', 'diner', KAMIL), prevu(b, '2026-10-28', 'diner', LEA), prevu(b, '2026-10-29', 'diner', KAMIL)]
     expect(dejaPosees(prevus, { ...cible, personnes: [KAMIL] })).toEqual({ [KAMIL]: a.id })
   })
   it('la ligne du frigo parle de la part qui sera posée, pas de la plus pressée', () => {
@@ -439,7 +439,7 @@ describe('la péremption : la feuille annonce ce que la base posera, la carte le
   })
 
   const carteDe = (parts: Part[], jour: string, meal: string, etats: string[] = []) => {
-    const cases = parts.map((p, i) => case_({ qui: i ? THAUBA : KAMIL, day: jour, meal, state: etats[i] ?? 'prevu', portion: { ...p, recipe_id: null } }))
+    const cases = parts.map((p, i) => case_({ qui: i ? LEA : KAMIL, day: jour, meal, state: etats[i] ?? 'prevu', portion: { ...p, recipe_id: null } }))
     return cartesDuRepas(cases, MEMBRES, KAMIL).cartes[0]
   }
   it('la carte : « périme avant ce repas » en ocre, « périmée », ou rien', () => {
@@ -463,8 +463,8 @@ describe('la péremption : la feuille annonce ce que la base posera, la carte le
     const sienne = part({ label: 'P', location: 'frigo', grams: 512, kcal: 595, protein_g: 54 })
     const deux = carteDe([mienne, sienne], '2026-10-28', 'diner')
     expect(detailDeLaPart(deux, MEMBRES, KAMIL)).toBe('784 g · 682 kcal · 56 g de protéines')
-    const seuleThauba = cartesDuRepas([case_({ qui: THAUBA, portion: { ...sienne, recipe_id: null } })], MEMBRES, KAMIL).cartes[0]
-    expect(detailDeLaPart(seuleThauba, MEMBRES, KAMIL)).toBe('Thauba : 512 g · 595 kcal · 54 g de protéines')
+    const seuleLea = cartesDuRepas([case_({ qui: LEA, portion: { ...sienne, recipe_id: null } })], MEMBRES, KAMIL).cartes[0]
+    expect(detailDeLaPart(seuleLea, MEMBRES, KAMIL)).toBe('Léa : 512 g · 595 kcal · 54 g de protéines')
     expect(detailDeLaPart(carteDe([mienne], '2026-10-28', 'diner', ['mange']), MEMBRES, KAMIL)).toBe('')
   })
   it('une case vide (prévue, sans barquette ni extra) n’est rien', () => {

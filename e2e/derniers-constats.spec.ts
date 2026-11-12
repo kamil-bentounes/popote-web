@@ -237,7 +237,7 @@ test('épargne : « Je retire » reste éteint tant que le solde n’est pas lu,
 test('un mois clos d’avant son arrivée : « Tu n’étais pas encore dans le foyer », ni tiret ni « Revenir dessus »', async ({ page }) => {
   await avecFoyer({}, async f => {
     const mois = lemoisPrecedent()
-    // Thauba arrive ce mois-ci ; Kamil clôture le mois d'avant, sans elle.
+    // Léa arrive ce mois-ci ; Kamil clôture le mois d'avant, sans elle.
     const courant = new Date()
     await db.from('revenu').delete().eq('user_profile_id', f.elleId)
     await db.from('user_profile').update({

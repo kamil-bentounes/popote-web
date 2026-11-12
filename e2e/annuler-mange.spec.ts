@@ -76,7 +76,7 @@ const bandeau = (page: Page) => page.locator('[data-bandeau-annule]')
  *  · aujourd'hui, midi et soir : lasagnes pour vous deux, rien de mangé ;
  *  · hier soir : les burgers, mangés par vous deux (la part est consommée par le trigger, comme en vrai).
  */
-async function seme(o: { soirDeThaubaMange?: boolean; hierSansBarquette?: boolean } = {}) {
+async function seme(o: { soirDeLeaMange?: boolean; hierSansBarquette?: boolean } = {}) {
   const hh = foyer.householdId
   await db.from('meal_slot').delete().eq('household_id', hh)
   await db.from('portion').delete().eq('household_id', hh)
@@ -101,7 +101,7 @@ async function seme(o: { soirDeThaubaMange?: boolean; hierSansBarquette?: boolea
   })))
   await pose([
     { household_id: hh, user_profile_id: foyer.userId, day: jourLocal(0), meal: 'diner', state: 'prevu', portion_id: lasagnes![2].id },
-    o.soirDeThaubaMange
+    o.soirDeLeaMange
       ? { household_id: hh, user_profile_id: foyer.elleId, day: jourLocal(0), meal: 'diner', state: 'mange', eaten_at: aLHeure(0, 19, 5), portion_id: lasagnes![3].id }
       : { household_id: hh, user_profile_id: foyer.elleId, day: jourLocal(0), meal: 'diner', state: 'prevu', portion_id: lasagnes![3].id },
   ])
@@ -172,7 +172,7 @@ test('la semaine : « Je l’ai mangé », le bandeau, « Annuler » : la case r
   expect(ma).toMatchObject({ state: 'prevu', eaten_at: null })
   expect(await auFrigo(LASAGNES), 'la part est revenue : 6 parts').toBe(6)
   const sa = (await caseDe(foyer.elleId, 0, 'dejeuner'))!
-  expect(sa.state, 'la case de Thauba n’a pas bougé').toBe('prevu')
+  expect(sa.state, 'la case de Léa n’a pas bougé').toBe('prevu')
   /* Elle se remange, avec la même part. */
   await carte.getByRole('button', { name: 'Je l’ai mangé' }).click()
   await expect.poll(async () => (await caseDe(foyer.userId, 0, 'dejeuner'))?.state, { timeout: 10_000 }).toBe('mange')
@@ -224,9 +224,9 @@ test('le focus sur le bandeau suspend aussi le délai', async ({ page }) => {
   await expect(bandeau(page)).toHaveCount(0, { timeout: 9_000 })
 })
 
-test('le lien : la confirmation dans la carte, « Non, garder » ne change rien, « Oui, remettre » remet à prévu — sans toucher à Thauba', async ({ page }) => {
+test('le lien : la confirmation dans la carte, « Non, garder » ne change rien, « Oui, remettre » remet à prévu — sans toucher à Léa', async ({ page }) => {
   test.setTimeout(120_000)
-  await seme({ soirDeThaubaMange: true })
+  await seme({ soirDeLeaMange: true })
   await connecte(page)
   await page.goto('/semaine')
   const carte = repas(page, 'diner').getByRole('group', { name: `Soir : ${COURT}` })
@@ -234,7 +234,7 @@ test('le lien : la confirmation dans la carte, « Non, garder » ne change rien,
   await carte.getByRole('button', { name: 'Je l’ai mangé' }).click()
   await expect(bandeau(page)).toBeVisible({ timeout: 10_000 })
   await expect(bandeau(page)).toHaveCount(0, { timeout: 12_000 })
-  const avantThauba = (await caseDe(foyer.elleId, 0, 'diner'))!
+  const avantLea = (await caseDe(foyer.elleId, 0, 'diner'))!
   expect(await auFrigo(LASAGNES)).toBe(4)
 
   await carte.getByRole('button', { name: /Pas mangé \? Annuler/ }).click()
@@ -259,9 +259,9 @@ test('le lien : la confirmation dans la carte, « Non, garder » ne change rien,
   const ma = (await caseDe(foyer.userId, 0, 'diner'))!
   expect(ma).toMatchObject({ state: 'prevu', eaten_at: null })
   expect(await auFrigo(LASAGNES), 'la part est revenue').toBe(5)
-  const apresThauba = (await caseDe(foyer.elleId, 0, 'diner'))!
-  expect(apresThauba, 'la case de Thauba est intacte').toMatchObject({ state: 'mange', eaten_at: avantThauba.eaten_at, portion_id: avantThauba.portion_id })
-  expect((await portions(LASAGNES)).find(p => p.id === avantThauba.portion_id)!.state, 'sa part reste mangée').toBe('mangee')
+  const apresLea = (await caseDe(foyer.elleId, 0, 'diner'))!
+  expect(apresLea, 'la case de Léa est intacte').toMatchObject({ state: 'mange', eaten_at: avantLea.eaten_at, portion_id: avantLea.portion_id })
+  expect((await portions(LASAGNES)).find(p => p.id === avantLea.portion_id)!.state, 'sa part reste mangée').toBe('mangee')
 })
 
 test('un jour passé : le lien est là, la part revient au congélateur, la case de l’autre ne bouge pas', async ({ page }) => {
@@ -289,7 +289,7 @@ test('un jour passé : le lien est là, la part revient au congélateur, la case
   const maPart = apres.find(p => p.id === ma.portion_id)!
   expect(maPart, 'la part retourne au congélateur, comme avant').toMatchObject({ state: 'au_frais', location: 'congelateur' })
   expect(maPart.frozen_at).not.toBeNull()
-  expect(apres.find(p => p.id === sa.portion_id)!.state, 'la part de Thauba reste mangée').toBe('mangee')
+  expect(apres.find(p => p.id === sa.portion_id)!.state, 'la part de Léa reste mangée').toBe('mangee')
   /* Le bilan de la veille ne compte plus le repas de Kamil. */
   const { data: lignes } = await db.from('meal_slot').select('state, portion:portion_id(kcal)')
     .eq('household_id', foyer.householdId).eq('day', jourLocal(-1)).eq('user_profile_id', foyer.userId)

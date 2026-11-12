@@ -5,7 +5,7 @@ import { aDire, bandeau, clotureSansMoi, estLaCeMois, moisDeDepart, finDePhrase,
          type Saisie } from './mois.ts'
 
 const K = 'kamil'
-const T = 'thauba'
+const T = 'lea'
 
 /** Une ligne du mois, prévue et partagée comme on le demande. */
 function ligne(o: Omit<Partial<Ligne>, 'parts'> & { parts?: [string, number][] } = {}): Ligne {
@@ -64,23 +64,23 @@ describe('ma part sur un mois clôturé', () => {
 
 describe('« Il te reste »', () => {
   const revenus = [
-    { user_profile_id: K, net_mensuel_cents: 370_000, valid_from: '2026-01-01' },
-    { user_profile_id: T, net_mensuel_cents: 240_000, valid_from: '2026-01-01' },
+    { user_profile_id: K, net_mensuel_cents: 310_000, valid_from: '2026-01-01' },
+    { user_profile_id: T, net_mensuel_cents: 210_000, valid_from: '2026-01-01' },
   ]
   it('à deux, ne compte que mes parts', () => {
     const lignes = [
-      ligne({ id: 'loyer', facon: 'fixe', montant_cents: 100_000, parts: [[K, 60_656], [T, 39_344]] }),
+      ligne({ id: 'loyer', facon: 'fixe', montant_cents: 100_000, parts: [[K, 59_615], [T, 40_385]] }),
       ligne({ id: 'pharmacie', libelle: 'Pharmacie', montant_cents: 2_000, parts: [[T, 2_000]] }),
       ligne({ id: 'forfait', facon: 'fixe', montant_cents: 1_990, parts: [[K, 1_990]] }),
     ]
     expect(resteDuMois({ lignes, saisies: [], moi: K, revenus, mois: '2026-10-01', clos: false }))
-      .toEqual({ revenu: 370_000, charges: 62_646, reste: 370_000 - 62_646 })
-    expect(maPart(lignes[1], K, [], false), 'la Pharmacie de Thauba compte pour Kamil').toBe(0)
+      .toEqual({ revenu: 310_000, charges: 61_605, reste: 310_000 - 61_605 })
+    expect(maPart(lignes[1], K, [], false), 'la Pharmacie de Léa compte pour Kamil').toBe(0)
   })
   it('au fil du mois, ma part de max(prévu, déclaré)', () => {
-    const l = ligne({ id: 'courses', parts: [[K, 48_525], [T, 31_475]] })
-    // 48 525 / 80 000 = 60,66 % : la base fige 6 066 points de base, et c'est sur eux qu'elle répartit.
-    expect(maPart(l, K, [saisie('courses', 90_000)], false)).toBe(Math.round(90_000 * 6_066 / 10_000))
+    const l = ligne({ id: 'courses', parts: [[K, 47_696], [T, 32_304]] })
+    // 47 696 / 80 000 = 59,62 % : la base fige 5 962 points de base, et c'est sur eux qu'elle répartit.
+    expect(maPart(l, K, [saisie('courses', 90_000)], false)).toBe(Math.round(90_000 * 5_962 / 10_000))
   })
   it('sans revenu ce mois-là, il n’y a pas de reste', () => {
     expect(resteDuMois({ lignes: [ligne()], saisies: [], moi: K, revenus: [], mois: '2026-10-01',
@@ -88,7 +88,7 @@ describe('« Il te reste »', () => {
   })
   it('le reste peut être négatif', () => {
     expect(resteDuMois({ lignes: [ligne({ montant_cents: 500_000 })], saisies: [], moi: K,
-      revenus, mois: '2026-10-01', clos: false }).reste).toBe(-130_000)
+      revenus, mois: '2026-10-01', clos: false }).reste).toBe(-190_000)
   })
 })
 
@@ -138,7 +138,7 @@ const charges = new Map([
 describe('le filtre', () => {
   const lignes = [
     ligne({ id: 'l1', charge_id: 'loyer', facon: 'fixe', montant_cents: 100_000,
-            parts: [[K, 60_656], [T, 39_344]] }),
+            parts: [[K, 59_615], [T, 40_385]] }),
     ligne({ id: 'l2', charge_id: 'forfait', facon: 'fixe', montant_cents: 1_990,
             parts: [[K, 1_990]] }),
     ligne({ id: 'l3', charge_id: 'pharmacie', montant_cents: 2_000, parts: [[T, 2_000]] }),
@@ -204,7 +204,7 @@ describe('les catégories', () => {
   it('les lignes d’une catégorie, de la plus lourde à la plus légère', () => {
     const lignes = [
       ligne({ id: 'e', charge_id: 'electricite', facon: 'facture', montant_cents: 5_000 }),
-      ligne({ id: 'l', charge_id: 'loyer', facon: 'fixe', montant_cents: 58_000 }),
+      ligne({ id: 'l', charge_id: 'loyer', facon: 'fixe', montant_cents: 60_000 }),
     ]
     expect(parCategorie({ lignes, charges, saisies: [], filtre: 'tout', moi: K, clos: false })[0]
       .lignes.map(l => l.id)).toEqual(['l', 'e'])
@@ -385,7 +385,7 @@ describe('le récap de la clôture', () => {
     const saisies = [saisie('courses', 64_230), saisie('resto', 45_000)]
     const r = recapCloture({ revenu: 432_500, lignes, saisies, moi: K,
       rien: new Set(['sorties']), soldes: 0 })
-    // Prévu : 80 000 + 40 000 + 10 000 + 5 000 (la facture, à son montant : la clôture la confirme telle quelle) + 3 700.
+    // Prévu : 80 000 + 40 000 + 10 000 + 5 000 (la facture, à son montant : la clôture la confirme telle quelle) + 37 € d'Internet (3_700 centimes).
     expect(r.prevus).toBe(432_500 - 138_700)
     // Écart : +15 770 (courses) − 5 000 (resto) + 10 000 (sorties, rien dépensé).
     expect(r.ecart).toBe(20_770)
@@ -506,14 +506,14 @@ describe('le reste d’un mois clos, pour celui qui ne l’a pas clôturé : le 
 describe('l’égalité de reste se départage comme la base : par md5(uid || ligne), pas par identifiant', () => {
   /* En 50/50 avec un montant impair, les deux restes sont égaux. La base donne le centime à celui
      dont `md5(uid::text || ligne::text)` est le plus petit (`confirme_la_ligne`, 0104). Relevés :
-       md5('kamil' || 'l1') = ddb14b53…  md5('thauba' || 'l1') = 07176d90…  → Thauba
-       md5('kamil' || 'l4') = 715fe0f5…  md5('thauba' || 'l4') = 84dbe05d…  → Kamil
-     Départagée par identifiant, « kamil » < « thauba » donnait TOUJOURS le centime à Kamil. */
+       md5('kamil' || 'l1') = ddb14b53…  md5('lea' || 'l1') = 07176d90…  → Léa
+       md5('kamil' || 'l4') = 715fe0f5…  md5('lea' || 'l4') = 84dbe05d…  → Kamil
+     Départagée par identifiant, « kamil » < « lea » donnait TOUJOURS le centime à Kamil. */
   const moitie = (id: string) => ({
     ...ligne({ id, montant_cents: 5_000, parts: [[K, 2_500], [T, 2_500]] }),
   })
 
-  it('l1 : le hachage donne le centime à Thauba, pas à Kamil (premier par identifiant)', () => {
+  it('l1 : le hachage donne le centime à Léa, pas à Kamil (premier par identifiant)', () => {
     expect(partSur(moitie('l1'), K, 6_201)).toBe(3_100)
     expect(partSur(moitie('l1'), T, 6_201)).toBe(3_101)
   })
@@ -528,7 +528,7 @@ describe('l’égalité de reste se départage comme la base : par md5(uid || li
     expect(partSur(moitie('l1'), K, -6_201)).toBe(-3_100)
   })
 
-  it('le récap de clôture suit : Thauba porte 3 101 sur l1 et 3 100 sur l4', () => {
+  it('le récap de clôture suit : Léa porte 3 101 sur l1 et 3 100 sur l4', () => {
     const reste = (id: string) => recapCloture({
       revenu: 300_000, lignes: [moitie(id)], saisies: [saisie(id, 6_201)], moi: T,
       rien: new Set(), soldes: 0,
@@ -591,28 +591,28 @@ describe('moisDemande — le mois que l’adresse demande', () => {
 })
 
 describe('qui est là, quel mois', () => {
-  /* Grand test, parcours « nouveau venu » (22/10) : Thauba entre le 1er octobre.
-     En septembre, Kamil lisait « Thauba n'a pas encore dit son revenu : le
+  /* Grand test, parcours « nouveau venu » (22/10) : Léa entre le 1er octobre.
+     En septembre, Kamil lisait « Léa n'a pas encore dit son revenu : le
      partage se fait à parts égales » — alors qu'elle n'était pas là et que
      la base ne lui donne aucune part —, et elle, « Ajoute ton revenu de
      septembre pour clôturer septembre ». */
   const kamil = { id: 'K', display_name: 'Kamil', entre_le: '2026-01-01' }
-  const thauba = { id: 'T', display_name: 'Thauba', entre_le: '2026-10-01' }
-  const revenus = [{ user_profile_id: 'K', net_mensuel_cents: 370_000, valid_from: '2026-01-01' }]
+  const lea = { id: 'T', display_name: 'Léa', entre_le: '2026-10-01' }
+  const revenus = [{ user_profile_id: 'K', net_mensuel_cents: 310_000, valid_from: '2026-01-01' }]
 
   it('on est là le mois de son arrivée, pas avant', () => {
-    expect(estLaCeMois(thauba, '2026-09-01')).toBe(false)
-    expect(estLaCeMois(thauba, '2026-10-01')).toBe(true)
-    expect(estLaCeMois({ ...thauba, entre_le: '2026-10-15' }, '2026-10-01')).toBe(true)
-    expect(estLaCeMois(thauba, '2026-11-01')).toBe(true)
+    expect(estLaCeMois(lea, '2026-09-01')).toBe(false)
+    expect(estLaCeMois(lea, '2026-10-01')).toBe(true)
+    expect(estLaCeMois({ ...lea, entre_le: '2026-10-15' }, '2026-10-01')).toBe(true)
+    expect(estLaCeMois(lea, '2026-11-01')).toBe(true)
   })
 
   it('septembre : celle qui n’est pas encore là ne manque de revenu à personne', () => {
-    expect(membresSansRevenu([kamil, thauba], revenus, '2026-09-01')).toEqual([])
+    expect(membresSansRevenu([kamil, lea], revenus, '2026-09-01')).toEqual([])
   })
 
   it('octobre : elle est là, sans revenu, et on le dit — à deux seulement', () => {
-    expect(membresSansRevenu([kamil, thauba], revenus, '2026-10-01')).toEqual([thauba])
+    expect(membresSansRevenu([kamil, lea], revenus, '2026-10-01')).toEqual([lea])
     expect(membresSansRevenu([kamil], [], '2026-10-01')).toEqual([])
   })
 })

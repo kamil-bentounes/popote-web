@@ -75,7 +75,7 @@ test('profil : un revenu hors de la base est refusé par le champ, avec une phra
     await p.getByLabel(/Ton revenu net/).fill('999999999')
     await expect(p.getByRole('button', { name: 'Enregistrer' })).toBeDisabled()
     await expect(p.getByText(/Un montant en euros, au-dessus de zéro/)).toBeVisible()
-    await p.getByLabel(/Ton revenu net/).fill('2 400,50')
+    await p.getByLabel(/Ton revenu net/).fill('2 100,50')
     await expect(p.getByRole('button', { name: 'Enregistrer' })).toBeEnabled()
   } finally {
     await ctx.close()
@@ -122,7 +122,7 @@ test('réseau coupé : la connexion et l’oubli le disent, au lieu de mentir', 
 })
 
 test('celle qui arrive ce mois-ci ne manque de revenu à personne le mois d’avant', async ({ page }) => {
-  // Thauba arrive le 1er du mois courant et n'a encore dit aucun revenu.
+  // Léa arrive le 1er du mois courant et n'a encore dit aucun revenu.
   const d = new Date()
   const courant = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
   const avant = new Date(d.getFullYear(), d.getMonth() - 1, 1)

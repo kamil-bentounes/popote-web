@@ -133,7 +133,7 @@ test.describe('les captures de revue', () => {
 
 /* Le budget refait, à la largeur de sa maquette (390 px) : le mois et ses trois
    feuilles. Aucune assertion de plus que l'ouverture : ce sont des images à
-   regarder, à côté de `docs/superpowers/maquettes/captures/budget-*.png`. */
+   regarder, à côté des captures de la maquette (ancien dépôt). */
 test.describe('le budget refait, à la largeur de la maquette', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 

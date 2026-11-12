@@ -172,7 +172,7 @@ export function ToutesLesCharges({ userId, retour, categorie, qui }: {
 
         <div className="min-w-0">
           <section aria-label="Les charges" className="rounded-[24px] bg-surface shadow-carte overflow-hidden">
-            {/* Un vrai tableau pour un lecteur d'écran : « 429 € » se lit avec sa colonne (Kamil, Thauba, Total). */}
+            {/* Un vrai tableau pour un lecteur d'écran : « 429 € » se lit avec sa colonne (Kamil, Léa, Total). */}
             <div role="table" aria-label="Les charges, par mois">
               <div role="row" className="flex items-center gap-0.5 px-3 min-h-[46px] bg-piste text-[12.5px] font-bold text-doux
                                           max-[360px]:px-2 min-[900px]:px-5">

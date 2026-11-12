@@ -48,13 +48,13 @@ test('la liste est rangée par catégorie, avec ses comptes, ses totaux et ses l
   const maison = page.getByRole('region', { name: 'Catégorie Maison' })
   await expect(maison.getByRole('button', { name: /Maison\s*3 lignes\s*187 €/ })).toBeVisible()
 
-  /* Une ligne : son nom, « 37 € par mois · Kamil et Thauba », le montant, les initiales. */
+  /* Une ligne : son nom, « 37 € par mois · Kamil et Léa », le montant, les initiales. */
   const internet = ligne(page, 'Internet')
-  await expect(internet).toContainText('37 € par mois · Kamil et Thauba')
+  await expect(internet).toContainText('37 € par mois · Kamil et Léa')
   await expect(internet.locator('.chiffre')).toHaveText('37 €')
   /* Une charge qui ne se paie pas chaque mois : son montant, et « 100 € par mois » dessous ; sans compte. */
   const copro = ligne(page, 'Charges de copropriété du bâtiment B')
-  await expect(copro).toContainText('300 € par trimestre · Kamil et Thauba · mise de côté')
+  await expect(copro).toContainText('300 € par trimestre · Kamil et Léa · mise de côté')
   await expect(copro.locator('.chiffre')).toHaveText('300 €')
   await expect(copro).toContainText('100 € par mois')
   await expect(copro).toContainText('sans compte')
@@ -125,13 +125,13 @@ test('« Changer qui participe » se règle dans la ligne, et se referme sur ell
   await internet.getByRole('button', { expanded: false }).first().click()
   await internet.getByRole('button', { name: 'Changer qui participe' }).click()
   const kamil = internet.getByRole('checkbox', { name: 'Kamil' })
-  const thauba = internet.getByRole('checkbox', { name: 'Thauba' })
+  const lea = internet.getByRole('checkbox', { name: 'Léa' })
   await expect(kamil).toHaveAttribute('aria-checked', 'true')
-  await thauba.click()
-  await expect(thauba).toHaveAttribute('aria-checked', 'false', { timeout: 10_000 })
+  await lea.click()
+  await expect(lea).toHaveAttribute('aria-checked', 'false', { timeout: 10_000 })
   await expect(internet).toContainText('Kamil seul')
-  await thauba.click()
-  await expect(thauba).toHaveAttribute('aria-checked', 'true', { timeout: 10_000 })
+  await lea.click()
+  await expect(lea).toHaveAttribute('aria-checked', 'true', { timeout: 10_000 })
   await internet.getByRole('button', { name: 'Fermer' }).click()
   await expect(internet.getByRole('button', { name: 'Corriger Internet' })).toBeVisible()
 })
@@ -183,7 +183,7 @@ test('avant son arrivée, l’écran se cale sur le mois d’arrivée : les mont
   /* Chaque ligne montre son montant d'arrivée, et plus « commence en … ». */
   const internet = ligne(page, 'Internet')
   await expect(internet.locator('.chiffre')).toHaveText('37 €')
-  await expect(internet).toContainText('37 € par mois · Kamil et Thauba')
+  await expect(internet).toContainText('37 € par mois · Kamil et Léa')
   await expect(page.getByText(/commence en /)).toHaveCount(0)
 
   /* Le total est celui du mois d'arrivée, pas 0,00 €. */
@@ -306,19 +306,19 @@ test('l’échec d’une correction lente se lit sur SA ligne, même quand on a 
   await expect(ligne(page, 'Électricité').getByRole('button', { name: 'Corriger Électricité' })).toBeVisible()
 })
 
-test('le grand total est celui du mois type : Thauba, présente, ne compte pas ce que Kamil paie seul avant d’arriver', async ({ page }) => {
+test('le grand total est celui du mois type : Léa, présente, ne compte pas ce que Kamil paie seul avant d’arriver', async ({ page }) => {
   foyer = await amorce()
   const { prochain } = mois()
-  /* Kamil n'arrive que le mois prochain ; Thauba est là depuis janvier. */
+  /* Kamil n'arrive que le mois prochain ; Léa est là depuis janvier. */
   await db.from('user_profile').update({ entre_le: prochain }).eq('id', foyer.userId)
   await connecte(page, foyer.elleEmail)
   await page.goto('/charges')
 
-  /* 3 917 € : tout ce que Thauba partage ou paie seule (Internet 37, Électricité 50, Courses 800, Restaurant 260,
-     Pharmacie 20, copropriété 100, crédit 1 580, impôt 1 070) ; sans le forfait de Kamil (19,90) ni son entretien auto. */
+  /* 3 867 € : tout ce que Léa partage ou paie seule (Internet 37, Électricité 50, Courses 800, Restaurant 260,
+     Pharmacie 20, copropriété 100, crédit 1 500, impôt 1 100) ; sans le forfait de Kamil (19,90) ni son entretien auto. */
   const phrase = page.getByText(/par mois pour le foyer, une fois tout ramené au mois/)
   await expect(phrase).toBeVisible({ timeout: 15_000 })
-  await expect(phrase).toHaveText(/^3\s917,00 €/)
+  await expect(phrase).toHaveText(/^3\s867,00 €/)
   /* La ligne de Kamil seul est grisée, et dit pourquoi. */
   await expect(ligne(page, 'Forfait mobile')).toContainText('pas encore dans le foyer')
   await expect(ligne(page, 'Entretien auto')).toContainText('pas encore dans le foyer')
@@ -330,7 +330,7 @@ test('le grand total est celui du mois type : Thauba, présente, ne compte pas c
   await page.goto('/toutes-les-charges')
   const total = page.getByRole('row').filter({ hasText: 'Total par mois' })
   await expect(total).toBeVisible({ timeout: 15_000 })
-  await expect(total.getByRole('cell').last()).toHaveText(/^3\s917 €$/)
+  await expect(total.getByRole('cell').last()).toHaveText(/^3\s867 €$/)
 })
 
 test('le focus suit les gestes : le nom à l’ouverture de « Corriger », la première pastille, la ligne d’après « Retirer »', async ({ page }) => {

@@ -5,7 +5,7 @@
  * regarde ce que la refonte ajoute — le repère d'étapes, le nombre en grand, la rangée de compteurs,
  * la photo de chaque recette, les lignes par personne, le complément, les compteurs « au frigo » et
  * « au congélateur » — et chaque état de la planche : chargement, panne, rien à dresser, aucune session,
- * Thauba qui ouvre l'écran, rangement déjà fait.
+ * Léa qui ouvre l'écran, rangement déjà fait.
  *
  * Les captures (390, 320 et 1440 px) vont dans `CAPTURES_DRESSAGE`, à regarder à côté des PNG de la maquette.
  */
@@ -172,17 +172,17 @@ test.describe('sur un téléphone', () => {
     /* Une ligne par personne : la pastille, « n × g », « pour … », les kcal et les protéines. */
     await expect(dahl.getByText(/^10 × \d+ g$/)).toHaveCount(2)
     await expect(dahl.getByText('pour Kamil', { exact: true })).toBeVisible()
-    await expect(dahl.getByText('pour Thauba · parts égales', { exact: true })).toBeVisible()
+    await expect(dahl.getByText('pour Léa · parts égales', { exact: true })).toBeVisible()
     await expect(dahl.getByText(/^\d+ kcal$/)).toHaveCount(2)
     await expect(dahl.getByText(/g de prot\.$/)).toHaveCount(2)
 
     /* La phrase qui explique le calcul, toujours là. */
     await expect(dahl.locator('p').last()).not.toBeEmpty()
 
-    /* Thauba n'a pas d'objectifs : on le dit, son prénom en gras, sans le bouton (ce n'est pas Kamil qui les fixe). */
+    /* Léa n'a pas d'objectifs : on le dit, son prénom en gras, sans le bouton (ce n'est pas Kamil qui les fixe). */
     const avis = page.getByRole('status').filter({ hasText: 'n’a pas encore fixé ses objectifs' })
-    await expect(avis).toHaveText('Thauba n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.')
-    await expect(avis.locator('b')).toHaveText('Thauba')
+    await expect(avis).toHaveText('Léa n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.')
+    await expect(avis.locator('b')).toHaveText('Léa')
     await expect(page.getByRole('button', { name: 'Fixe tes objectifs' })).toHaveCount(0)
 
     /* Une recette mal quantifiée le dit à sa place. */
@@ -278,14 +278,14 @@ test.describe('sur un téléphone', () => {
     expect(parts!.length).toBeGreaterThan(0)
   })
 
-  test('Thauba ouvre l’écran : elle apprend qu’elle est dressée à parts égales, et le bouton mène à ses objectifs', async ({ page }) => {
+  test('Léa ouvre l’écran : elle apprend qu’elle est dressée à parts égales, et le bouton mène à ses objectifs', async ({ page }) => {
     test.setTimeout(120_000)
     await simulePhoto(page)
     await connecte(page, foyer.elleEmail)
     await page.goto('/dressage')
-    await expect(page.getByRole('status').filter({ hasText: 'Thauba n’a pas encore fixé ses objectifs' })).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByRole('button', { name: 'Mon profil' })).toHaveText('T')
-    await captures(page, 'etat-thauba')
+    await expect(page.getByRole('status').filter({ hasText: 'Léa n’a pas encore fixé ses objectifs' })).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByRole('button', { name: 'Mon profil' })).toHaveText('L')
+    await captures(page, 'etat-lea')
     await page.getByRole('button', { name: 'Fixe tes objectifs' }).click()
     await expect(page).toHaveURL(/\/objectifs$/)
   })

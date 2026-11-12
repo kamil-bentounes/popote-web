@@ -171,20 +171,20 @@ export async function amorce(
    */
   /* ⚠️ DEUX personnes, et c'est le point.
      Toutes les captures étaient celles d'un foyer SOLO : le partage au
-     prorata, « Kamil et Thauba » sur une ligne, « Changer qui participe », ce
+     prorata, « Kamil et Léa » sur une ligne, « Changer qui participe », ce
      que chacun doit — le sujet même de l'application — n'était photographié
      nulle part. Le seul écran à deux qui existait, celui du parcours
      d'invitation, a montré du premier coup un bouton qui sortait de la carte.
 
      `user_profile.id` référence `auth.users` : elle a donc un vrai compte, même
      si aucune capture ne s'y connecte — l'invitation a déjà son parcours. */
-  const elleEmail = `thauba-${Date.now()}@test.local`
+  const elleEmail = `lea-${Date.now()}@test.local`
   const ue = ou(await db.auth.admin.createUser({
     email: elleEmail, password: MOT_DE_PASSE, email_confirm: true,
   }))
   const elle = ue.user.id
   ou(await db.from('user_profile').insert({
-    id: elle, household_id: foyer.id, display_name: 'Thauba', password_set: true,
+    id: elle, household_id: foyer.id, display_name: 'Léa', password_set: true,
     entre_le: `${new Date().getFullYear()}-01-01`,
   }).select())
   /* ⚠️ `entre_le` par DÉFAUT vaut aujourd'hui, et aucun mois passé ne
@@ -201,7 +201,7 @@ export async function amorce(
              householdId: foyer.id, cycleId: cycle.id }
   }
 
-  for (const [qui, cents] of [[u.user.id, 370_000], [elle, 240_000]] as const) {
+  for (const [qui, cents] of [[u.user.id, 310_000], [elle, 210_000]] as const) {
     ou(await db.from('revenu').insert({
       household_id: foyer.id, user_profile_id: qui,
       net_mensuel_cents: cents, valid_from: moisCourant(),
@@ -240,9 +240,9 @@ export async function amorce(
       categorie: 'maison', pour: 'deux', compte: false, periodicite: 'trimestriel' },
     /* Les BORNES : 80 caractères, un montant à six chiffres. */
     { libelle: 'Crédit immobilier de la résidence principale et de '
-               + 'l’investissement locatif', cents: 158_000, mode: 'fixe',
+               + 'l’investissement locatif', cents: 150_000, mode: 'fixe',
       categorie: 'credits', pour: 'deux', compte: true, periodicite: 'mensuel' },
-    { libelle: 'Impôt sur le revenu', cents: 1_284_000, mode: 'mis_de_cote',
+    { libelle: 'Impôt sur le revenu', cents: 1_320_000, mode: 'mis_de_cote',
       categorie: 'impots', pour: 'deux', compte: true, periodicite: 'annuel' },
   ]) {
     const charge = ou(await db.from('charge').insert({
@@ -258,11 +258,11 @@ export async function amorce(
   }
 
   const poche = ou(await db.from('poche_epargne').insert({
-    household_id: foyer.id, libelle: 'Urgence', genre: 'urgence', objectif_cents: 450_000,
+    household_id: foyer.id, libelle: 'Urgence', genre: 'urgence', objectif_cents: 400_000,
   }).select().single())
   ou(await db.from('versement_epargne').insert({
     household_id: foyer.id, poche_id: poche.id, user_profile_id: u.user.id,
-    montant_cents: 31_000,
+    montant_cents: 30_000,
   }).select())
 
   return { email, userId: u.user.id, elleId: elle, elleEmail,

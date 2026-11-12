@@ -1,12 +1,12 @@
 /**
  * Le grand test (22/10), les derniers écarts du front : un test par défaut corrigé, regardé au
- * clic. Foyer amorcé par `amorce()` : Kamil a ses objectifs, Thauba n'a pas encore fixé les siens.
+ * clic. Foyer amorcé par `amorce()` : Kamil a ses objectifs, Léa n'a pas encore fixé les siens.
  *
- *   1. Réglages : « Dans le foyer : Kamil, Thauba » ;
+ *   1. Réglages : « Dans le foyer : Kamil, Léa » ;
  *   2. « Mes charges » : une charge qui démarre en 2031 est listée avec sa date, hors du total ;
- *   3. Hub de Thauba : « Fixe tes objectifs » ; dressage de Kamil : il dit qui est dressé à parts égales ;
+ *   3. Hub de Léa : « Fixe tes objectifs » ; dressage de Kamil : il dit qui est dressé à parts égales ;
  *   4. Choisir : six recettes retenues tiennent dans la bande, et le catalogue reste à l’écran ;
- *   5. un mois clôturé par l'autre : son reste calculé, « clôturé par Thauba », jamais un tiret.
+ *   5. un mois clôturé par l'autre : son reste calculé, « clôturé par Léa », jamais un tiret.
  *
  * ⚠️ LOCAL, ET RIEN D'AUTRE.
  */
@@ -36,12 +36,12 @@ async function connecte(page: Page, email = foyer.email) {
   await expect(page.getByRole('heading', { name: 'Popote' })).toBeVisible({ timeout: 15_000 })
 }
 
-test('Réglages : « Dans le foyer : Kamil, Thauba »', async ({ page }) => {
+test('Réglages : « Dans le foyer : Kamil, Léa »', async ({ page }) => {
   await connecte(page)
   await page.goto('/reglages')
   /* Depuis la refonte, les membres sont des pastilles à initiale, dans une liste que « dans le foyer » nomme. */
   const membres = page.getByRole('list', { name: 'dans le foyer' })
-  await expect(membres.getByRole('listitem')).toHaveText(['KKamil', 'TThauba'], { timeout: 15_000 })
+  await expect(membres.getByRole('listitem')).toHaveText(['KKamil', 'TLea'], { timeout: 15_000 })
 })
 
 test('« Mes charges » : une charge de 2031 est listée avec sa date, hors du total', async ({ page }) => {
@@ -67,7 +67,7 @@ test('« Mes charges » : une charge de 2031 est listée avec sa date, hors du t
 })
 
 test('un nouvel arrivant sans objectifs : le hub le dit, le dressage nomme celle qui a des parts égales', async ({ page, browser }) => {
-  // Thauba (aucun objectif) voit « Fixe tes objectifs » sur le hub.
+  // Léa (aucun objectif) voit « Fixe tes objectifs » sur le hub.
   const ctxElle = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR',
     timezoneId: 'Europe/Paris' })
   const elle = await ctxElle.newPage()
@@ -80,7 +80,7 @@ test('un nouvel arrivant sans objectifs : le hub le dit, le dressage nomme celle
   await connecte(page)
   await expect(page.getByText('Fixe tes objectifs.')).toHaveCount(0)
   await page.goto('/dressage')
-  await expect(page.getByText('Thauba n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.'))
+  await expect(page.getByText('Léa n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.'))
     .toBeVisible({ timeout: 15_000 })
 })
 
@@ -122,11 +122,11 @@ test('Choisir : six recettes retenues tiennent dans la bande, le catalogue reste
   await expect(premiere).toHaveValue(String(avant), { timeout: 10_000 })
 })
 
-test('un mois clôturé par Thauba : le reste de Kamil est calculé, avec « clôturé par Thauba »', async ({ page }) => {
+test('un mois clôturé par Léa : le reste de Kamil est calculé, avec « clôturé par Léa »', async ({ page }) => {
   const d = new Date()
   const prec = new Date(d.getFullYear(), d.getMonth() - 1, 1)
   const mois = `${prec.getFullYear()}-${String(prec.getMonth() + 1).padStart(2, '0')}-01`
-  // Thauba clôture, par l'interface de la base comme le fait l'écran : seul son choix est écrit.
+  // Léa clôture, par l'interface de la base comme le fait l'écran : seul son choix est écrit.
   const elle = createClient(process.env.VITE_SUPABASE_URL!, process.env.VITE_SUPABASE_ANON_KEY!,
     { auth: { persistSession: false } })
   const { error: eCo } = await elle.auth.signInWithPassword({ email: foyer.elleEmail, password: MOT_DE_PASSE })
@@ -141,7 +141,7 @@ test('un mois clôturé par Thauba : le reste de Kamil est calculé, avec « cl�
   await connecte(page)
   await page.goto(`/budget/${mois.slice(0, 7)}`)
   const recap = page.getByRole('region', { name: 'Ce qui reste' })
-  await expect(recap.getByText(/est clôturé par Thauba\./)).toBeVisible({ timeout: 15_000 })
+  await expect(recap.getByText(/est clôturé par Léa\./)).toBeVisible({ timeout: 15_000 })
   const t = await recap.innerText()
   /* Le montant, recalculé depuis les tables brutes : mon revenu en vigueur À LA FIN de ce mois-là,
      moins mes parts figées des lignes du mois. */
@@ -156,6 +156,6 @@ test('un mois clôturé par Thauba : le reste de Kamil est calculé, avec « cl�
   expect(t).toContain(attendu < 0 ? 'Il te manque' : 'Il t’est resté')
   expect(t, 'le reste affiché n’est pas celui de ses tables').toContain(montant(Math.abs(attendu)))
   expect(t).not.toContain('—')
-  expect(t, 'le reste de Thauba ne devient pas le mien').not.toContain('999')
+  expect(t, 'le reste de Léa ne devient pas le mien').not.toContain('999')
   expect(t).toContain('Calculé sur tes parts')
 })

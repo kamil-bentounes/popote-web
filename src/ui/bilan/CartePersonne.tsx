@@ -9,7 +9,7 @@ import { initialeDe } from '../../lib/donnees/foyer.ts'
 import { Graphe } from './Graphe.tsx'
 import type { Echelle } from './echelle.ts'
 
-/** La couleur de l'avatar suit l'ORDRE DU FOYER, pas l'ordre de lecture : Thauba reste ocre quand elle ouvre l'écran. */
+/** La couleur de l'avatar suit l'ORDRE DU FOYER, pas l'ordre de lecture : Léa reste ocre quand elle ouvre l'écran. */
 const AVATARS = ['bg-herbe', 'bg-ocre', 'bg-congel-encre', 'bg-encre']
 
 export function CartePersonne({ p, rang, echelle }: { p: Personne; rang: number; echelle: Echelle }) {

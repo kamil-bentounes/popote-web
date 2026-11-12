@@ -108,9 +108,9 @@ test('on dresse pour tout le foyer, on range, et la base garde ce qu’on a choi
   await page.goto('/dressage')
   await expect(page.getByRole('heading', { name: /Dresse\s*12 barquettes/ }),
     'la moitié des parts disparaît : un membre sans objectifs est omis').toBeVisible({ timeout: 20_000 })
-  await expect(page.getByText('Thauba n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.'))
+  await expect(page.getByText('Léa n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.'))
     .toBeVisible()
-  await expect(page.getByText(/pour Thauba · parts égales/).first()).toBeVisible()
+  await expect(page.getByText(/pour Léa · parts égales/).first()).toBeVisible()
   await capture(page, '01-dressage')
 
   await page.getByRole('button', { name: 'C’est dressé' }).click()

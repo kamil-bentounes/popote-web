@@ -86,7 +86,7 @@ export function Hub({ userId, va }: { userId: string; va: (v: string) => void })
   const revenuPose = revenus.some(r => r.user_profile_id === userId)
   const moi = foyer?.membres.find(m => m.id === userId)
   /* Elle (ou il) n'entre dans le foyer qu'après ce mois : le budget n'est pas encore le sien. Sans ce
-     garde, le hub lui lisait « Il te reste 2 400 € en octobre » sur le revenu d'un autre mois, ou
+     garde, le hub lui lisait « Il te reste 2 100 € en octobre » sur le revenu d'un autre mois, ou
      « Ajoute ton revenu » à qui l'avait posé — pour novembre. */
   const pasEncoreLa = moi !== undefined && !estLaCeMois(moi, mois)
   /* Ce qui l'attend à son arrivée, déjà posé : « rien n'est à poser avant » ne disait pas que tout l'était. */

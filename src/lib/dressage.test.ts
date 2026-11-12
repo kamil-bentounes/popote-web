@@ -27,16 +27,16 @@ describe('les étiquettes courtes de la rangée de compteurs', () => {
 describe('les prénoms en gras dans la phrase des objectifs', () => {
   const phrase = (prenoms: string[]) => phraseSansObjectifs(prenoms)!
   it('met le prénom en gras et garde le reste', () => {
-    const p = phrase(['Thauba'])
-    const s = enGrasLesPrenoms(p, ['Thauba'])
-    expect(s[0]).toEqual({ texte: 'Thauba', gras: true })
+    const p = phrase(['Léa'])
+    const s = enGrasLesPrenoms(p, ['Léa'])
+    expect(s[0]).toEqual({ texte: 'Léa', gras: true })
     expect(s.map(x => x.texte).join('')).toBe(p)
     expect(s.filter(x => x.gras)).toHaveLength(1)
   })
   it('deux prénoms : les deux en gras, « et » non', () => {
-    const p = phrase(['Kamil', 'Thauba'])
-    const s = enGrasLesPrenoms(p, ['Kamil', 'Thauba'])
-    expect(s.filter(x => x.gras).map(x => x.texte)).toEqual(['Kamil', 'Thauba'])
+    const p = phrase(['Kamil', 'Léa'])
+    const s = enGrasLesPrenoms(p, ['Kamil', 'Léa'])
+    expect(s.filter(x => x.gras).map(x => x.texte)).toEqual(['Kamil', 'Léa'])
     expect(s.map(x => x.texte).join('')).toBe(p)
   })
   it('un prénom court ne met pas en gras un morceau d’un autre mot', () => {
@@ -55,8 +55,8 @@ describe('les prénoms en gras dans la phrase des objectifs', () => {
     expect(s.map(x => x.texte).join('')).toBe(p)
   })
   it('une phrase qui ne commence pas par les prénoms revient telle quelle', () => {
-    const t = 'Rien à voir : Thauba n’a pas…'
-    expect(enGrasLesPrenoms(t, ['Thauba'])).toEqual([{ texte: t, gras: false }])
+    const t = 'Rien à voir : Léa n’a pas…'
+    expect(enGrasLesPrenoms(t, ['Léa'])).toEqual([{ texte: t, gras: false }])
     expect(enGrasLesPrenoms(t, [])).toEqual([{ texte: t, gras: false }])
   })
 })

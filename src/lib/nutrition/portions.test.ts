@@ -13,12 +13,12 @@ const PAUVRE: Plat = {
 }
 
 const KAMIL = { userId: 'k', kcal: 700, proteinG: 50 }
-const THAUBA = { userId: 't', kcal: 595, proteinG: 42 }
+const LEA = { userId: 't', kcal: 595, proteinG: 42 }
 
 describe('la découpe au prorata', () => {
   it('donne 54 / 46 pour 2 000 contre 1 700 kcal par jour', () => {
     const r = repartit(EQUILIBRE, [
-      { cible: KAMIL, nombre: 3 }, { cible: THAUBA, nombre: 3 },
+      { cible: KAMIL, nombre: 3 }, { cible: LEA, nombre: 3 },
     ])
     const [k, t] = r.parts
     expect(Math.round((k.grammes / (k.grammes + t.grammes)) * 100)).toBe(54)
@@ -26,7 +26,7 @@ describe('la découpe au prorata', () => {
 
   it('tient compte du nombre de parts, pas seulement des objectifs', () => {
     const r = repartit(EQUILIBRE, [
-      { cible: KAMIL, nombre: 5 }, { cible: THAUBA, nombre: 2 },
+      { cible: KAMIL, nombre: 5 }, { cible: LEA, nombre: 2 },
     ])
     const total = r.parts.reduce((s, p) => s + p.grammes * p.nombre, 0)
     expect(total).toBeCloseTo(EQUILIBRE.grammes, -1)
@@ -43,7 +43,7 @@ describe('la découpe au prorata', () => {
 
   it('ne complète rien quand le plat suffit aux deux', () => {
     const r = repartit(EQUILIBRE, [
-      { cible: KAMIL, nombre: 3 }, { cible: THAUBA, nombre: 3 },
+      { cible: KAMIL, nombre: 3 }, { cible: LEA, nombre: 3 },
     ])
     expect(r.complements).toEqual([])
     expect(r.parts.every(p => p.diagnostic === 'ok')).toBe(true)
@@ -125,7 +125,7 @@ describe('les cas qui ne doivent pas casser', () => {
 
   it('ignore une personne qui ne prend aucune part', () => {
     const r = repartit(EQUILIBRE, [
-      { cible: KAMIL, nombre: 3 }, { cible: THAUBA, nombre: 0 },
+      { cible: KAMIL, nombre: 3 }, { cible: LEA, nombre: 0 },
     ])
     expect(r.parts.map(p => p.userId)).toEqual(['k'])
   })
@@ -133,7 +133,7 @@ describe('les cas qui ne doivent pas casser', () => {
   it('explique toujours sa découpe', () => {
     for (const plat of [EQUILIBRE, PAUVRE]) {
       for (const n of [1, 3, 10]) {
-        const r = repartit(plat, [{ cible: KAMIL, nombre: n }, { cible: THAUBA, nombre: n }])
+        const r = repartit(plat, [{ cible: KAMIL, nombre: n }, { cible: LEA, nombre: n }])
         expect(r.explication.length).toBeGreaterThan(20)
       }
     }
@@ -155,7 +155,7 @@ describe('du jour au repas', () => {
 
 describe('le conseil de l écran de choix', () => {
   it('propose le nombre de parts qui tombe juste', () => {
-    expect(partsConseillees(EQUILIBRE, [KAMIL, THAUBA])).toBe(6)
+    expect(partsConseillees(EQUILIBRE, [KAMIL, LEA])).toBe(6)
   })
 
   it('ne propose jamais zéro part pour un plat qui existe', () => {
@@ -199,7 +199,7 @@ describe('qui n’a pas d’objectifs reçoit quand même ses parts', () => {
 
   it('avec deux autres objectifs, sa part vaut leur moyenne', () => {
     const r = repartit(EQUILIBRE, [
-      { cible: KAMIL, nombre: 2 }, { cible: THAUBA, nombre: 2 }, { cible: SANS, nombre: 2 },
+      { cible: KAMIL, nombre: 2 }, { cible: LEA, nombre: 2 }, { cible: SANS, nombre: 2 },
     ])
     const [k, t, s] = r.parts
     expect(s.grammes).toBeGreaterThan(t.grammes)

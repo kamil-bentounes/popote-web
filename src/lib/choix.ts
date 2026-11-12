@@ -166,7 +166,7 @@ export type Carte = {
 
 /**
  * Les cartes d'un repas : une par contenu différent. « Du frigo, pour vous deux » est UNE carte ; si Kamil prend
- * des lasagnes et Thauba une pizza, ce sont deux cartes. Les personnes sans choix sont rendues à part
+ * des lasagnes et Léa une pizza, ce sont deux cartes. Les personnes sans choix sont rendues à part
  * (`sansChoix`) : c'est pour elles que « + Choisir le midi » reste proposé.
  */
 export function cartesDuRepas(cases: CaseLue[], membres: Membre[], moi: string): { cartes: Carte[]; sansChoix: string[] } {
@@ -190,7 +190,7 @@ export function cartesDuRepas(cases: CaseLue[], membres: Membre[], moi: string):
   return { cartes: [...parCle.values()], sansChoix }
 }
 
-/** « vous deux », « Kamil », « Kamil et Thauba » : pour qui, dit comme la maquette (les prénoms, jamais « toi »). */
+/** « vous deux », « Kamil », « Kamil et Léa » : pour qui, dit comme la maquette (les prénoms, jamais « toi »). */
 export function pourDit(ids: string[], membres: Membre[]): string {
   const uniques = [...new Set(ids)]
   if (uniques.length > 1 && uniques.length >= membres.length) return pourLeFoyer(membres.length)
@@ -201,7 +201,7 @@ export function pourDit(ids: string[], membres: Membre[]): string {
 /**
  * La ligne sous le nom : « Du frigo, pour vous deux », « Du congélateur, pour Kamil », « Pour vous deux ». Sur un jour
  * PASSÉ (`passe`), un repas qui n'est pas marqué mangé le dit : « … · pas encore noté », et « … · Kamil l'a mangé, pas
- * encore noté pour Thauba » quand une partie seulement l'est.
+ * encore noté pour Léa » quand une partie seulement l'est.
  */
 export function ligneDeLaCarte(carte: Carte, membres: Membre[], passe = false): string {
   const pour = pourDit(carte.personnes, membres)
@@ -223,8 +223,8 @@ export const aNoter = (carte: Carte): boolean => carte.contenu.genre !== 'saute'
 
 /**
  * Le texte de la carte vide : « + Choisir le midi » (à venir), « + Noter ce que j'ai mangé ce midi » (un jour passé).
- * `pour` : les personnes sans choix quand une autre carte existe déjà (« + Choisir le midi pour Thauba », « + Noter ce
- * que Thauba a mangé ce midi » ; moi seul : « j'ai ») ; absent : tout le monde.
+ * `pour` : les personnes sans choix quand une autre carte existe déjà (« + Choisir le midi pour Léa », « + Noter ce
+ * que Léa a mangé ce midi » ; moi seul : « j'ai ») ; absent : tout le monde.
  */
 export function texteDeLaCarteVide(repas: RepasChoisi, passe: boolean, pour?: { ids: string[]; membres: Membre[]; moi: string }): string {
   const mot = MOT_DU_REPAS[repas].minuscule
@@ -343,7 +343,7 @@ export function libresPourLeChoix<P extends Part>(g: Groupe<P>, prevus: Prevu[],
  * bonnes à l'heure du repas (`moment` ; sans lui, toutes), puis, faute de mieux, celles qui périment avant — et pour
  * chacune de ces deux fournées, dans cet ordre : la part que la case de la personne porte déjà, puis une part POUR ELLE
  * (`for_user_id`), puis une pour personne, puis celle d'un autre en dernier recours ; à égalité la plus pressée d'abord.
- * Les passes se font toutes personnes confondues : la part de Thauba ne part pas chez Kamil tant qu'il en reste une
+ * Les passes se font toutes personnes confondues : la part de Léa ne part pas chez Kamil tant qu'il en reste une
  * pour Kamil. `null` quand il n'y en a pas assez pour tout le monde (la base refuserait, sans rien écrire).
  */
 export function choisirLesParts<P extends Part>(

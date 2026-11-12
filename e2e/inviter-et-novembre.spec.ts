@@ -93,13 +93,13 @@ test('une arrivée au mois prochain : « Commence en … », pas de porte, et le
 
   /* Il pose son revenu aujourd'hui, depuis les réglages du budget : il prend effet à son arrivée. */
   await page.goto('/budget-reglages')
-  await page.getByLabel('Mon net mensuel (€)').fill('2400')
+  await page.getByLabel('Mon net mensuel (€)').fill('2100')
   await page.getByRole('button', { name: 'Enregistrer mon revenu' }).click()
   await expect(page.getByRole('button', { name: 'Mettre à jour mon revenu' }),
     'le revenu posé pour le mois prochain se lit « pas encore renseigné »').toBeVisible({ timeout: 10_000 })
   const { data } = await db.from('revenu').select('valid_from, net_mensuel_cents').eq('user_profile_id', foyer.userId)
   expect(data, 'le revenu doit prendre effet à l’arrivée, pas aujourd’hui').toEqual([
-    { valid_from: iso, net_mensuel_cents: 240_000 }])
+    { valid_from: iso, net_mensuel_cents: 210_000 }])
   await page.screenshot({ path: '.shots/inviter/05-revenu-pose.png', fullPage: true })
 
   /* Une charge posée aujourd'hui court depuis son arrivée : le mois courant reste vide. */

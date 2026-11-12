@@ -158,7 +158,7 @@ export function Profil({ userId, onFini, retour }: {
             ne disaient pas ce qu'on attendait. */}
         {revenu.trim() !== '' && (cents === null || cents === 0) && (
           <p role="status" className="text-[15px] text-groseille">
-            Un montant en euros, au-dessus de zéro : par exemple 2 400 ou 2 400,50.
+            Un montant en euros, au-dessus de zéro : par exemple 2 500 ou 2 500,50.
           </p>
         )}
 

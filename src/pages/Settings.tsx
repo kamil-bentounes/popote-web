@@ -268,7 +268,7 @@ export function Settings({ va }: { va: (v: string) => void }) {
   )
 }
 
-/** La couleur de l'avatar suit l'ORDRE DU FOYER, comme dans le bilan : Thauba reste ocre où qu'elle ouvre l'écran. */
+/** La couleur de l'avatar suit l'ORDRE DU FOYER, comme dans le bilan : Léa reste ocre où qu'elle ouvre l'écran. */
 const AVATARS = ['bg-herbe', 'bg-ocre', 'bg-congel-encre', 'bg-encre']
 
 /**

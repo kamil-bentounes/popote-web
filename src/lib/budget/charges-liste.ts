@@ -29,14 +29,14 @@ export function parMois(c: { montant_cents: number; periodicite: string }): numb
     : Math.round(c.montant_cents / 3)
 }
 
-/** Les participants dans l'ordre du foyer, pas celui de la base (qui ne range rien) : « Kamil et Thauba » ne devient
-    pas « Thauba et Kamil » d'un rechargement à l'autre. Un inconnu passe en dernier. */
+/** Les participants dans l'ordre du foyer, pas celui de la base (qui ne range rien) : « Kamil et Léa » ne devient
+    pas « Léa et Kamil » d'un rechargement à l'autre. Un inconnu passe en dernier. */
 export function dansLOrdreDuFoyer(ids: string[], ordre: Iterable<string>): string[] {
   const rang = new Map([...ordre].map((id, i) => [id, i]))
   return [...ids].sort((a, z) => (rang.get(a) ?? Infinity) - (rang.get(z) ?? Infinity))
 }
 
-/** « Kamil », « Kamil et Thauba », « Kamil, Thauba et Inès ». */
+/** « Kamil », « Kamil et Léa », « Kamil, Léa et Inès ». */
 export function listeDeNoms(noms: string[]): string {
   if (noms.length <= 1) return noms[0] ?? ''
   return `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`
