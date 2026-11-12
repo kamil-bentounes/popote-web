@@ -11,9 +11,8 @@
   },
   "routes": [{ "pattern": "essai.notre-popote.fr", "custom_domain": true }],
   "vars": {
-    // Provisoire : le conteneur d'API de l'essai n'existe pas encore (Scaleway attend un moyen de paiement).
-    // Le domaine réservé `.invalid` ne se résout jamais, donc /api/* rend la 502 `api_indisponible`.
-    "API_ORIGIN": "https://api-essai.invalid",
+    // Le conteneur d'essai chez Scaleway (Paris). Il refuse tout appel sans l'en-tête secret du relais.
+    "API_ORIGIN": "https://popoteessaib8c709c6-api.functions.fnc.fr-par.scw.cloud",
     "CSP_MODE": "report-only",
     "CSP": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests"
   }
