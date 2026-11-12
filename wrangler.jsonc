@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "popote-web-essai",
+  "main": "relais/src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "routes": [{ "pattern": "essai.notre-popote.fr", "custom_domain": true }],
+  "vars": {
+    // Provisoire : le conteneur d'API de l'essai n'existe pas encore (Scaleway attend un moyen de paiement).
+    // Le domaine réservé `.invalid` ne se résout jamais, donc /api/* rend la 502 `api_indisponible`.
+    "API_ORIGIN": "https://api-essai.invalid",
+    "CSP_MODE": "report-only",
+    "CSP": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests"
+  }
+}

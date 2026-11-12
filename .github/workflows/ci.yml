@@ -25,6 +25,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx tsc -b
+      - run: npx tsc -p relais
       - run: npm test
       - run: npm run build -- --mode development
       - run: npm audit --omit=dev --audit-level=high
@@ -43,3 +44,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false" # pas de commentaire : le jeton reste en lecture seule
+          # La version par défaut de l'action (8.24.3) ignore les [[allowlists]] de .gitleaks.toml ;
+          # même version qu'en local.
+          GITLEAKS_VERSION: "8.30.1"

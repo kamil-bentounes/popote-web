@@ -1,0 +1,14 @@
+# Étend la configuration par défaut de gitleaks (toutes ses règles restent actives).
+title = "popote-web"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Clé publiable de Supabase (sb_publishable_…)"
+# Cette clé est PUBLIQUE par conception : elle est embarquée dans le bundle JS du navigateur
+# (VITE_SUPABASE_ANON_KEY dans .env.production et .env.essai, qu'on versionne exprès). La sécurité
+# repose sur la RLS, pas sur son secret. Seule cette forme est écartée : une clé secrète
+# (sb_secret_…), un jeton ou toute autre clé générique continuent d'être signalés.
+regexTarget = "match"
+regexes = ['''sb_publishable_[A-Za-z0-9_-]+''']
