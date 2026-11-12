@@ -6,6 +6,8 @@ export interface Env {
   ASSETS: Fetcher
   API_ORIGIN: string
   RELAY_SECRET: string
+  /** `prod` seulement sur le domaine racine : `preload` n'a de sens que pour lui (voir `securite`). */
+  ENVIRONNEMENT: 'essai' | 'prod'
   /** `report-only` tant que le front parle encore à Supabase en direct (jusqu'au jour J). */
   CSP_MODE: 'enforce' | 'report-only'
   CSP: string
@@ -14,8 +16,18 @@ export interface Env {
 /** Au-delà, l'amont est tenu pour injoignable : un Worker n'a sinon aucune borne à ses appels. */
 const DELAI_AMONT_MS = 30_000
 
+const HSTS = 'max-age=63072000; includeSubDomains'
+
+/**
+ * `preload` demande l'inscription du domaine racine à la liste des navigateurs, et vaut pour tous ses
+ * sous-domaines : il ne se pose que sur la prod, jamais sur le sous-domaine d'essai. Échec fermé : tout
+ * ce qui n'est pas exactement `prod` n'a pas `preload`.
+ */
+function hsts(env: Env): string {
+  return env.ENVIRONNEMENT === 'prod' ? `${HSTS}; preload` : HSTS
+}
+
 const SECURITE: Record<string, string> = {
-  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=()',
@@ -28,6 +40,7 @@ export default {
     if (url.pathname.startsWith('/api/')) return relaie(request, url, env)
     const fichier = await env.ASSETS.fetch(request)
     const reponse = new Response(fichier.body, fichier)
+    reponse.headers.set('Strict-Transport-Security', hsts(env))
     for (const [k, v] of Object.entries(SECURITE)) reponse.headers.set(k, v)
     reponse.headers.set(env.CSP_MODE === 'enforce' ? 'Content-Security-Policy'
       : 'Content-Security-Policy-Report-Only', env.CSP)
@@ -58,6 +71,12 @@ async function relaie(request: Request, url: URL, env: Env): Promise<Response> {
       headers: entetes,
       body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
       redirect: 'manual',
+      // Aucune réponse de l'API n'entre dans le cache de Cloudflare (une route servie par URL, un PNG par
+      // exemple, irait sinon à un autre foyer). `cache: 'no-store'` contourne le cache vers l'origine et
+      // rend la requête non cachable ; `cacheTtlByStatus` négatif « instruit Cloudflare de ne pas cacher du
+      // tout », pour tout statut, et vaut aussi si l'option `cache` n'était pas prise en charge.
+      cache: 'no-store',
+      cf: { cacheTtlByStatus: { '100-599': -1 } },
       signal: AbortSignal.timeout(DELAI_AMONT_MS),
     })
   } catch (erreur) {
@@ -74,7 +93,14 @@ async function relaie(request: Request, url: URL, env: Env): Promise<Response> {
     return amontIndisponible()
   }
   const reponse = new Response(amont.body, amont)
-  if (!reponse.headers.has('Cache-Control')) reponse.headers.set('Cache-Control', 'no-store')
+  // Seulement ce que l'API n'a pas dit : ses propres en-têtes priment (Cache-Control compris).
+  const parDefaut: Record<string, string> = {
+    'Cache-Control': 'no-store',
+    'Strict-Transport-Security': hsts(env),
+    'X-Content-Type-Options': SECURITE['X-Content-Type-Options']!,
+    'Referrer-Policy': SECURITE['Referrer-Policy']!,
+  }
+  for (const [k, v] of Object.entries(parDefaut)) if (!reponse.headers.has(k)) reponse.headers.set(k, v)
   return reponse
 }
 
