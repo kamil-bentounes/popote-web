@@ -245,7 +245,7 @@ describe('peutCorriger — corriger ne contourne ni le plafond ni la date', () =
 })
 
 describe('communeDeLaCharge : une charge n’est commune que si elle se partage', () => {
-  /* Grand test, parcours « nouveau venu » (22/10) : Thauba pose « Salle de sport » (catalogue : perso),
+  /* Grand test, parcours « nouveau venu » (22/10) : Léa pose « Salle de sport » (catalogue : perso),
      seule participante, dans un foyer de deux. Elle était enregistrée COMMUNE : « Commun »
      comptait son abonnement pour Kamil, et toute troisième personne y serait entrée à son
      arrivée (`tg_membre_rejoint_les_communes`). */
@@ -284,12 +284,12 @@ describe('phraseDuTotal : un total qu’on n’a pas lu n’est pas zéro', () =
 
 describe('pourquoiElleNeComptePas — un seul prédicat pour la liste, le mois type et le tableau', () => {
   const c = (debut: string, participants: string[]) => ({ debut, participants })
-  const presents = new Set(['thauba'])
+  const presents = new Set(['lea'])
   it('elle compte : en vigueur, et l’un de ses participants est là', () => {
-    expect(pourquoiElleNeComptePas(c('2026-01-01', ['thauba']), '2026-10-01', presents)).toBeNull()
-    expect(pourquoiElleNeComptePas(c('2026-01-01', ['kamil', 'thauba']), '2026-10-01', presents)).toBeNull()
+    expect(pourquoiElleNeComptePas(c('2026-01-01', ['lea']), '2026-10-01', presents)).toBeNull()
+    expect(pourquoiElleNeComptePas(c('2026-01-01', ['kamil', 'lea']), '2026-10-01', presents)).toBeNull()
   })
-  it('« arrivee » : aucun participant n’est encore là (la charge de Kamil seul, vue par Thauba en octobre)', () => {
+  it('« arrivee » : aucun participant n’est encore là (la charge de Kamil seul, vue par Léa en octobre)', () => {
     expect(pourquoiElleNeComptePas(c('2026-01-01', ['kamil']), '2026-10-01', presents)).toBe('arrivee')
     expect(pourquoiElleNeComptePas(c('2026-01-01', []), '2026-10-01', presents)).toBe('arrivee')
   })

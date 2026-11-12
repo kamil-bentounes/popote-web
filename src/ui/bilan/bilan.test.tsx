@@ -29,19 +29,19 @@ function personne(id: string, nom: string, cible: { kcal: number; protein: numbe
 }
 
 const kamil = personne('k', 'Kamil', { kcal: 2200, protein: 150 }, [['2026-10-24', 620, 34], ['2026-10-25', 620, 34]])
-const thauba = personne('t', 'Thauba', null, [['2026-10-24', 840, 60], ['2026-10-25', 1680, 90]])
+const lea = personne('t', 'Léa', null, [['2026-10-24', 840, 60], ['2026-10-25', 1680, 90]])
 
 const hauteurs = (html: string) => [...html.matchAll(/data-barre="" class="[^"]*" style="height:([\d.]+)%"/g)].map(m => Number(m[1]))
 
 describe('l’échelle commune', () => {
   it('prend le plus haut des jours ET des cibles, de tout le foyer', () => {
-    const e = echelleCommune([kamil, thauba])
+    const e = echelleCommune([kamil, lea])
     expect(e.kcal).toBeCloseTo(2200 * 1.05)
     expect(e.protein).toBeCloseTo(150 * 1.05)
   })
 
   it('sans cible, c’est le plus haut jour', () => {
-    expect(echelleCommune([thauba]).kcal).toBeCloseTo(1680 * 1.05)
+    expect(echelleCommune([lea]).kcal).toBeCloseTo(1680 * 1.05)
   })
 
   it('ne tombe jamais à zéro, même sans rien', () => {
@@ -50,9 +50,9 @@ describe('l’échelle commune', () => {
 })
 
 describe('les graphes des deux personnes', () => {
-  const echelle = echelleCommune([kamil, thauba])
+  const echelle = echelleCommune([kamil, lea])
   const cK = renderToStaticMarkup(<CartePersonne p={kamil} rang={0} echelle={echelle} />)
-  const cT = renderToStaticMarkup(<CartePersonne p={thauba} rang={1} echelle={echelle} />)
+  const cT = renderToStaticMarkup(<CartePersonne p={lea} rang={1} echelle={echelle} />)
 
   it('un jour hors cible a une teinte plus claire ; sans cible, aucun ne l’est', () => {
     // Kamil : 620 kcal sous le plafond (tenu), 34 g de protéines sous le plancher de 150 g (hors cible), deux jours.
@@ -64,14 +64,14 @@ describe('les graphes des deux personnes', () => {
   })
 
   it('une même valeur fait la même hauteur chez l’un et chez l’autre', () => {
-    const solo = renderToStaticMarkup(<CartePersonne p={thauba} rang={1} echelle={echelleCommune([thauba])} />)
+    const solo = renderToStaticMarkup(<CartePersonne p={lea} rang={1} echelle={echelleCommune([lea])} />)
     expect(hauteurs(cT)).not.toEqual(hauteurs(solo))
-    // 840 kcal : la barre de Thauba et celle que Kamil aurait à 840 se mesurent à la même règle.
+    // 840 kcal : la barre de Léa et celle que Kamil aurait à 840 se mesurent à la même règle.
     const h = hauteurs(cT)[0]
     expect(h).toBeCloseTo(840 / echelle.kcal * 100, 1)
   })
 
-  it('trace la cible pour Kamil, et pas pour Thauba, qui n’en a pas', () => {
+  it('trace la cible pour Kamil, et pas pour Léa, qui n’en a pas', () => {
     expect(cK.match(/data-cible=""/g)).toHaveLength(2)
     expect(cT).not.toContain('data-cible')
     expect(cT).not.toContain('cible')
@@ -122,7 +122,7 @@ describe('les graphes des deux personnes', () => {
   it('l’avatar porte l’initiale et la couleur de son rang dans le foyer', () => {
     expect(cK).toContain('bg-herbe')
     expect(cT).toContain('bg-ocre')
-    expect(cT).toContain('>T<')
+    expect(cT).toContain('>L<')
   })
 })
 

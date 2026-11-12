@@ -11,8 +11,8 @@ import type { Part, Prevu } from './frigo.ts'
 const LUNDI = new Date(2026, 9, 26, 20, 0)
 const MARDI = new Date(2026, 9, 27, 10, 0)
 const KAMIL = 'u-kamil'
-const THAUBA = 'u-thauba'
-const MEMBRES = [{ id: KAMIL, prenom: 'Kamil' }, { id: THAUBA, prenom: 'Thauba' }]
+const LEA = 'u-lea'
+const MEMBRES = [{ id: KAMIL, prenom: 'Kamil' }, { id: LEA, prenom: 'Léa' }]
 
 let n = 0
 function part(o: Partial<Part> & { label: string; location: 'frigo' | 'congelateur' }): Part {
@@ -122,9 +122,9 @@ describe('« Prévues pour vous deux » et les puces', () => {
   const [g] = groupeLesParts(lasagnes)
   it('les mêmes repas pour les deux : « vous deux », une puce par repas', () => {
     const prevus = [
-      ...[0, 1].map(i => prevu(lasagnes[i], '2026-10-27', 'dejeuner', i ? THAUBA : KAMIL)),
-      ...[2, 3].map(i => prevu(lasagnes[i], '2026-10-27', 'diner', i % 2 ? THAUBA : KAMIL)),
-      ...[4, 5].map(i => prevu(lasagnes[i], '2026-10-28', 'dejeuner', i % 2 ? THAUBA : KAMIL)),
+      ...[0, 1].map(i => prevu(lasagnes[i], '2026-10-27', 'dejeuner', i ? LEA : KAMIL)),
+      ...[2, 3].map(i => prevu(lasagnes[i], '2026-10-27', 'diner', i % 2 ? LEA : KAMIL)),
+      ...[4, 5].map(i => prevu(lasagnes[i], '2026-10-28', 'dejeuner', i % 2 ? LEA : KAMIL)),
     ]
     expect(prevuesPour(g, prevus, MEMBRES, LUNDI))
       .toEqual({ titre: 'Prévues pour vous deux', puces: ['mar. midi', 'mar. soir', 'mer. midi'] })
@@ -135,12 +135,12 @@ describe('« Prévues pour vous deux » et les puces', () => {
       .toEqual({ titre: 'Prévues pour Kamil', puces: ['mar. soir'] })
   })
   it('un repas d’aujourd’hui se dit « ce soir »', () => {
-    const prevus = [prevu(lasagnes[0], '2026-10-26', 'diner'), prevu(lasagnes[1], '2026-10-26', 'diner', THAUBA)]
+    const prevus = [prevu(lasagnes[0], '2026-10-26', 'diner'), prevu(lasagnes[1], '2026-10-26', 'diner', LEA)]
     expect(prevuesPour(g, prevus, MEMBRES, LUNDI).puces).toEqual(['ce soir'])
   })
   it('des publics différents : la puce le dit', () => {
     const prevus = [
-      prevu(lasagnes[0], '2026-10-27', 'diner'), prevu(lasagnes[1], '2026-10-27', 'diner', THAUBA),
+      prevu(lasagnes[0], '2026-10-27', 'diner'), prevu(lasagnes[1], '2026-10-27', 'diner', LEA),
       prevu(lasagnes[2], '2026-10-28', 'diner'),
     ]
     expect(prevuesPour(g, prevus, MEMBRES, LUNDI))
@@ -150,7 +150,7 @@ describe('« Prévues pour vous deux » et les puces', () => {
     expect(prevuesPour(g, [], MEMBRES, LUNDI).puces).toEqual([])
   })
   it('une part libre est une part qu’aucun repas ne réclame', () => {
-    const prevus = [prevu(lasagnes[0], '2026-10-27', 'diner'), prevu(lasagnes[1], '2026-10-27', 'diner', THAUBA)]
+    const prevus = [prevu(lasagnes[0], '2026-10-27', 'diner'), prevu(lasagnes[1], '2026-10-27', 'diner', LEA)]
     expect(partsLibres(g, prevus)).toHaveLength(4)
   })
 })
@@ -158,11 +158,11 @@ describe('« Prévues pour vous deux » et les puces', () => {
 describe('la porte gauche : l’afficheur', () => {
   const burgers = fois(2, { label: 'Burger de feuilles de riz', location: 'congelateur' })
   it('le dîner de ce soir pour MOI, en nom court', () => {
-    const prevus = [prevu(burgers[0], '2026-10-26', 'diner', KAMIL), prevu(burgers[1], '2026-10-26', 'diner', THAUBA)]
+    const prevus = [prevu(burgers[0], '2026-10-26', 'diner', KAMIL), prevu(burgers[1], '2026-10-26', 'diner', LEA)]
     expect(afficheur(prevus, burgers, KAMIL, LUNDI)).toEqual({ titre: 'Ce soir', plat: 'Burger de feuilles de riz' })
   })
   it('rien de prévu pour moi, même si l’autre mange', () => {
-    const prevus = [prevu(burgers[1], '2026-10-26', 'diner', THAUBA)]
+    const prevus = [prevu(burgers[1], '2026-10-26', 'diner', LEA)]
     expect(afficheur(prevus, burgers, KAMIL, LUNDI)).toEqual({ titre: 'Rien de prévu ce soir', plat: null })
   })
   it('un dîner d’un autre jour, ou un déjeuner, ne compte pas', () => {
@@ -182,7 +182,7 @@ describe('la porte droite : le magnet', () => {
   const tout = [...burgers, ...pizzas, ...lasagnes]
 
   it('1 · des congelées posées sur ce soir passent avant tout', () => {
-    const prevus = [prevu(burgers[0], '2026-10-26', 'diner', KAMIL), prevu(burgers[1], '2026-10-26', 'diner', THAUBA)]
+    const prevus = [prevu(burgers[0], '2026-10-26', 'diner', KAMIL), prevu(burgers[1], '2026-10-26', 'diner', LEA)]
     expect(magnet(tout, prevus, LUNDI)).toEqual({ texte: 'Sors les 2 barquettes de burger de feuilles de riz : c’est ce soir', sorsLesAujourdhui: true })
   })
   it('1 · demain aussi, et au singulier', () => {
@@ -236,7 +236,7 @@ describe('ce que dit une carte', () => {
   it('le congelé posé ce soir : à sortir maintenant, en ocre', () => {
     const b = fois(2, { label: 'Burger', location: 'congelateur' })
     const [g] = groupeLesParts(b)
-    const prevus = [prevu(b[0], '2026-10-26', 'diner'), prevu(b[1], '2026-10-26', 'diner', THAUBA)]
+    const prevus = [prevu(b[0], '2026-10-26', 'diner'), prevu(b[1], '2026-10-26', 'diner', LEA)]
     expect(quand(g, prevus, LUNDI)).toEqual({ texte: 'Ce soir : à sortir maintenant', encre: 'var(--color-ocre)' })
     expect(ariaDeCarte(g, quand(g, prevus, LUNDI))).toBe('Burger, 2 parts, Ce soir : à sortir maintenant')
   })
@@ -244,16 +244,16 @@ describe('ce que dit une carte', () => {
     const l = fois(6, { label: 'Lasagnes', location: 'frigo' })
     const [g] = groupeLesParts(l)
     const prevus = [
-      prevu(l[0], '2026-10-27', 'dejeuner'), prevu(l[1], '2026-10-27', 'dejeuner', THAUBA),
-      prevu(l[2], '2026-10-28', 'dejeuner'), prevu(l[3], '2026-10-28', 'dejeuner', THAUBA),
-      prevu(l[4], '2026-10-27', 'diner'), prevu(l[5], '2026-10-27', 'diner', THAUBA),
+      prevu(l[0], '2026-10-27', 'dejeuner'), prevu(l[1], '2026-10-27', 'dejeuner', LEA),
+      prevu(l[2], '2026-10-28', 'dejeuner'), prevu(l[3], '2026-10-28', 'dejeuner', LEA),
+      prevu(l[4], '2026-10-27', 'diner'), prevu(l[5], '2026-10-27', 'diner', LEA),
     ]
     expect(quand(g, prevus, LUNDI).texte).toBe('mar. midi à mer. midi')
   })
   it('un seul repas : sans flèche', () => {
     const p = fois(2, { label: 'Pizza', location: 'frigo' })
     const [g] = groupeLesParts(p)
-    const prevus = p.map((x, i) => prevu(x, '2026-10-28', 'diner', i ? THAUBA : KAMIL))
+    const prevus = p.map((x, i) => prevu(x, '2026-10-28', 'diner', i ? LEA : KAMIL))
     expect(quand(g, prevus, LUNDI).texte).toBe('mer. soir')
   })
   it('le frigo qui presse et n’est pas posé : le mot d’urgence', () => {
@@ -362,9 +362,9 @@ describe('les sous-titres', () => {
 
 describe('pour qui, et à quels repas', () => {
   it('tout le foyer : « vous deux » ; moi seul : « toi » ; l’autre : son prénom', () => {
-    expect(pourQui([KAMIL, THAUBA], MEMBRES, KAMIL)).toBe('vous deux')
+    expect(pourQui([KAMIL, LEA], MEMBRES, KAMIL)).toBe('vous deux')
     expect(pourQui([KAMIL, KAMIL], MEMBRES, KAMIL)).toBe('toi')
-    expect(pourQui([THAUBA], MEMBRES, KAMIL)).toBe('Thauba')
+    expect(pourQui([LEA], MEMBRES, KAMIL)).toBe('Léa')
     expect(pourQui([KAMIL], [{ id: KAMIL, prenom: 'Kamil' }], KAMIL)).toBe('toi')
   })
   it('les repas d’un jour', () => {
@@ -409,12 +409,12 @@ describe('H1 · les portions sont PAR PERSONNE : la fiche ne montre pas une moye
   it('des parts différentes selon la personne : une ligne par personne', () => {
     const [g] = groupeLesParts([
       part({ label: 'Lasagnes', location: 'frigo', grams: 784, kcal: 682, protein_g: 56, for_user_id: KAMIL }),
-      part({ label: 'Lasagnes', location: 'frigo', grams: 610, kcal: 530, protein_g: 44, for_user_id: THAUBA }),
+      part({ label: 'Lasagnes', location: 'frigo', grams: 610, kcal: 530, protein_g: 44, for_user_id: LEA }),
       part({ label: 'Lasagnes', location: 'frigo', grams: 784, kcal: 682, protein_g: 56, for_user_id: KAMIL }),
     ])
     expect(macrosDuGroupe(g, MEMBRES)).toEqual([
       'Kamil : 784 g, 682 kcal, 56 g de protéines',
-      'Thauba : 610 g, 530 kcal, 44 g de protéines',
+      'Léa : 610 g, 530 kcal, 44 g de protéines',
     ])
   })
   it('des parts pour personne qui diffèrent : « Pour tous », les deux valeurs', () => {
@@ -427,7 +427,7 @@ describe('H1 · les portions sont PAR PERSONNE : la fiche ne montre pas une moye
   it('la même valeur pour tous, quel que soit le destinataire : la phrase d’avant, une seule valeur', () => {
     const [g] = groupeLesParts([
       part({ label: 'L', location: 'frigo', grams: 784, kcal: 682, protein_g: 56, for_user_id: KAMIL }),
-      part({ label: 'L', location: 'frigo', grams: 784, kcal: 682, protein_g: 56, for_user_id: THAUBA }),
+      part({ label: 'L', location: 'frigo', grams: 784, kcal: 682, protein_g: 56, for_user_id: LEA }),
     ])
     expect(macrosDuGroupe(g, MEMBRES)).toEqual(['784 g, 682 kcal et 56 g de protéines la part'])
   })
@@ -438,7 +438,7 @@ describe('M2 · l’urgence se dit aussi quand tout est réclamé', () => {
   it('un repas posé APRÈS la péremption : le mot d’urgence, pas le planning', () => {
     const l = lasagnes()
     const [g] = groupeLesParts(l)
-    const prevus = [prevu(l[0], '2026-10-29', 'diner'), prevu(l[1], '2026-10-29', 'diner', THAUBA)]
+    const prevus = [prevu(l[0], '2026-10-29', 'diner'), prevu(l[1], '2026-10-29', 'diner', LEA)]
     // Lundi 20 h : il reste 42 h, « demain dernier délai », en orange.
     expect(quand(g, prevus, LUNDI)).toEqual({ texte: 'demain dernier délai', encre: '#8F5A0D' })
   })
@@ -457,7 +457,7 @@ describe('M2 · l’urgence se dit aussi quand tout est réclamé', () => {
   it('réclamée avant sa péremption : le planning, comme avant', () => {
     const l = lasagnes()
     const [g] = groupeLesParts(l)
-    const prevus = [prevu(l[0], '2026-10-27', 'diner'), prevu(l[1], '2026-10-27', 'diner', THAUBA)]
+    const prevus = [prevu(l[0], '2026-10-27', 'diner'), prevu(l[1], '2026-10-27', 'diner', LEA)]
     expect(quand(g, prevus, LUNDI).texte).toBe('mar. soir')
   })
   it('une réclamation d’un jour PASSÉ ne compte pas : la part est libre', () => {
@@ -566,8 +566,8 @@ describe('M8 · la phrase des repas qui ont perdu leur part', () => {
       .toBe('Le dîner de dimanche n’a plus de barquette.')
   })
   it('un repas d’un autre, demain, aujourd’hui ; plusieurs', () => {
-    expect(phraseDesRepasLibres([{ day: '2026-10-27', meal: 'dejeuner', user_profile_id: THAUBA }], KAMIL, MEMBRES, LUNDI))
-      .toBe('Le déjeuner de demain (Thauba) n’a plus de barquette.')
+    expect(phraseDesRepasLibres([{ day: '2026-10-27', meal: 'dejeuner', user_profile_id: LEA }], KAMIL, MEMBRES, LUNDI))
+      .toBe('Le déjeuner de demain (Léa) n’a plus de barquette.')
     expect(phraseDesRepasLibres([
       { day: '2026-10-26', meal: 'diner', user_profile_id: KAMIL },
       { day: '2026-10-28', meal: 'collation', user_profile_id: KAMIL },

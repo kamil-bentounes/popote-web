@@ -108,7 +108,7 @@ export function Bilan({ va, userId }: { va: (v: string) => void; userId: string 
           <Barquettes mangees={bilan.mangees} restantes={bilan.restantes} jetees={bilan.jetees} />
 
           {/* ⚠️ SOI D'ABORD.
-              L'ordre venait de la base, donc du hasard : Thauba ouvrait « Le
+              L'ordre venait de la base, donc du hasard : Léa ouvrait « Le
               bilan » et lisait en gros, au-dessus de la ligne de flottaison,
               les courbes de Kamil. Son propre bilan ne lui parlait pas d'elle.
               Le foyer partage l'écran, il ne partage pas l'ordre de lecture. */}

@@ -3,8 +3,8 @@ import { aDesObjectifs, bandeauDuProfil, ceuxDuFoyer, phraseSansObjectifs } from
 
 describe('ceuxDuFoyer — la ligne des réglages qui dit qui est là', () => {
   it('les prénoms, séparés par des virgules', () => {
-    expect(ceuxDuFoyer([{ display_name: 'Kamil' }, { display_name: 'Thauba' }]))
-      .toBe('Dans le foyer : Kamil, Thauba')
+    expect(ceuxDuFoyer([{ display_name: 'Kamil' }, { display_name: 'Léa' }]))
+      .toBe('Dans le foyer : Kamil, Léa')
   })
   it('seul : son prénom', () => {
     expect(ceuxDuFoyer([{ display_name: 'Kamil' }])).toBe('Dans le foyer : Kamil')
@@ -57,11 +57,11 @@ describe('bandeauDuProfil — ce qui manque à MON profil', () => {
 describe('phraseSansObjectifs — le dressage dit qui est dressé à parts égales', () => {
   it('personne ne manque : rien', () => expect(phraseSansObjectifs([])).toBeNull())
   it('une personne', () => {
-    expect(phraseSansObjectifs(['Thauba']))
-      .toBe('Thauba n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.')
+    expect(phraseSansObjectifs(['Léa']))
+      .toBe('Léa n’a pas encore fixé ses objectifs : ses barquettes sont dressées à parts égales.')
   })
   it('plusieurs', () => {
-    expect(phraseSansObjectifs(['Thauba', 'Camille']))
-      .toBe('Thauba et Camille n’ont pas encore fixé leurs objectifs : leurs barquettes sont dressées à parts égales.')
+    expect(phraseSansObjectifs(['Léa', 'Camille']))
+      .toBe('Léa et Camille n’ont pas encore fixé leurs objectifs : leurs barquettes sont dressées à parts égales.')
   })
 })

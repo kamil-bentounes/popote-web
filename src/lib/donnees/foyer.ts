@@ -116,7 +116,7 @@ export function objectifDe(m: Membre): { kcal: number; proteinG: number } {
  * Le prénom à AFFICHER.
  *
  * Quelqu'un qui vient d'accepter une invitation n'en a pas encore : on ne le
- * fabrique plus depuis son adresse — `thauba-1790147184836` s'est retrouvé
+ * fabrique plus depuis son adresse — `lea-1790147184836` s'est retrouvé
  * pré-rempli dans « Ton prénom », validé sans regarder, et lu sur chaque ligne
  * de charge pendant des mois. Un champ vide se remplit, un champ faux se garde.
  * En attendant qu'elle le pose, les écrans disent quelque chose de lisible.
@@ -164,7 +164,7 @@ export function phraseSansObjectifs(prenoms: string[]): string | null {
     : `${prenoms.join(' et ')} n’ont pas encore fixé leurs objectifs : leurs barquettes sont dressées à parts égales.`
 }
 
-/** « Dans le foyer : Kamil, Thauba » : la seule liste des membres hors des écrans du budget. */
+/** « Dans le foyer : Kamil, Léa » : la seule liste des membres hors des écrans du budget. */
 export function ceuxDuFoyer(membres: { display_name: string | null }[] | undefined): string | null {
   if (!membres || membres.length === 0) return null
   return `Dans le foyer : ${membres.map(m => prenomDe(m.display_name)).join(', ')}`

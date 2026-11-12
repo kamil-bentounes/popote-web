@@ -5,7 +5,7 @@
  * des images à la place des mots. Le mot ne disparaît pas : il devient
  * l'étiquette du dessin, pour les lecteurs d'écran et au survol.
  *
- * Les tracés sont ceux de la maquette (`docs/superpowers/maquettes/recettes/
+ * Les tracés sont ceux de la maquette (ancien dépôt, `docs/superpowers/maquettes/recettes/
  * build.py`, `APP` et `IC`), au trait, en `currentColor` : ils prennent la
  * couleur de leur pastille.
  */

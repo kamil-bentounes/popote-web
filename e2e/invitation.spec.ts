@@ -9,7 +9,7 @@
  *
  * Ce fichier suit donc les deux personnes, dans l'ordre réel :
  *
- *   Kamil crée l'invitation → il lui envoie le lien → Thauba l'ouvre sur son
+ *   Kamil crée l'invitation → il lui envoie le lien → Léa l'ouvre sur son
  *   téléphone, SANS compte, choisit son mot de passe → son compte naît, elle
  *   remplit son profil → elle est dans le foyer, et dans les charges communes
  *   qu'il avait posées sans elle.
@@ -28,7 +28,7 @@ import { releve } from './couverture.ts'
 let foyer: Foyer
 const MAILPIT = 'http://127.0.0.1:54324'
 /** Une adresse neuve par exécution : une invitation ne se rejoue pas. */
-const INVITEE = `thauba-${Date.now()}@fumee.test`
+const INVITEE = `lea-${Date.now()}@fumee.test`
 /** Toutes les invitées créées ici : aucune n'appartient au foyer d'amorce. */
 const INVITEES = [INVITEE]
 
@@ -84,7 +84,7 @@ async function dernierMail(page: Page, pour: string): Promise<{ sujet: string; h
 }
 
 test.describe('inviter quelqu’un dans le foyer', () => {
-  test('du bouton de Kamil jusqu’au hub de Thauba, sans aucun mail', async ({ page, browser }) => {
+  test('du bouton de Kamil jusqu’au hub de Léa, sans aucun mail', async ({ page, browser }) => {
     test.setTimeout(120_000)
 
     /* ── 1 · Kamil pose une charge COMMUNE alors qu'il est encore seul ───── */
@@ -123,7 +123,7 @@ test.describe('inviter quelqu’un dans le foyer', () => {
     const avant = (await db.from('user_profile')
       .select('id').eq('household_id', foyer.householdId)).data ?? []
 
-    /* ── 4 · Thauba l'ouvre sur SON téléphone, sans compte ───────────────── */
+    /* ── 4 · Léa l'ouvre sur SON téléphone, sans compte ───────────────── */
     const elle = await browser.newContext({
       ...devices['Pixel 7'], locale: 'fr-FR', timezoneId: 'Europe/Paris' })
     const sonEcran = await elle.newPage()
@@ -149,7 +149,7 @@ test.describe('inviter quelqu’un dans le foyer', () => {
     /* ── 5 · Elle choisit son mot de passe : son compte naît ─────────────── */
     await sonEcran.getByLabel(/choisis ton mot de passe/i).fill('court')
     await expect(sonEcran.getByText(/il en faut au moins 8/i)).toBeVisible()
-    await sonEcran.getByLabel(/choisis ton mot de passe/i).fill('thauba-choisit-12')
+    await sonEcran.getByLabel(/choisis ton mot de passe/i).fill('lea-choisit-12')
     await expect(creer).toBeEnabled()
     await sonEcran.screenshot({ path: '.shots/invitation/04-mot-de-passe.png' })
     await creer.click()
@@ -167,7 +167,7 @@ test.describe('inviter quelqu’un dans le foyer', () => {
     await releve(sonEcran)
 
     /* ── 6 · Son profil, puis le hub ─────────────────────────────────────── */
-    await sonEcran.getByLabel(/ton prénom/i).fill('Thauba')
+    await sonEcran.getByLabel(/ton prénom/i).fill('Léa')
     await sonEcran.getByLabel(/ton revenu net mensuel/i).fill('2500')
     await sonEcran.getByRole('button', { name: /^enregistrer$/i }).click()
     await expect(sonEcran.getByRole('heading', { name: 'Popote' }),
@@ -176,7 +176,7 @@ test.describe('inviter quelqu’un dans le foyer', () => {
        cache cinq minutes, et lui disait « Complète ton profil » sous un avatar
        vide, une seconde après qu'elle l'avait complété. */
     await expect(sonEcran.getByRole('button', { name: 'Mon profil' }),
-      'son avatar ne porte pas son initiale').toHaveText('T')
+      'son avatar ne porte pas son initiale').toHaveText('L')
     await expect(sonEcran.getByText(/complète ton profil/i),
       'le hub lui réclame le profil qu’elle vient de remplir').toHaveCount(0)
     await sonEcran.screenshot({ path: '.shots/invitation/06-son-hub.png' })
@@ -198,7 +198,7 @@ test.describe('inviter quelqu’un dans le foyer', () => {
       .select('id, display_name').eq('household_id', foyer.householdId)).data ?? []
     expect(apres.length, 'personne n’est entrée dans le foyer').toBe(avant.length + 1)
     const nouvelle = apres.find(p => !avant.some(a => a.id === p.id))!
-    expect(nouvelle.display_name).toBe('Thauba')
+    expect(nouvelle.display_name).toBe('Léa')
 
     /* Le cœur de ce qui vient d'être écrit : une charge COMMUNE posée pendant
        qu'on était seul doit l'accueillir toute seule. Sans `charge.commun`, il

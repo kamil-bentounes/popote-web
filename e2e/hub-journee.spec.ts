@@ -93,7 +93,7 @@ test.beforeAll(async () => {
   const piz = await ajoute(PIZZA, 2, { prepared_at: il(2) })
   const wra = await ajoute(WRAP, 4, { location: 'congelateur', prepared_at: il(1), frozen_at: il(1) })
 
-  /* Deux personnes : Kamil (userId) et Thauba (elleId). Une barquette par personne et par repas. */
+  /* Deux personnes : Kamil (userId) et Léa (elleId). Une barquette par personne et par repas. */
   const qui = [foyer.userId, foyer.elleId]
   const pose = async (decalage: number, meal: string, parts: { id: string }[]) =>
     db.from('meal_slot').insert(qui.map((q, i) => ({

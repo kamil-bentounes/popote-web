@@ -216,9 +216,9 @@ describe('Recap d’un mois clôturé', () => {
     expect(t).toContain('Il t’est resté —')
   })
 
-  it('clôturé par un autre : « Octobre est clôturé par Thauba. » et la raison du chiffre', () => {
-    const t = rend({ reste: 1728_30, misDeCote: 0, parQui: 'Thauba' })
-    expect(t).toContain('Octobre est clôturé par Thauba.')
+  it('clôturé par un autre : « Octobre est clôturé par Léa. » et la raison du chiffre', () => {
+    const t = rend({ reste: 1728_30, misDeCote: 0, parQui: 'Léa' })
+    expect(t).toContain('Octobre est clôturé par Léa.')
     expect(t).toContain('Calculé sur tes parts')
     expect(t).toContain(`1${FINE}728,30 €`)
   })
@@ -242,16 +242,16 @@ describe('L’écran du mois, clôturé', () => {
   })
 
   it('le choix d’un AUTRE membre ne devient pas le mien : mon reste est CALCULÉ, et on dit qui a clôturé', () => {
-    // Thauba clôture ; Kamil n'a aucun choix. Il lit son reste calculé (revenu − ses parts gelées),
+    // Léa clôture ; Kamil n'a aucun choix. Il lit son reste calculé (revenu − ses parts gelées),
     // jamais le 999 € de l'autre, et plus un tiret.
     const autre = { ...cloture(OCT), choix: [choix({ user_profile_id: 'u2', reste_cents: 999_00 })] }
     const t = texte(ecranDuMois(tout({
-      clotures: [autre], foyer: foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')]),
+      clotures: [autre], foyer: foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')]),
       depenses: [depense({ facon: 'fixe', montant_cents: 800_00,
         parts: [{ user_profile_id: 'u1', part_cents: 800_00, part_bps: 10000 }] })],
     })))
     expect(t).toContain(`Il t’est resté 3${FINE}525 €`)
-    expect(t).toContain('clôturé par Thauba')
+    expect(t).toContain('clôturé par Léa')
     expect(t).not.toContain('Il t’est resté —')
     expect(t).not.toContain('999')
     expect(t, 'il n’a rien mis de côté : pas de « dont »').not.toContain('dont')

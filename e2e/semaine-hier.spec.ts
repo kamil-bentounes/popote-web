@@ -272,7 +272,7 @@ test('hier : un jour passé se dessine, se dit, et son midi vide se note avec un
   /* « Pour » commence sur MOI : un appui note mangé et consomme la barquette, on n'agit pas au nom de l'autre. */
   await expect(f.getByRole('button', { name: 'Kamil' })).toHaveAttribute('aria-pressed', 'true')
   await expect(f.getByRole('button', { name: 'Vous deux' })).toHaveAttribute('aria-pressed', 'false')
-  await expect(f.getByRole('button', { name: 'Thauba' })).toHaveAttribute('aria-pressed', 'false')
+  await expect(f.getByRole('button', { name: 'Léa' })).toHaveAttribute('aria-pressed', 'false')
   const frigo = f.getByRole('region', { name: 'Au frigo' })
   await expect(frigo.getByRole('button', { name: /Lasagnes/ })).toContainText('sort du frigo')
   await expect(f.getByRole('region', { name: 'Au congélateur' })).toContainText('sort du congélateur')
@@ -283,10 +283,10 @@ test('hier : un jour passé se dessine, se dit, et son midi vide se note avec un
   await frigo.getByRole('button', { name: /Lasagnes/ }).click()
   await expect(f).toBeHidden({ timeout: 10_000 })
 
-  /* La carte dit « mangé » pour moi ; Thauba n'a rien : sa carte reste vide, à noter par lui ou en son nom, nommé. */
+  /* La carte dit « mangé » pour moi ; Léa n'a rien : sa carte reste vide, à noter par lui ou en son nom, nommé. */
   await expect(midi).toContainText('Du frigo, pour Kamil · mangé')
   await expect(midi.getByRole('button', { name: 'Je l’ai mangé' })).toHaveCount(0)
-  await expect(midi.getByRole('button', { name: '+ Noter ce que Thauba a mangé ce midi' })).toBeVisible()
+  await expect(midi.getByRole('button', { name: '+ Noter ce que Léa a mangé ce midi' })).toBeVisible()
   await expect(points(page, -1).first()).toHaveAttribute('data-point', 'frigo')
 
   /* La base : SEULE ma case d'hier midi est mangée, avec une heure ; SEULE ma barquette est consommée. */
@@ -294,7 +294,7 @@ test('hier : un jour passé se dessine, se dit, et son midi vide se note avec un
   expect(c.state).toBe('mange')
   expect(c.eaten_at).not.toBeNull()
   expect(new Date(c.eaten_at!).getTime()).toBeLessThanOrEqual(Date.now())
-  expect(await caseDe(foyer.elleId, HIER(), 'dejeuner'), 'Thauba n’a pas de case : on n’a rien noté en son nom').toBeUndefined()
+  expect(await caseDe(foyer.elleId, HIER(), 'dejeuner'), 'Léa n’a pas de case : on n’a rien noté en son nom').toBeUndefined()
   const lasagnes = await portions(LASAGNES)
   expect(lasagnes.filter(p => p.state === 'mangee').map(p => p.id), 'une seule barquette sortie du stock : la mienne').toEqual([c.portion_id])
   expect(lasagnes.filter(p => p.state === 'au_frais'), 'trois restent au frigo').toHaveLength(3)
@@ -326,10 +326,10 @@ test('à deux, sur un jour passé : la carte vide de l’autre se note en son no
   await connecte(page)
   await page.goto('/semaine')
   await jourBouton(page, -1).click()
-  /* Hier midi : j'ai mangé, Thauba pas noté. Sa carte vide ouvre la feuille sur ELLE (je n'ai plus rien à noter). */
-  await repas(page, 'dejeuner').getByRole('button', { name: '+ Noter ce que Thauba a mangé ce midi' }).click()
+  /* Hier midi : j'ai mangé, Léa pas noté. Sa carte vide ouvre la feuille sur ELLE (je n'ai plus rien à noter). */
+  await repas(page, 'dejeuner').getByRole('button', { name: '+ Noter ce que Léa a mangé ce midi' }).click()
   const f = feuille(page, `${semaineDe(-1)} midi`)
-  await expect(f.getByRole('button', { name: 'Thauba' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(f.getByRole('button', { name: 'Léa' })).toHaveAttribute('aria-pressed', 'true')
   await expect(f.getByRole('button', { name: 'Kamil' })).toBeDisabled()
   await page.keyboard.press('Escape')
   await expect(f).toBeHidden()
@@ -373,14 +373,14 @@ test('hier soir : « pas encore noté », « Je l’ai mangé » ; le burger sor
   const soir = repas(page, 'diner')
   await expect(soir).toContainText('pas encore noté')
   await soir.getByRole('button', { name: 'Je l’ai mangé' }).click()
-  /* Kamil l'a mangé ; Thauba, pas encore noté. */
-  await expect(soir).toContainText('Kamil l’a mangé, pas encore noté pour Thauba', { timeout: 10_000 })
+  /* Kamil l'a mangé ; Léa, pas encore noté. */
+  await expect(soir).toContainText('Kamil l’a mangé, pas encore noté pour Léa', { timeout: 10_000 })
   const c = (await caseDe(foyer.userId, HIER(), 'diner'))!
   expect(c.state).toBe('mange')
   expect((await db.from('portion').select('state').eq('id', c.portion_id!).single()).data!.state).toBe('mangee')
   const elle = (await caseDe(foyer.elleId, HIER(), 'diner'))!
-  expect(elle.state, 'la case de Thauba n’a pas bougé').toBe('prevu')
-  /* Thauba l'a mangé aussi : la carte se ferme sur « mangé ». On le note à sa place par la base, puis on relit l'écran. */
+  expect(elle.state, 'la case de Léa n’a pas bougé').toBe('prevu')
+  /* Léa l'a mangé aussi : la carte se ferme sur « mangé ». On le note à sa place par la base, puis on relit l'écran. */
   await db.from('meal_slot').update({ state: 'mange', eaten_at: new Date().toISOString() }).eq('id', elle.id)
   await page.reload()
   await jourBouton(page, -1).click()
@@ -589,14 +589,14 @@ test('depuis la feuille d’un repas : le même panneau « combien ? », et le r
   await combien.getByRole('button', { name: 'Noter pour le midi' }).click()
   await expect(f).toBeHidden({ timeout: 10_000 })
   const jour = jourLocal(-2)
-  /* Pour moi seul (la feuille d'un jour passé commence sur moi) : Thauba n'a rien. */
+  /* Pour moi seul (la feuille d'un jour passé commence sur moi) : Léa n'a rien. */
   const c = (await caseDe(foyer.userId, jour, 'dejeuner'))!
   expect(c.state, 'un repas passé : ce qu’on y choisit est mangé').toBe('mange')
   const [e] = await extrasDe(jour, 'dejeuner', foyer.userId)
   expect(e.label).toBe(`${YAOURT} × ${n} pots`)
   expect(e.aliment_id).toBe((await alimentDe(YAOURT))!.id)
   expect(e.planifie).toBe(false)
-  expect(await caseDe(foyer.elleId, jour, 'dejeuner'), 'rien n’est noté au nom de Thauba').toBeUndefined()
+  expect(await caseDe(foyer.elleId, jour, 'dejeuner'), 'rien n’est noté au nom de Léa').toBeUndefined()
   await expect(repas(page, 'dejeuner')).toContainText(`${YAOURT} × ${n} pots`)
 })
 

@@ -10,7 +10,7 @@ describe('revenuAConfirmer', () => {
     [50, true],           // 0,50 €
     [9_999, true],        // 99,99 €
     [10_000, false],      // 100 € : s'enregistre sans question
-    [240_000, false],     // 2 400 €
+    [210_000, false],     // 2 100 €
   ])('%s centimes → %s', (cents, attendu) => {
     expect(revenuAConfirmer(cents)).toBe(attendu)
   })

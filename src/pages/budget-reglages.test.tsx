@@ -51,7 +51,7 @@ function ecran(membres: { id: string; display_name: string }[], revenus: Revenu[
 }
 
 const K = membre('u1', 'Kamil')
-const T = membre('u2', 'Thauba')
+const T = membre('u2', 'Léa')
 
 describe('Réglages du budget — le revenu en vigueur', () => {
   // Du plus récent au plus ancien, comme `lisLesRevenus` : un futur, un en vigueur, un passé.

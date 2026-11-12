@@ -388,7 +388,7 @@ export function Charges({ userId, retour }: { userId: string; retour: () => void
   const mois = moisDeDepart(moi?.entre_le, courant)
   const avantLArrivee = mois > courant
   /* Le total et les catégories sont ceux du MOIS TYPE : une charge qui commence plus tard, ou dont personne n'est
-     encore dans le foyer ce mois-là, n'y compte pas (`pourquoiElleNeComptePas`, le même prédicat partout). Thauba,
+     encore dans le foyer ce mois-là, n'y compte pas (`pourquoiElleNeComptePas`, le même prédicat partout). Léa,
      arrivée en janvier, ne voit pas dans son total les charges de Kamil seul tant qu'il n'est pas là. */
   const presents = presentsAuMois(membres, mois)
   const groupes = rangeParCategorie(vues, mois, presents)

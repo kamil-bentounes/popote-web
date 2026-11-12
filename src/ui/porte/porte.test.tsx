@@ -58,9 +58,9 @@ describe('les trois modes', () => {
 
   it('le bouton reste grisé sans adresse, et sans mot de passe en mode « mot de passe »', () => {
     expect(vue()).toMatch(/class="pf-entrer"[^>]*disabled/)
-    expect(vue({ email: 'a@b.fr' })).toMatch(/class="pf-entrer"[^>]*disabled/)
-    expect(vue({ email: 'a@b.fr', mdp: 'x' })).not.toMatch(/class="pf-entrer"[^>]*disabled/)
-    expect(vue({ mode: 'premiere', email: 'a@b.fr' })).not.toMatch(/class="pf-entrer"[^>]*disabled/)
+    expect(vue({ email: 'a@exemple.test' })).toMatch(/class="pf-entrer"[^>]*disabled/)
+    expect(vue({ email: 'a@exemple.test', mdp: 'x' })).not.toMatch(/class="pf-entrer"[^>]*disabled/)
+    expect(vue({ mode: 'premiere', email: 'a@exemple.test' })).not.toMatch(/class="pf-entrer"[^>]*disabled/)
   })
 })
 
@@ -70,14 +70,14 @@ describe('les portes', () => {
   })
 
   it('ouvertes pendant l’envoi d’une connexion par mot de passe, « Un instant… » sur le bouton', () => {
-    const h = vue({ email: 'a@b.fr', mdp: 'x', envoi: true })
+    const h = vue({ email: 'a@exemple.test', mdp: 'x', envoi: true })
     expect(h).toContain('data-ouvert="true"')
     expect(h).toContain('pf-ouvert')
     expect(texte(h)).toContain('Un instant…')
   })
 
   it('l’erreur referme les portes ET affiche le message', () => {
-    const h = vue({ email: 'a@b.fr', mdp: 'x', envoi: false, msg: 'E-mail ou mot de passe incorrect.', err: true })
+    const h = vue({ email: 'a@exemple.test', mdp: 'x', envoi: false, msg: 'E-mail ou mot de passe incorrect.', err: true })
     expect(h).toContain('data-ouvert="false"')
     expect(h).toContain('role="status"')
     expect(texte(h)).toContain('E-mail ou mot de passe incorrect.')

@@ -1,7 +1,7 @@
 /**
  * Les rappels par mail, joués de bout en bout.
  *
- * On sème un foyer de deux (Kamil et Thauba) et on joue au clic : activer puis couper un rappel (et relire la base
+ * On sème un foyer de deux (Kamil et Léa) et on joue au clic : activer puis couper un rappel (et relire la base
  * à chaque geste), ne pas voir ceux de l'autre, le lien « C'est fait » d'un mail (`/frigo?sortir=…` : une
  * confirmation, puis les barquettes passent au frigo, les identifiants qui ne désignent rien sont ignorés), le
  * bandeau de la semaine qui suit le réglage, « M'envoyer un exemple ».
@@ -131,7 +131,7 @@ test('activer puis couper un rappel : l’interrupteur, la base, la page recharg
 })
 
 test('chacun règle les siens : on ne voit pas ceux de l’autre membre, et on ne les change pas', async ({ page, browser }) => {
-  // Thauba a activé « Choisir les repas » ; Kamil « Une barquette va périmer ».
+  // Léa a activé « Choisir les repas » ; Kamil « Une barquette va périmer ».
   await db.from('rappel_reglage').upsert([
     { user_id: foyer.elleId, type: 'choisir_les_repas', actif: true },
     { user_id: foyer.userId, type: 'barquette_perime', actif: true },
@@ -140,12 +140,12 @@ test('chacun règle les siens : on ne voit pas ceux de l’autre membre, et on n
   await connecte(page, foyer.email)
   await page.goto('/rappels')
   await expect(page.getByRole('switch', { name: 'Une barquette va périmer' })).toHaveAttribute('aria-checked', 'true')
-  // Ce que Thauba a activé n'apparaît pas chez Kamil.
+  // Ce que Léa a activé n'apparaît pas chez Kamil.
   await expect(page.getByRole('switch', { name: 'Choisir les repas' })).toHaveAttribute('aria-checked', 'false')
-  await expect(page.locator('[data-regle="chacun-les-siens"]')).toContainText('Thauba règle les siens de son côté')
+  await expect(page.locator('[data-regle="chacun-les-siens"]')).toContainText('Léa règle les siens de son côté')
   await expect(page.locator('[data-regle="chacun-les-siens"]')).toContainText('personne ne voit les tiens')
 
-  // Kamil active « Choisir les repas » : c'est SA ligne ; celle de Thauba ne bouge pas.
+  // Kamil active « Choisir les repas » : c'est SA ligne ; celle de Léa ne bouge pas.
   await page.getByRole('switch', { name: 'Choisir les repas' }).click()
   await expect(page.getByRole('switch', { name: 'Choisir les repas' })).toHaveAttribute('aria-checked', 'true')
   await expect.poll(async () => (await reglages(foyer.userId)).map(r => `${r.type}:${r.actif}`))
@@ -153,7 +153,7 @@ test('chacun règle les siens : on ne voit pas ceux de l’autre membre, et on n
   expect(await reglages(foyer.elleId)).toEqual([{ type: 'choisir_les_repas', actif: true }])
   await capture(page, '03-les-siens')
 
-  // Thauba, chez elle : ses réglages à elle, pas ceux de Kamil.
+  // Léa, chez elle : ses réglages à elle, pas ceux de Kamil.
   const ctxElle = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris' })
   const elle = await ctxElle.newPage()
   await connecte(elle, foyer.elleEmail)

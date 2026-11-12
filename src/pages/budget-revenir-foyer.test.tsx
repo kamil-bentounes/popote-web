@@ -24,7 +24,7 @@ const choix = (qui: string, reste: number, mis: number) => ({
   user_profile_id: qui, reste_cents: reste, mis_de_cote_cents: mis, poche_id: null, versement_id: null,
 })
 const sondes = (h: string) => [...h.matchAll(/data-sonde="(\d+)"/g)].map(m => Number(m[1]))
-const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Thauba')])
+const deux = foyer([membre('u1', 'Kamil'), membre('u2', 'Léa')])
 
 describe('« Revenir dessus » annonce le total du foyer', () => {
   const k = (...c: ReturnType<typeof choix>[]) => ({ ...cloture(OCT), choix: c })

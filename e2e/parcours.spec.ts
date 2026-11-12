@@ -421,9 +421,9 @@ test.describe('le budget, du vide jusqu’au chiffre', () => {
     await expect(page.getByRole('heading', { name: /réglages du budget/i }))
       .toBeVisible({ timeout: 15_000 })
 
-    await page.getByLabel(/mon net mensuel/i).fill('2400')
+    await page.getByLabel(/mon net mensuel/i).fill('2100')
     await page.getByRole('button', { name: /mon revenu/i }).click()
-    await expect(page.getByText(/2\s?400,00/)).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/2\s?100,00/)).toBeVisible({ timeout: 10_000 })
     await capture(page, 'clic-17-revenu')
 
     await page.getByLabel(/nom du compte/i).fill('Commun')
@@ -446,7 +446,7 @@ test.describe('le budget, du vide jusqu’au chiffre', () => {
        lot 4 ; le compte de la charge, lui, se vérifie plus bas. */
     await page.goto('/budget')
     const recap = page.getByRole('region', { name: 'Ce qui reste' })
-    await expect(recap.getByText(/sur 2\s400 € de revenus/)).toBeVisible({ timeout: 15_000 })
+    await expect(recap.getByText(/sur 2\s100 € de revenus/)).toBeVisible({ timeout: 15_000 })
     await ouvreLaCategorie(page, 'Maison')
     await expect(page.getByRole('region', { name: 'Catégorie Maison' })
       .getByText('Internet').first()).toBeVisible()
@@ -484,34 +484,34 @@ test.describe('le budget, du vide jusqu’au chiffre', () => {
        même nom rendent les deux boutons « Corriger » indiscernables. */
     await ouvreLeCatalogue(page, 'Logement')
     await page.getByRole('button', { name: 'Gaz', exact: true }).click()
-    await page.getByLabel(/combien/i).fill('3700')   // au lieu de 37
+    await page.getByLabel(/combien/i).fill('4200')   // au lieu de 42
     await page.getByRole('button', { name: /ajouter cette charge/i }).click()
-    await expect(page.getByText(/^3\s?700 € par mois/).first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText(/^4\s?200 € par mois/).first()).toBeVisible({ timeout: 15_000 })
     await capture(page, 'clic-21-charge-fausse')
 
     await ouvreLaLigne(page, 'Gaz')
     await page.getByRole('button', { name: 'Corriger Gaz' }).click()
     const montant = page.getByLabel('Montant de Gaz')
-    await expect(montant).toHaveValue('3700')
-    await montant.fill('37')
+    await expect(montant).toHaveValue('4200')
+    await montant.fill('42')
     await capture(page, 'clic-22-correction-ouverte')
     await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
 
     await expect(page.getByText(/corrigée/)).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(/^37 € par mois/).first()).toBeVisible()
-    await expect(page.getByText(/3\s?700 €/),
+    await expect(page.getByText(/^42 € par mois/).first()).toBeVisible()
+    await expect(page.getByText(/4\s?200 €/),
       'le montant faux est resté dans la liste').toHaveCount(0)
     await capture(page, 'clic-23-charge-corrigee')
 
-    /* Et le mois, pas seulement la liste. L'écran du mois écrit « 37 € », sans
-       « ,00 » : chercher « 3 700,00 » n'y trouvait plus rien et passait à vide.
+    /* Et le mois, pas seulement la liste. L'écran du mois écrit « 42 € », sans
+       « ,00 » : chercher « 4 200,00 » n'y trouvait plus rien et passait à vide.
        On lit la ligne elle-même, dans sa catégorie. */
     await page.goto('/budget')
     await ouvreLaCategorie(page, 'Maison')
     const gaz = page.getByRole('region', { name: 'Catégorie Maison' })
       .getByRole('button', { name: /^Gaz/ })
-    await expect(gaz).toContainText('37 €')
-    await expect(gaz, 'le mois facture encore le montant faux').not.toContainText(/3\s700/)
+    await expect(gaz).toContainText('42 €')
+    await expect(gaz, 'le mois facture encore le montant faux').not.toContainText(/4\s200/)
     await capture(page, 'clic-24-mois-corrige')
 
     expect(erreurs.filter(e => !BRUIT.test(e))).toEqual([])

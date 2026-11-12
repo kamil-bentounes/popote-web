@@ -105,10 +105,10 @@ test.describe('versements, retrait refusé, un projet', () => {
   }
   test.beforeAll(async () => {
     f = await amorce()
-    // Thauba a versé, elle aussi : le registre dit qui a mis quoi.
+    // Léa a versé, elle aussi : le registre dit qui a mis quoi.
     const { data: p } = await db.from('poche_epargne').select('id').eq('household_id', f.householdId).eq('libelle', 'Urgence').single()
     await db.from('versement_epargne').insert({
-      household_id: f.householdId, poche_id: p!.id, user_profile_id: f.elleId, montant_cents: 48_000, motif: 'mensuel' })
+      household_id: f.householdId, poche_id: p!.id, user_profile_id: f.elleId, montant_cents: 45_000, motif: 'mensuel' })
   })
   test.afterAll(async () => { if (f) await efface(f) })
 
@@ -118,23 +118,23 @@ test.describe('versements, retrait refusé, un projet', () => {
     const carte = poche(page, 'Urgence')
     const registre = carte.getByRole('list', { name: 'Qui a versé quoi' })
     await expect(registre).toBeVisible({ timeout: 15_000 })
-    await expect(registre).toContainText('310 €')
+    await expect(registre).toContainText('300 €')
     await expect(registre).toContainText('Kamil')
-    await expect(registre).toContainText('480 €')
-    await expect(registre).toContainText('Thauba')
-    await expect(carte.getByText('790 €')).toBeVisible()
+    await expect(registre).toContainText('450 €')
+    await expect(registre).toContainText('Léa')
+    await expect(carte.getByText('750 €')).toBeVisible()
     const avant = await verse(f)
 
     await carte.getByLabel('Verser (€)').fill('200')
     await carte.getByRole('button', { name: 'Je verse' }).click()
-    await expect(carte.getByText('990 €')).toBeVisible({ timeout: 15_000 })
-    await expect(registre).toContainText('510 €')
+    await expect(carte.getByText('950 €')).toBeVisible({ timeout: 15_000 })
+    await expect(registre).toContainText('500 €')
     await expect(carte.getByLabel('Verser (€)')).toHaveValue('')
     expect(await verse(f) - avant, 'le versement est écrit, une seule fois').toBe(20_000)
     const { data: v } = await db.from('versement_epargne').select('user_profile_id, motif')
       .eq('household_id', f.householdId).eq('montant_cents', 20_000).single()
     expect(v).toMatchObject({ user_profile_id: f.userId, motif: 'mensuel' })
-    await expect(carte.getByRole('meter')).toHaveAttribute('aria-valuetext', /990 € sur 4 500 €/)
+    await expect(carte.getByRole('meter')).toHaveAttribute('aria-valuetext', /950 € sur 4 000 €/)
   })
 
   test('un retrait refusé : on ne retire pas plus que ce qu’on a versé, et rien n’est écrit', async ({ page }) => {
@@ -148,7 +148,7 @@ test.describe('versements, retrait refusé, un projet', () => {
     await expect(carte.getByRole('button', { name: 'Je retire' })).toBeEnabled()
     await carte.getByRole('button', { name: 'Je retire' }).click()
     const refus = carte.getByRole('alert')
-    await expect(refus).toHaveText('Tu n’as versé que 510 € ici : tu ne peux pas en retirer plus.')
+    await expect(refus).toHaveText('Tu n’as versé que 500 € ici : tu ne peux pas en retirer plus.')
     expect(await verse(f), 'la poche n’a pas été entamée').toBe(avant)
     await captureAuxTroisLargeurs(page, 'epargne-exemple-refus')
 

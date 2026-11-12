@@ -265,7 +265,7 @@ const PIZZA = 'Pizza vietnamienne protéinée'
 const WRAP = 'Wrap'
 const AVEC_ELLE = () => ({ id: 'f1', nom: 'Chez nous', plafondLlmEur: 0, membres: [
   { id: 'u1', display_name: 'Kamil', objectif: { kcal: 2200 } },
-  { id: 'u2', display_name: 'Thauba', objectif: { kcal: 1800 } }] }) as unknown as Foyer
+  { id: 'u2', display_name: 'Léa', objectif: { kcal: 1800 } }] }) as unknown as Foyer
 const cycle = (state: string) => ({ id: 'cy1', state, week_of: '2026-10-19' }) as unknown as Cycle
 const part = (id: string, label: string, recipe: string, location: 'frigo' | 'congelateur', expire: Date) =>
   ({ id, label, recipe_id: recipe, location, state: 'au_frais', expires_at: expire.toISOString(),

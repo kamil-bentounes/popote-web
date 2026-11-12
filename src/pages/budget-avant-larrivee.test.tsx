@@ -1,5 +1,5 @@
 /**
- * Un mois CLOS d'avant l'arrivée de la personne : Thauba, arrivée le 1er novembre, ouvre octobre,
+ * Un mois CLOS d'avant l'arrivée de la personne : Léa, arrivée le 1er novembre, ouvre octobre,
  * clôturé par Kamil. Le récap lui lisait « Il t'est resté — » (revenu nul, tiret) puis « Calculé
  * sur tes parts », avec « Revenir dessus » : cela contredisait « jamais un tiret » (551de1e) et lui
  * offrait de rouvrir un mois qui n'est pas le sien. Elle lit une phrase honnête, et aucun geste.
@@ -20,7 +20,7 @@ afterEach(() => vi.useRealTimers())
 const choixDeKamil = { user_profile_id: 'u2', reste_cents: 1_728_30, mis_de_cote_cents: 0,
                        poche_id: null, versement_id: null }
 const duo = (entree: string | null) => foyer([
-  { ...membre('u1', 'Thauba'), entre_le: entree } as ReturnType<typeof membre>,
+  { ...membre('u1', 'Léa'), entre_le: entree } as ReturnType<typeof membre>,
   membre('u2', 'Kamil'),
 ])
 const octobreClosParKamil = { ...cloture(OCT), choix: [choixDeKamil] }

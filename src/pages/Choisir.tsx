@@ -1,6 +1,6 @@
 /**
  * Choisir les recettes (D52, lot 4) — refait le 19/10/2026
- * (`docs/superpowers/specs/2026-10-19-recettes-design.md`).
+ * (spec dans l'ancien dépôt, `docs/superpowers/specs/2026-10-19-recettes-design.md`).
  *
  * On choisit le mercredi ce qu'on cuisinera le dimanche : c'est ce décalage qui
  * permet de faire les courses samedi. L'écran ne demande donc pas « qu'est-ce

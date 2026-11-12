@@ -2,7 +2,7 @@
  * L'échelle COMMUNE des graphes du bilan.
  *
  * Chaque personne avait la sienne : le plus haut de ses jours, ou sa cible. Deux barres de 840 kcal ne faisaient
- * donc pas la même hauteur chez Kamil (cible à 2 200) et chez Thauba (pas de cible), et on ne les comparait pas.
+ * donc pas la même hauteur chez Kamil (cible à 2 200) et chez Léa (pas de cible), et on ne les comparait pas.
  * Une seule borne par grandeur, prise sur TOUTES les personnes (leurs jours et leurs cibles), et un peu de
  * marge pour que la cible tracée ne colle pas au bord.
  */

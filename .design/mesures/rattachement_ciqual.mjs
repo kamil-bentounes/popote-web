@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
-import { indexer, rattacher } from '/home/kamil/PERSO/smart-receipe-scheduler/worker/src/aliment.ts'
-import { analyser } from '/home/kamil/PERSO/smart-receipe-scheduler/worker/src/ingredient.ts'
-const ciqual = JSON.parse(readFileSync('/home/kamil/PERSO/smart-receipe-scheduler/seed/ciqual.json','utf8'))
+import { indexer, rattacher } from '../../worker/src/aliment.ts'
+import { analyser } from '../../worker/src/ingredient.ts'
+const ciqual = JSON.parse(readFileSync('seed/ciqual.json','utf8'))
 const index = indexer(ciqual.map(a => ({ id: a.code, name: a.nom, state: a.etat })))
 
 const UA = { 'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36','Accept-Language':'fr-FR,fr;q=0.9' }

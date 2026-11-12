@@ -232,13 +232,13 @@ describe('VueDeclarer — « Déjà ce mois-ci »', () => {
     const seul = texte(vue(props({ saisies: s, membres: [{ id: 'u1', display_name: 'Kamil' }] })))
     expect(seul).not.toContain('· Kamil')
     const deux = texte(vue(props({ saisies: s,
-      membres: [{ id: 'u1', display_name: 'Kamil' }, { id: 'u2', display_name: 'Thauba' }] })))
+      membres: [{ id: 'u1', display_name: 'Kamil' }, { id: 'u2', display_name: 'Léa' }] })))
     expect(deux).toContain('Lun. 5 oct. · Kamil')
   })
 
   it('une saisie d’un membre parti : « Sans prénom », pas un blanc', () => {
     const t = texte(vue(props({ saisies: [saisie(10_00, { saisi_par: 'parti' })],
-      membres: [{ id: 'u1', display_name: 'Kamil' }, { id: 'u2', display_name: 'Thauba' }] })))
+      membres: [{ id: 'u1', display_name: 'Kamil' }, { id: 'u2', display_name: 'Léa' }] })))
     expect(t).toContain('· Sans prénom')
   })
 

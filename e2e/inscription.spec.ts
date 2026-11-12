@@ -12,12 +12,12 @@
  *
  *   1. Kamil crée son compte et son foyer, par « Première connexion ».
  *   2. Il se déconnecte, se trompe de mot de passe, revient.
- *   3. Il invite Thauba ; elle ouvre le lien, choisit son mot de passe, entre.
+ *   3. Il invite Léa ; elle ouvre le lien, choisit son mot de passe, entre.
  *   4. Elle revient sur un autre appareil, puis oublie son mot de passe.
  *   5. Les liens qui ne marchent pas le disent.
  *   6. Une adresse qui a déjà un compte Popote.
  *   7. Elle supprime son compte : le foyer reste.
- *   8. Le cas réel de Thauba : un compte laissé par l'ancien mail d'invitation.
+ *   8. Le cas réel de Léa : un compte laissé par l'ancien mail d'invitation.
  *
  * Chaque écran est photographié dans `.shots/inscription/`, dans l'ordre, et
  * `journal.json` relie chaque capture à ce que la base disait à ce moment-là.
@@ -33,10 +33,10 @@ const MAILPIT = 'http://127.0.0.1:54324'
 const DOSSIER = '.shots/inscription'
 const STAMP = Date.now()
 const KAMIL = `kamil-${STAMP}@inscription.test`
-const THAUBA = `thauba-${STAMP}@inscription.test`
+const LEA = `lea-${STAMP}@inscription.test`
 const MDP_KAMIL = 'kamil-cuisine-2026'
-const MDP_THAUBA = 'thauba-choisit-12'
-const MDP_THAUBA_NOUVEAU = 'thauba-nouveau-34'
+const MDP_LEA = 'lea-choisit-12'
+const MDP_LEA_NOUVEAU = 'lea-nouveau-34'
 const TELEPHONE = { ...devices['Pixel 7'], locale: 'fr-FR', timezoneId: 'Europe/Paris' }
 /* ⚠️ LOCAL, ET RIEN D'AUTRE : ce banc crée des comptes et des foyers. Le verrou
    vit au niveau du fichier : `afterAll` tourne MÊME quand `beforeAll` a échoué,
@@ -47,13 +47,13 @@ type Entree = { parcours: string; titre: string; capture?: string; base?: unknow
 /** Ce que le banc a vu, dans l'ordre : les captures, et ce que disait la base. */
 const journal: Entree[] = []
 /** Toutes les adresses créées ici : elles s'effacent à la fin, quoi qu'il arrive. */
-const adresses: string[] = [KAMIL, THAUBA]
+const adresses: string[] = [KAMIL, LEA]
 const foyers: string[] = []
 let creationAvant: unknown = null
 
 let foyerDeKamil = ''
 let idDeKamil = ''
-let lienDeThauba = ''
+let lienDeLea = ''
 
 /** Le parcours en cours : le titre du test, tel que le rapport le regroupe. */
 const parcours = () => test.info().title
@@ -340,31 +340,31 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     expect(erreurs, 'des erreurs sont tombées dans la console').toEqual([])
   })
 
-  test('3 · Kamil invite Thauba ; elle ouvre le lien et crée son compte', async ({ page, browser }) => {
+  test('3 · Kamil invite Léa ; elle ouvre le lien et crée son compte', async ({ page, browser }) => {
     test.setTimeout(150_000)
     await connecte(page, KAMIL, MDP_KAMIL)
     await expect(HUB(page)).toBeVisible({ timeout: 15_000 })
     await versLesReglages(page)
 
-    await page.getByLabel('Son e-mail').fill(THAUBA)
+    await page.getByLabel('Son e-mail').fill(LEA)
     await page.getByLabel('Son e-mail').scrollIntoViewIfNeeded()
-    await photo(page, 'inviter', 'Réglages → Inviter : l’adresse de Thauba')
+    await photo(page, 'inviter', 'Réglages → Inviter : l’adresse de Léa')
     await page.getByRole('button', { name: 'Créer l’invitation' }).click()
-    await expect(page.getByText(`Invitation créée pour ${THAUBA}. Envoie-lui ce lien.`))
+    await expect(page.getByText(`Invitation créée pour ${LEA}. Envoie-lui ce lien.`))
       .toBeVisible({ timeout: 20_000 })
     /* Sous le bouton, pas tout en bas de la page : sur un téléphone, il
        tombait hors de l'écran, et le bouton semblait sans effet. */
-    await expect(page.getByText(`Invitation créée pour ${THAUBA}. Envoie-lui ce lien.`),
+    await expect(page.getByText(`Invitation créée pour ${LEA}. Envoie-lui ce lien.`),
       'le message de l’invitation tombe hors de l’écran').toBeInViewport()
-    lienDeThauba = await page.getByText(/\/invite\/[0-9a-f-]{36}$/).first().innerText()
+    lienDeLea = await page.getByText(/\/invite\/[0-9a-f-]{36}$/).first().innerText()
     await page.getByRole('button', { name: 'Copier le lien' }).scrollIntoViewIfNeeded()
     await photo(page, 'le-lien', 'Le lien à lui envoyer, valable 30 jours')
 
     await page.waitForTimeout(1_500)
     const avant = {
-      invitation: await invitationDe(THAUBA),
-      compte: await compte(THAUBA),
-      mails_recus: (await mails(page, THAUBA)).length,
+      invitation: await invitationDe(LEA),
+      compte: await compte(LEA),
+      mails_recus: (await mails(page, LEA)).length,
     }
     constate('En base, l’invitation créée', avant)
     expect(avant.invitation).toHaveLength(1)
@@ -373,23 +373,23 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     expect(avant.compte, 'un compte existe avant qu’elle ait rien fait').toBeNull()
     expect(avant.mails_recus, 'un mail est parti : il ne doit plus y en avoir').toBe(0)
 
-    /* ── Thauba, sur SON téléphone, sans compte ─────────────────────────── */
+    /* ── Léa, sur SON téléphone, sans compte ─────────────────────────── */
     const elle = await browser.newContext(TELEPHONE)
     const tel = await elle.newPage()
     const erreurs = surveille(tel)
-    await tel.goto(lienDeThauba)
+    await tel.goto(lienDeLea)
     await expect(tel.getByRole('heading', { name: 'Kamil t’invite' }),
       'elle ne lit pas qui l’invite').toBeVisible({ timeout: 15_000 })
-    await expect(tel.getByLabel('Ton e-mail')).toHaveValue(THAUBA)
+    await expect(tel.getByLabel('Ton e-mail')).toHaveValue(LEA)
     await expect(tel.getByRole('button', { name: 'Créer mon compte' })).toBeDisabled()
-    await photo(tel, 'elle-ouvre-le-lien', 'Thauba ouvre le lien sur son téléphone')
+    await photo(tel, 'elle-ouvre-le-lien', 'Léa ouvre le lien sur son téléphone')
 
     await tel.getByLabel('Choisis ton mot de passe').fill('court')
     await expect(tel.getByText('Il en faut au moins 8.')).toBeVisible()
     await expect(tel.getByRole('button', { name: 'Créer mon compte' })).toBeDisabled()
     await photo(tel, 'trop-court', 'Trop court : le bouton reste éteint')
 
-    await tel.getByLabel('Choisis ton mot de passe').fill(MDP_THAUBA)
+    await tel.getByLabel('Choisis ton mot de passe').fill(MDP_LEA)
     await tel.getByRole('button', { name: 'Afficher le mot de passe' }).click()
     await expect(tel.getByLabel('Choisis ton mot de passe')).toHaveAttribute('type', 'text')
     await photo(tel, 'mot-de-passe-choisi', 'Son mot de passe, affiché pour le vérifier')
@@ -399,26 +399,26 @@ test.describe.serial('l’inscription, de bout en bout', () => {
       'son compte créé ne mène pas à son profil').toBeVisible({ timeout: 20_000 })
     expect(new URL(tel.url()).pathname, 'elle est restée sur le lien').not.toMatch(/\/invite\//)
     await photo(tel, 'son-profil', 'Son compte est né : elle arrive sur son profil')
-    const ne = await compte(THAUBA)
-    constate('En base, juste après « Créer mon compte »', { compte: ne, invitation: await invitationDe(THAUBA) })
+    const ne = await compte(LEA)
+    constate('En base, juste après « Créer mon compte »', { compte: ne, invitation: await invitationDe(LEA) })
     expect(ne, 'aucun compte n’a été créé').not.toBeNull()
     expect(ne!.email_confirme, 'son adresse n’est pas confirmée : elle ne pourrait pas revenir').toBe(true)
     expect(ne!.derniere_connexion, 'elle n’a jamais été connectée').toBeTruthy()
     expect(ne!.profil?.household_id, 'elle n’est pas dans le foyer de Kamil').toBe(foyerDeKamil)
     expect(ne!.profil?.password_set).toBe(true)
-    expect((await invitationDe(THAUBA))![0].accepted_at, 'l’invitation n’est pas consommée').toBeTruthy()
+    expect((await invitationDe(LEA))![0].accepted_at, 'l’invitation n’est pas consommée').toBeTruthy()
 
-    await tel.getByLabel('Ton prénom').fill('Thauba')
+    await tel.getByLabel('Ton prénom').fill('Léa')
     await tel.getByLabel('Ton revenu net mensuel (€)').fill('2500')
     await photo(tel, 'son-profil-rempli', 'Elle remplit son profil')
     await tel.getByRole('button', { name: 'Enregistrer' }).click()
     await expect(HUB(tel), 'son profil enregistré ne mène pas au hub').toBeVisible({ timeout: 20_000 })
-    await expect(tel.getByRole('button', { name: 'Mon profil' })).toHaveText('T')
+    await expect(tel.getByRole('button', { name: 'Mon profil' })).toHaveText('L')
     await expect(tel.getByText(/complète ton profil/i)).toHaveCount(0)
     await photo(tel, 'son-hub', 'Elle est dans le foyer')
-    const dedans = await compte(THAUBA)
+    const dedans = await compte(LEA)
     constate('En base, une fois son profil rempli', dedans)
-    expect(dedans!.profil?.display_name).toBe('Thauba')
+    expect(dedans!.profil?.display_name).toBe('Léa')
     expect(dedans!.revenus?.map(r => r.net_mensuel_cents)).toEqual([250_000])
     expect(erreurs, 'des erreurs sont tombées dans la console de son téléphone').toEqual([])
     await elle.close()
@@ -426,20 +426,20 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     /* ── Et chez Kamil, son profil parle d'elle ─────────────────────────── */
     await page.goto('/')
     await page.getByRole('button', { name: 'Mon profil' }).click()
-    await expect(page.getByText(/aujourd’hui avec Thauba/)).toBeVisible({ timeout: 15_000 })
-    await photo(page, 'kamil-la-voit', 'Chez Kamil : « aujourd’hui avec Thauba »')
+    await expect(page.getByText(/aujourd’hui avec Léa/)).toBeVisible({ timeout: 15_000 })
+    await photo(page, 'kamil-la-voit', 'Chez Kamil : « aujourd’hui avec Léa »')
   })
 
-  test('4 · Thauba revient sur un autre appareil, puis oublie son mot de passe', async ({ page, browser }) => {
+  test('4 · Léa revient sur un autre appareil, puis oublie son mot de passe', async ({ page, browser }) => {
     test.setTimeout(150_000)
     const erreurs = surveille(page)
     await page.goto('/')
-    await page.getByLabel('Ton e-mail').fill(THAUBA)
-    await page.getByLabel('Mot de passe').fill(MDP_THAUBA)
+    await page.getByLabel('Ton e-mail').fill(LEA)
+    await page.getByLabel('Mot de passe').fill(MDP_LEA)
     await photo(page, 'elle-revient', 'Autre appareil : son e-mail et son mot de passe')
     await page.getByRole('button', { name: 'Entrer', exact: true }).click()
     await expect(HUB(page), 'son mot de passe ne la fait pas entrer').toBeVisible({ timeout: 15_000 })
-    await expect(page.getByRole('button', { name: 'Mon profil' })).toHaveText('T')
+    await expect(page.getByRole('button', { name: 'Mon profil' })).toHaveText('L')
     await photo(page, 'elle-est-reconnue', 'Son mot de passe marche')
 
     /* Par son avatar, cette fois : c'est le chemin du hub, côté Budget comme
@@ -451,12 +451,12 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     await expect(ENTREE(page)).toBeVisible({ timeout: 15_000 })
 
     await page.getByRole('button', { name: 'Mot de passe oublié' }).click()
-    await page.getByLabel('Ton e-mail').fill(THAUBA)
+    await page.getByLabel('Ton e-mail').fill(LEA)
     await page.getByRole('button', { name: 'Réinitialiser mon mot de passe' }).click()
     await expect(page.getByText(/le lien vient de partir/)).toBeVisible({ timeout: 10_000 })
     await photo(page, 'oubli', '« Mot de passe oublié » : le lien part')
 
-    const mail = await dernierMail(page, THAUBA)
+    const mail = await dernierMail(page, LEA)
     await photoDuMail(browser, mail, 'mail-reinitialisation', 'Le mail de réinitialisation')
     await page.goto(lienDuMail(mail))
     await expect(page.getByRole('heading', { name: 'Ton mot de passe' }),
@@ -464,12 +464,12 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     await photo(page, 'nouveau-mot-de-passe', 'Le lien mène à son nouveau mot de passe')
     /* On retape souvent l'ancien, qu'on croyait perdu : Supabase le refuse,
        en anglais. L'écran doit le dire en français. */
-    await page.getByLabel('Mot de passe').fill(MDP_THAUBA)
+    await page.getByLabel('Mot de passe').fill(MDP_LEA)
     await page.getByRole('button', { name: 'Enregistrer' }).click()
     await expect(page.getByText('C’est déjà ton mot de passe : choisis-en un autre.'))
       .toBeVisible({ timeout: 10_000 })
     await photo(page, 'meme-mot-de-passe', 'Elle retape l’ancien : l’écran le dit, en français')
-    await page.getByLabel('Mot de passe').fill(MDP_THAUBA_NOUVEAU)
+    await page.getByLabel('Mot de passe').fill(MDP_LEA_NOUVEAU)
     await page.getByRole('button', { name: 'Enregistrer' }).click()
     await expect(HUB(page), 'le nouveau mot de passe ne mène pas au hub').toBeVisible({ timeout: 15_000 })
     await photo(page, 'mot-de-passe-change', 'Nouveau mot de passe : elle est dedans')
@@ -478,23 +478,23 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     /* Sur un troisième appareil : l'ancien est refusé, le nouveau ouvre. */
     const ailleurs = await browser.newContext(TELEPHONE)
     const p = await ailleurs.newPage()
-    await connecte(p, THAUBA, MDP_THAUBA)
+    await connecte(p, LEA, MDP_LEA)
     await expect(p.getByText('E-mail ou mot de passe incorrect.'),
       'l’ancien mot de passe marche encore').toBeVisible({ timeout: 10_000 })
-    await p.getByLabel('Mot de passe').fill(MDP_THAUBA_NOUVEAU)
+    await p.getByLabel('Mot de passe').fill(MDP_LEA_NOUVEAU)
     await p.getByRole('button', { name: 'Entrer', exact: true }).click()
     await expect(HUB(p), 'le nouveau mot de passe ne fait pas entrer').toBeVisible({ timeout: 15_000 })
     await ailleurs.close()
-    constate('En base, après le nouveau mot de passe', await compte(THAUBA))
+    constate('En base, après le nouveau mot de passe', await compte(LEA))
   })
 
   test('5 · Les liens qui ne marchent pas le disent', async ({ page }) => {
     test.setTimeout(90_000)
     const erreurs = surveille(page)
 
-    await page.goto(lienDeThauba)
+    await page.goto(lienDeLea)
     await expect(page.getByRole('heading', { name: 'Ce lien a déjà servi' })).toBeVisible({ timeout: 15_000 })
-    await photo(page, 'lien-deja-servi', 'Le lien de Thauba, rouvert : il a déjà servi')
+    await photo(page, 'lien-deja-servi', 'Le lien de Léa, rouvert : il a déjà servi')
     await page.getByRole('button', { name: 'Me connecter' }).click()
     await expect(ENTREE(page), '« Me connecter » ne mène pas à l’entrée').toBeVisible()
 
@@ -559,10 +559,10 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     await photo(page, 'deja-dans-un-foyer', 'Connecté : il est déjà dans un autre foyer, l’écran le dit')
   })
 
-  test('7 · Thauba supprime son compte : le foyer reste', async ({ page }) => {
+  test('7 · Léa supprime son compte : le foyer reste', async ({ page }) => {
     test.setTimeout(90_000)
     const erreurs = surveille(page)
-    await connecte(page, THAUBA, MDP_THAUBA_NOUVEAU)
+    await connecte(page, LEA, MDP_LEA_NOUVEAU)
     await expect(HUB(page)).toBeVisible({ timeout: 15_000 })
     await versLesReglages(page)
     await page.getByRole('button', { name: 'Supprimer mon compte' }).scrollIntoViewIfNeeded()
@@ -572,23 +572,23 @@ test.describe.serial('l’inscription, de bout en bout', () => {
     await expect(ENTREE(page), 'la suppression ne ramène pas à l’entrée').toBeVisible({ timeout: 15_000 })
     await photo(page, 'supprime', 'Compte supprimé : retour à l’entrée')
 
-    const elle = await compte(THAUBA)
+    const elle = await compte(LEA)
     const lui = await compte(KAMIL)
     const { data: f } = await db.from('household').select('id').eq('id', foyerDeKamil)
-    constate('En base, après la suppression', { thauba: elle, kamil: lui, foyer_existe: (f ?? []).length === 1 })
+    constate('En base, après la suppression', { lea: elle, kamil: lui, foyer_existe: (f ?? []).length === 1 })
     expect(elle, 'son compte existe encore').toBeNull()
     expect(lui!.profil?.household_id, 'Kamil a perdu son foyer').toBe(foyerDeKamil)
     expect(f, 'le foyer a disparu avec elle').toHaveLength(1)
 
-    await page.getByLabel('Ton e-mail').fill(THAUBA)
-    await page.getByLabel('Mot de passe').fill(MDP_THAUBA_NOUVEAU)
+    await page.getByLabel('Ton e-mail').fill(LEA)
+    await page.getByLabel('Mot de passe').fill(MDP_LEA_NOUVEAU)
     await page.getByRole('button', { name: 'Entrer', exact: true }).click()
     await expect(page.getByText('E-mail ou mot de passe incorrect.'),
       'un compte supprimé ouvre encore une session').toBeVisible({ timeout: 10_000 })
     expect(erreurs, 'des erreurs sont tombées dans la console').toEqual([])
   })
 
-  test('8 · Le cas réel de Thauba : un compte laissé par l’ancien mail', async ({ page, browser }) => {
+  test('8 · Le cas réel de Léa : un compte laissé par l’ancien mail', async ({ page, browser }) => {
     /* En production, l'ancien mail d'invitation du 17/09 a créé son compte
        — jamais confirmé, sans mot de passe, sans foyer. Kamil va la réinviter
        depuis les réglages : c'est ce geste-là, sur ce compte-là, qu'on joue. */

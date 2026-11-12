@@ -38,7 +38,7 @@ export const SUR_CET_ECRAN: Record<string, string[]> = {
   '/mois-type': ['Comment est calculé le mois type ?', 'Combien chacun paie par mois ?'],
   '/toutes-les-charges': ['Comment filtrer les charges par personne ?'],
   '/reglages': ['Comment inviter quelqu’un ?'],
-  '/rappels': ['Comment activer un rappel par mail ?', 'Thauba voit-elle mes rappels ?'],
+  '/rappels': ['Comment activer un rappel par mail ?', 'Léa voit-elle mes rappels ?'],
   '/profil': ['À quoi sert ma date d’arrivée ?'],
   '/cuisine-accueil': ['Comment se déroule une session de cuisine ?'],
   '/semaine': ['Comment choisir ce que je mange ce soir ?', 'Comment changer un repas le jour même ?'],
@@ -46,7 +46,7 @@ export const SUR_CET_ECRAN: Record<string, string[]> = {
   '/frigo': ['Comment congeler ou sortir une barquette du congélateur ?', 'Que dit l’aimant sur la porte du frigo ?'],
 }
 
-export const SOUVENT: string[] = ['Comment inviter Thauba ?', 'C’est quoi le prorata ?']
+export const SOUVENT: string[] = ['Comment inviter Léa ?', 'C’est quoi le prorata ?']
 
 /** Les suggestions d'un écran : celles de la route (`/budget/2026-10` compte pour `/budget`). */
 export function surCetEcran(ici: string): string[] {

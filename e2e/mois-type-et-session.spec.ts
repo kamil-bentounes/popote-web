@@ -1,5 +1,5 @@
 /**
- * 25/10 — ce que Kamil et Thauba ont demandé après leur premier dimanche :
+ * 25/10 — ce que Kamil et Léa ont demandé après leur premier dimanche :
  *
  *   1. le mois type : leurs charges par catégorie et par personne, avec des graphes, avant même novembre ;
  *   2. toutes les charges dans un tableau, avec ce que chacun paie, et des filtres ;
@@ -35,7 +35,7 @@ async function connecte(page: Page, email: string) {
   await expect(page.getByRole('heading', { name: 'Popote' })).toBeVisible({ timeout: 15_000 })
 }
 
-/** « 3 979 € », quelle que soit l'espace que `toLocaleString` met entre les milliers. */
+/** « 3 929 € », quelle que soit l'espace que `toLocaleString` met entre les milliers. */
 const euros = (n: string) => new RegExp(`^${n.replace(' ', '\\s?')}\\s?€$`)
 
 test('le mois type : l’anneau, la jauge de chacun, le filtre par personne et le détail d’une catégorie', async ({ page }) => {
@@ -46,24 +46,24 @@ test('le mois type : l’anneau, la jauge de chacun, le filtre par personne et l
   await expect(page).toHaveURL(/\/mois-type$/)
   await expect(page.getByRole('heading', { name: 'Le mois type' })).toBeVisible()
 
-  /* Le commun (3 897 €) au prorata 3 700 / 2 400, plus le perso de chacun : 3 978,57 € en tout. */
+  /* Le commun (3 847 €) au prorata de leurs revenus, plus le perso de chacun : 3 928,57 € en tout. */
   const anneau = page.getByRole('region', { name: 'Le foyer, par mois' })
-  await expect(anneau.getByText(euros('3 979')).first()).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Chacun, par mois' }).getByText('Thauba')).toBeVisible()
+  await expect(anneau.getByText(euros('3 929')).first()).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Chacun, par mois' }).getByText('Léa')).toBeVisible()
   await page.screenshot({ path: '.shots/mois-type/01-foyer.png', fullPage: true })
 
   /* Une catégorie touchée prend le centre ; retouchée, le total revient. */
   await anneau.getByRole('button', { name: /Impôts/ }).click()
-  await expect(anneau.getByText(euros('1 070')).first()).toBeVisible()
+  await expect(anneau.getByText(euros('1 100')).first()).toBeVisible()
   await anneau.getByRole('button', { name: /Impôts/ }).click()
-  await expect(anneau.getByText(euros('3 979')).first()).toBeVisible()
+  await expect(anneau.getByText(euros('3 929')).first()).toBeVisible()
 
-  /* Vu par Thauba : sa part du commun et sa pharmacie, rien de ce qui n'est qu'à Kamil. */
-  await page.getByRole('group', { name: 'Voir pour' }).getByRole('button', { name: 'Thauba' }).click()
-  const sienne = page.getByRole('region', { name: 'Ce que Thauba paie, par mois' })
-  await expect(sienne.getByText(euros('1 553')).first()).toBeVisible()
+  /* Vu par Léa : sa part du commun et sa pharmacie, rien de ce qui n'est qu'à Kamil. */
+  await page.getByRole('group', { name: 'Voir pour' }).getByRole('button', { name: 'Léa' }).click()
+  const sienne = page.getByRole('region', { name: 'Ce que Léa paie, par mois' })
+  await expect(sienne.getByText(euros('1 573')).first()).toBeVisible()
   await expect(page.getByRole('button', { name: /^Auto :/ })).toHaveCount(0)
-  await page.screenshot({ path: '.shots/mois-type/02-thauba.png', fullPage: true })
+  await page.screenshot({ path: '.shots/mois-type/02-lea.png', fullPage: true })
 
   /* Sa carte « Vie courante » ouvre le détail, déjà filtré sur la catégorie et sur elle. */
   await page.getByRole('button', { name: /^Vie courante :/ }).click()

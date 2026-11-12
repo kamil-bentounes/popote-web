@@ -4,18 +4,18 @@ import {
 } from './mois-type.ts'
 
 const K = 'kamil'
-const T = 'thauba'
+const T = 'lea'
 const NOVEMBRE = '2026-11-01'
 
-/** 3 800 € et 2 400 € : 61,29 % et 38,71 %, comme la base les arrondit (`parts_du_mois`). */
+/** 3 200 € et 2 100 € : 60,38 % et 39,62 %, comme la base les arrondit (`parts_du_mois`). */
 const PARTS: PartsParCle = {
-  foyer: { [K]: 6129, [T]: 3871 },
-  prorata: { [K]: 6129, [T]: 3871 },
+  foyer: { [K]: 6038, [T]: 3962 },
+  prorata: { [K]: 6038, [T]: 3962 },
   moitie: { [K]: 5000, [T]: 5000 },
 }
 const REVENUS = [
-  { user_profile_id: K, net_mensuel_cents: 380_000, valid_from: NOVEMBRE },
-  { user_profile_id: T, net_mensuel_cents: 240_000, valid_from: NOVEMBRE },
+  { user_profile_id: K, net_mensuel_cents: 320_000, valid_from: NOVEMBRE },
+  { user_profile_id: T, net_mensuel_cents: 210_000, valid_from: NOVEMBRE },
 ]
 
 function charge(o: Partial<ChargeDuMoisType> = {}): ChargeDuMoisType {
@@ -29,7 +29,7 @@ function charge(o: Partial<ChargeDuMoisType> = {}): ChargeDuMoisType {
 describe('moisType', () => {
   it('partage une charge commune au prorata, au centime près, sans perdre un centime', () => {
     const m = moisType({ charges: [charge()], parts: PARTS, membres: [K, T], revenus: REVENUS, mois: NOVEMBRE })
-    expect(m.lignes[0].parts).toEqual({ [K]: 42_903, [T]: 27_097 })
+    expect(m.lignes[0].parts).toEqual({ [K]: 42_266, [T]: 27_734 })
     expect(m.total).toBe(70_000)
   })
 
@@ -72,13 +72,13 @@ describe('moisType', () => {
 
   it('dit ce que chacun paie, ce qui est commun, et ce qu’il lui reste', () => {
     const m = moisType({
-      charges: [charge(), charge({ libelle: 'Prêt', montant_cents: 58_000, categorie: 'maison', mode: 'fixe',
+      charges: [charge(), charge({ libelle: 'Prêt', montant_cents: 60_000, categorie: 'maison', mode: 'fixe',
                                    commun: false, participants: [K] })],
       parts: PARTS, membres: [K, T], revenus: REVENUS, mois: NOVEMBRE,
     })
-    const [kamil, thauba] = m.personnes
-    expect(kamil).toEqual({ id: K, commun: 42_903, perso: 58_000, total: 100_903, revenu: 380_000, reste: 279_097 })
-    expect(thauba).toEqual({ id: T, commun: 27_097, perso: 0, total: 27_097, revenu: 240_000, reste: 212_903 })
+    const [kamil, lea] = m.personnes
+    expect(kamil).toEqual({ id: K, commun: 42_266, perso: 60_000, total: 102_266, revenu: 320_000, reste: 217_734 })
+    expect(lea).toEqual({ id: T, commun: 27_734, perso: 0, total: 27_734, revenu: 210_000, reste: 182_266 })
   })
 
   it('range les catégories de la plus lourde à la plus légère, avec la part de chacun', () => {
@@ -98,11 +98,11 @@ describe('moisType', () => {
 
   it('une charge dont aucun participant n’est encore là ne compte pas : la base ne lui crée pas de ligne', () => {
     const m = moisType({
-      charges: [charge(), charge({ libelle: 'Perso Thauba', montant_cents: 10_000, commun: false, participants: [T] })],
+      charges: [charge(), charge({ libelle: 'Perso Léa', montant_cents: 10_000, commun: false, participants: [T] })],
       parts: { foyer: { [K]: 10_000 }, prorata: { [K]: 10_000 }, moitie: { [K]: 10_000 } },
       membres: [K, T], revenus: REVENUS, mois: NOVEMBRE,
     })
-    const perso = m.lignes.find(l => l.libelle === 'Perso Thauba')!
+    const perso = m.lignes.find(l => l.libelle === 'Perso Léa')!
     expect(perso).toMatchObject({ plusTard: true, pourquoi: 'arrivee', parts: { [K]: 0, [T]: 0 } })
     expect(m.total).toBe(70_000)
     expect(m.personnes.map(p => p.total)).toEqual([70_000, 0])
