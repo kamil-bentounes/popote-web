@@ -44,3 +44,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false" # pas de commentaire : le jeton reste en lecture seule
+          # La version par défaut de l'action (8.24.3) ignore les [[allowlists]] de .gitleaks.toml ;
+          # même version qu'en local.
+          GITLEAKS_VERSION: "8.30.1"
