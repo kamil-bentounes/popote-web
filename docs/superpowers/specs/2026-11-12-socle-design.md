@@ -1,7 +1,6 @@
 # Le socle de Popote : architecture et règles (étape 0.1)
 
-Écrit le 12/11/2026, après l'audit (page : https://claude.ai/artifact/QsbhzDqhoUvCHZAeShYa3j ; rapports dans
-`~/PERSO/sauvegardes-popote/audit-2026-11-12/`). Plan validé par Kamil le même jour : étape 0 = le socle, sans
+Écrit le 12/11/2026, après l'audit de l'existant. Plan validé par Kamil le même jour : étape 0 = le socle, sans
 changement visible ; étapes 1 à 13 = les parcours, un par un. Revu deux fois par un agent adverse le 12/11 ;
 ses dix-sept défauts bloquants sont traités dans cette version (stratégie de bascule, origine unique, relais,
 connexion verrouillée, rôles séparés, photos, temps réel, migrations, tests, sauvegardes, retour arrière,
@@ -507,7 +506,7 @@ captures regardées, documentation à jour, déployé sur l'essai.
 |---|---|---|---|
 | Local | `supabase start` | `uv run` | Vite, avec un proxy `/api` vers l'API locale |
 | Essai | second projet Supabase (l'offre gratuite en permet deux), réveillé chaque jour | déploiement d'essai | `essai.notre-popote.fr`, et un aperçu par demande de fusion qui relaie vers l'API d'essai |
-| Prod | projet actuel (`mjlxfffdirlqmmjzhorg`, Paris) | déploiement de prod | `notre-popote.fr` |
+| Prod | projet actuel (Paris) | déploiement de prod | `notre-popote.fr` |
 
 - `main` part sur l'essai automatiquement ; la prod part sur un tag, avec une approbation.
 - Suivi : journaux de l'hébergeur, traces OpenTelemetry, erreurs du front et de l'API (D4), sonde de
@@ -566,7 +565,7 @@ bandeau « Popote a déménagé » (GitHub Pages ne sait pas rediriger). Elle n'
 2. Migrations compatibles restantes ; déploiement de l'API et du front de prod ; e2e de fumée sur
    `notre-popote.fr`.
 3. Activation du renvoi sur l'ancien site.
-4. Kamil et Thauba se reconnectent avec leur mot de passe habituel et réinstallent l'appli sur l'écran
+4. Les deux membres du foyer se reconnectent avec leur mot de passe habituel et réinstallent l'appli sur l'écran
    d'accueil (une PWA est liée à son adresse ; ce qui était gardé dans le navigateur ne suit pas).
 Tant que la fermeture n'est pas faite, la base reste ouverte comme aujourd'hui : retour arrière = désactiver le
 renvoi de l'ancien site.

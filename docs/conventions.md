@@ -1,6 +1,6 @@
 # Conventions de popote-web
 
-Reprises du § 8 de la spec du socle (`popote-api`, `docs/superpowers/specs/2026-11-12-socle-design.md` dans l'ancien dépôt).
+Reprises du § 8 de la [spec du socle](superpowers/specs/2026-11-12-socle-design.md).
 
 ### 8.1 Communes
 - Identifiants du code et de l'API en anglais ; textes de l'écran, documentation et messages de commit en
