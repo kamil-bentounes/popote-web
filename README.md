@@ -2,9 +2,11 @@
 
 Le front de Popote (React 19, Vite). L'API et la base sont dans `popote-api`.
 
+L'ancien front est retiré (étiquette `ancien-front-2026-11-13`) : le nouveau se construit selon
+`docs/superpowers/plans/2026-11-13-fondation-du-front.md`. En attendant, l'essai sert une page d'attente.
+
 ## Lancer en local
-1. Dans `popote-api` : `npx supabase start` puis `uv run uvicorn popote_api.main:app --reload --port 8000`.
-2. Ici : `npm ci && npm run dev` (le proxy de Vite envoie `/api` vers le port 8000).
+`npm ci && npm run dev`
 
 ## Vérifier
-`npm run lint && npx tsc -b && npm test && npm run build`
+`npm run lint && npx tsc -b && npx tsc -p relais && npm test && npm run build`

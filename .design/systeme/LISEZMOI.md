@@ -16,6 +16,7 @@ charge rien d'un autre domaine.
 | `reference.html` | La page qui montre tout, état par état. À ouvrir dans un navigateur, sans serveur. |
 | `jetons-racine.css` | Copie des jetons sous `:root`, pour que `reference.html` marche sans Tailwind. |
 | `polices/` | Fredoka et Nunito en woff2 (latin et latin étendu), avec leurs licences OFL 1.1. |
+| `icones/` | Les icônes de l'appli : la marmite sur son soleil. Voir « Les icônes ». |
 
 Après une modification de `jetons.css`, régénérer la copie :
 
@@ -111,6 +112,19 @@ référence ; ils s'appliquent au moment de porter le système en composants Rea
   les marges de sécurité des téléphones dans la coque ; retirer `.jeu *` (le preflight de Tailwind le fait) ;
   vérifier en CI que `jetons-racine.css` est bien la copie de `jetons.css` ; ne jamais écrire de texte en
   `--color-erreur` sur `--color-tomate-pale` (4,25:1).
+
+## Les icônes
+
+| Fichier | Emploi |
+|---|---|
+| `icones/icone.svg` | Source. Carré arrondi au contour d'encre, soleil jaune, marmite au repos. |
+| `icones/icone-192.png`, `icone-512.png` | Icônes du manifeste (`purpose: any`), coins transparents. |
+| `icones/icone-maskable.svg`, `icone-maskable-512.png` | Icône « maskable » : fond plein bord à bord, marmite dans le cercle de sécurité (80 % du côté). |
+| `icones/apple-touch-icon-180.png` | Écran d'accueil d'iOS : fond plein, sans transparence. |
+| `icones/favicon.svg`, `favicon-32.png` | Onglet du navigateur : la marmite seule, sans fond. |
+
+Les couleurs sont celles des jetons, écrites en dur parce qu'une icône ne lit pas de feuille de style. Si un jeton de
+couleur change, les icônes se refont.
 
 ## Ce que ce dossier ne fait pas
 
