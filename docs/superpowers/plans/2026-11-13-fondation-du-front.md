@@ -1504,10 +1504,9 @@ Typographie portent une `cle`, sans `reference`.
 - **`banc.html` sert à `/banc`** (`/banc.html?fige` répond `307` vers `/banc?fige`) ; le build du banc passe `verifie-build.mjs --banc` dans la CI.
 - **Les cases du code** : le champ réel est un `<input class="sr-seul">` dans `.cases` (la sonde de F8a). Le seul contrôle sous 44 px admis est ce champ caché (exception écrite dans `banc.cibles.spec.ts`) ;
   F11 en fait un conteneur touchable (`.cases-champ`) et retire l'exception.
-- **WebKit n'a pas tourné en local** (bibliothèques système absentes, `sudo` demandé) : le projet `iphone` n'a été joué qu'en CI. Voir la PR pour son résultat. Deux hypothèses à confirmer par ce premier passage : WebKit n'applique pas
-  `upgrade-insecure-requests` de la CSP aux sous-ressources en `http://127.0.0.1` (Chromium non ; sinon le banc est passé avec `--var CSP:` sans cette directive, comme les essais de F22), et il nomme la directive du style injecté
-  `style-src` ou `style-src-elem` (la garde accepte les deux).
-- Le job `banc` de la CI est une condition du déploiement de l'essai (`deploie-essai` en dépend), pas encore un `resultat` agrégé : ce job n'existe pas dans ce dépôt.
+- **WebKit n'a pas tourné en local** (bibliothèques système absentes, `sudo` demandé) : le projet `iphone` ne se joue qu'en CI. **Premier passage (rouge, constaté) : WebKit applique `upgrade-insecure-requests` aux sous-ressources en
+  `http://127.0.0.1`** (« TLS handshake » sur chaque fichier ; Chromium épargne l'adresse locale) : le banc est donc servi avec la CSP de `wrangler.jsonc` **sans** cette directive (`--var CSP:`, lue dans le fichier par
+  `playwright.config.ts`, comme le prévoyaient les constats de F1 pour F22) ; sur l'essai, en https, elle n'a pas d'effet. Le nom de la directive du style injecté (`style-src` ou `style-src-elem`) est accepté sous les deux formes.
 
 ---
 

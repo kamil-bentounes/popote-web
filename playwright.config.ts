@@ -1,6 +1,19 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = 4173
+
+/*
+ * La CSP de `wrangler.jsonc`, sans `upgrade-insecure-requests` : WebKit réécrit alors en `https://127.0.0.1` les sous-ressources
+ * d'une page servie en `http` (« TLS handshake » sur chaque fichier, constaté en CI sur le projet `iphone`), alors que Chromium
+ * épargne l'adresse locale. Sur l'essai (en https) la directive n'a pas d'effet. Le reste de la CSP est celle qui part en ligne.
+ */
+const CSP_SANS_AMELIORATION = (/"CSP":\s*"([^"]+)"/.exec(readFileSync('wrangler.jsonc', 'utf8'))?.[1] ?? '')
+  .split(';')
+  .map((directive) => directive.trim())
+  .filter((directive) => directive !== '' && directive !== 'upgrade-insecure-requests')
+  .join('; ')
+if (!CSP_SANS_AMELIORATION.includes("script-src 'self'")) throw new Error('CSP introuvable dans wrangler.jsonc')
 
 /*
  * Les e2e se jouent contre le VRAI relais (`wrangler dev`), CSP en `enforce` : un `vite preview` n'enverrait aucune CSP et
@@ -21,7 +34,7 @@ export default defineConfig({
   },
   webServer: {
     // La CI construit le banc et le contrôle avant (`BANC_CONSTRUIT`) : le serveur sert alors ce `dist` précis, sans le refaire.
-    command: `${process.env.BANC_CONSTRUIT ? '' : 'npm run build:banc && '}npx wrangler dev --port ${PORT} --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9`,
+    command: `${process.env.BANC_CONSTRUIT ? '' : 'npm run build:banc && '}npx wrangler dev --port ${PORT} --var CSP_MODE:enforce --var "CSP:${CSP_SANS_AMELIORATION}" --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9`,
     url: `http://127.0.0.1:${PORT}/`,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,

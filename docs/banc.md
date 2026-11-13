@@ -6,7 +6,8 @@ construite seulement en mode `banc` ; `scripts/verifie-build.mjs` refuse un `ban
 
 ## L'ouvrir
 - Avec le relais local, CSP en `enforce` (ce que jouent les e2e) : `npm run build:banc`, puis
-  `npx wrangler dev --port 4173 --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9`, page `/banc`
+  `npx wrangler dev --port 4173 --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9` (les e2e y ajoutent
+  `--var CSP:` : la CSP de `wrangler.jsonc` sans `upgrade-insecure-requests`, que WebKit applique même en `http://127.0.0.1`), page `/banc`
   (l'hébergement des fichiers redirige `/banc.html` vers `/banc`). `?fige` met les animations de Motion à leur état final.
 - Avec Vite, sans CSP : `npm run dev`, page `/banc.html`.
 

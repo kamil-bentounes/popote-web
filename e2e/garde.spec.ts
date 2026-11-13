@@ -10,6 +10,8 @@ test('le banc répond sous une CSP en enforce, et /banc.html est redirigé en ga
   expect(banc.status()).toBe(200)
   expect(banc.headers()['content-security-policy']).toContain("script-src 'self'")
   expect(banc.headers()['content-security-policy-report-only']).toBeUndefined()
+  // Sans cette directive, WebKit passe les sous-ressources en https sur 127.0.0.1 (voir `playwright.config.ts`).
+  expect(banc.headers()['content-security-policy']).not.toContain('upgrade-insecure-requests')
   const ancienne = await request.get('/banc.html?fige', { maxRedirects: 0 })
   expect(ancienne.status()).toBe(307)
   expect(ancienne.headers().location).toBe('/banc?fige')
