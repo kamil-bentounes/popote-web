@@ -95,6 +95,12 @@ describe('aucune URL construite vers un autre hôte dans un css, même dans une 
     ['image()', '.x{background:image("https://evil.test/x.png")}'],
     ['src()', '.x{background:src("https://evil.test/x.png")}'],
     ['content: url()', '.x::after{content:url(https://evil.test/x.png)}'],
+    ['police en data:image/ dans @font-face', '@font-face{font-family:X;src:url(data:image/woff2;base64,AAAA)}'],
+    ['police en data:image/png dans @font-face (tout data: y est refusé)', '@font-face{font-family:X;src:url("data:image/png;base64,AAAA")}'],
+    ['data:image/ dont le type n’est pas une image connue', '.x{background:url(data:image/woff2;base64,AAAA)}'],
+    ['data:image/ hors liste (html)', '.x{background:url(data:image/x-evil;base64,AAAA)}'],
+    ['nom de fonction échappé : u\\72l(', '.x{background:u\\72l("https://evil.test/x")}'],
+    ['nom de fonction échappé : im\\61ge-set(', '.x{background:im\\61ge-set("https://evil.test/x.png" 1x)}'],
   ])('refuse %s', (_nom, css) => {
     expect(dist({ 'assets/index-abc.css': CSS_PROPRE + css }).length).toBeGreaterThan(0)
   })
@@ -106,6 +112,10 @@ describe('aucune URL construite vers un autre hôte dans un css, même dans une 
     ['une URL écrite dans un commentaire', '/* url(https://evil.test/x) */.e{color:red}'],
   ])('accepte %s (ce n’est pas une URL chargée)', (_nom, css) => {
     expect(dist({ 'assets/index-abc.css': CSS_PROPRE + css })).toEqual([])
+  })
+
+  it.each(['png', 'jpeg', 'gif', 'webp', 'avif', 'svg+xml'])('accepte une image data:image/%s hors @font-face', (type) => {
+    expect(dist({ 'assets/index-abc.css': CSS_PROPRE + `.i{background:url("data:image/${type};base64,AAAA")}` })).toEqual([])
   })
 
   it('accepte une image data:image/ et une chaîne qui n’est pas une URL', () => {

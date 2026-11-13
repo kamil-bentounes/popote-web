@@ -9,8 +9,13 @@
 // non par des expressions régulières : ce qu'un navigateur interprète (`<script/type=module>`, `&#58;`, `\68ttps:`,
 // une tabulation dans un schéma) est ce qu'on lit. Elle porte sur TOUT le CSS (une classe jamais rendue est livrée
 // quand même). Ce que couvre le contrôle : les chargements (balises, `url()`, `@import`, `import`, `fetch`, `Worker`,
-// `importScripts`, `sendBeacon`, `new URL(...)` …) dont l'URL est une chaîne écrite telle quelle ; une URL calculée
-// à l'exécution ne se voit pas, c'est la CSP en production qui la ferme (`connect-src 'self'`).
+// `importScripts`, `sendBeacon`, `new URL(...)` …) dont l'URL est une chaîne écrite telle quelle.
+//
+// LIMITES ASSUMÉES : cette garde attrape les erreurs, pas l'obfuscation, et n'est pas une frontière de sécurité :
+// c'est la CSP en `enforce` (`connect-src`, `script-src`, `style-src`, `font-src` à `'self'`) qui l'est. Ne se voient
+// pas : une URL construite à l'exécution (`new URL(a, b)` avec une base distante, `setAttribute("src", …)`, un appel
+// dont l'argument n'est pas une chaîne littérale), un nom de règle CSS échappé (`@im\70ort`), un manifeste de
+// précache de service worker (F22 le vérifiera : `precacheAndRoute` ne doit contenir que des URL de même origine).
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -27,10 +32,13 @@ const EXTENSIONS_TEXTE = new Set(['.html', '.htm', '.css', '.js', '.mjs', '.cjs'
 // oxlint-disable-next-line no-control-regex -- les caractères de contrôle sont le sujet : un navigateur les retire d'une URL
 const normalise = (valeur) => valeur.replace(/[\t\n\r]/g, '').replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '').replaceAll('\\', '/')
 
-/** Sort du site (un schéma ou `//hôte`), sauf une image `data:image/`. */
+// Les seules images admises en `data:` : un type d'image réel. `data:image/woff2` n'en est pas une.
+const IMAGE_EN_DATA = /^data:image\/(?:png|jpe?g|gif|webp|avif|svg\+xml|x-icon|vnd\.microsoft\.icon|bmp)[;,]/i
+
+/** Sort du site (un schéma ou `//hôte`), sauf une image `data:` d'un type d'image connu. */
 function estExterne(valeur) {
   const url = normalise(valeur)
-  return /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(url) && !/^data:image\//i.test(url)
+  return /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(url) && !IMAGE_EN_DATA.test(url)
 }
 
 /** Les échappements CSS décodés : continuation de ligne, `\68 ` (hexadécimal, espace de fin facultatif), `\"`, `\:`… */
@@ -106,7 +114,8 @@ function urlsDeValeur(valeur) {
   const urls = []
   valueParser(valeur).walk((noeud) => {
     if (noeud.type !== 'function') return
-    const nom = noeud.value.toLowerCase()
+    // Le nom d'une fonction peut être échappé (`u\72l(`) : LightningCSS et les navigateurs le décodent.
+    const nom = decodeCss(noeud.value).toLowerCase()
     if (nom === 'url') {
       // `URL(...)` en majuscules n'est pas reconnu comme `url()` par l'analyseur de valeurs : on relit tout l'argument.
       const [premier] = noeud.nodes
@@ -131,15 +140,22 @@ function verifieCss(chemin, contenu, contexte, probleme) {
   }
   const urls = []
   racine.walk((noeud) => {
-    if (noeud.type === 'decl') urls.push(...urlsDeValeur(noeud.value))
-    else if (noeud.type === 'atrule' && noeud.name.toLowerCase() === 'import') {
-      urls.push(...urlsDeValeur(noeud.params))
-      for (const n of valueParser(noeud.params).nodes) if (n.type === 'string') urls.push(n.value)
+    if (noeud.type === 'decl') {
+      // Dans un @font-face, aucun data: n'est admis, quel que soit le type annoncé (font-src 'self').
+      const dansFontFace = noeud.parent?.type === 'atrule' && noeud.parent.name.toLowerCase() === 'font-face'
+      urls.push(...urlsDeValeur(noeud.value).map((url) => ({ url, dansFontFace })))
+    } else if (noeud.type === 'atrule' && noeud.name.toLowerCase() === 'import') {
+      const dansImport = [...urlsDeValeur(noeud.params), ...valueParser(noeud.params).nodes.filter((n) => n.type === 'string').map((n) => n.value)]
+      urls.push(...dansImport.map((url) => ({ url, dansFontFace: false })))
     }
   })
-  for (const brute of new Set(urls)) {
+  const vus = new Set()
+  for (const { url: brute, dansFontFace } of urls) {
     const url = decodeCss(brute)
-    if (estExterne(url)) probleme(chemin, `une URL qui sort du site, ou un data: qui n'est pas une image : ${url.slice(0, 80)}`)
+    if (vus.has(`${dansFontFace}|${url}`)) continue
+    vus.add(`${dansFontFace}|${url}`)
+    if (dansFontFace && /^data:/i.test(normalise(url))) probleme(chemin, `un data: dans un @font-face (font-src 'self') : ${url.slice(0, 60)}`)
+    else if (estExterne(url)) probleme(chemin, `une URL qui sort du site, ou un data: qui n'est pas une image connue : ${url.slice(0, 80)}`)
     else if (/\.woff2(?:[?#]|$)/i.test(url)) verifieExiste(chemin, url, contexte, probleme)
   }
 }
