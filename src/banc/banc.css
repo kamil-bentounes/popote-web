@@ -1,0 +1,15 @@
+/* La mise en page du banc : celle de `reference.html` (`.page`, `.grille`, `.cas`, `.scene`), en classes, jamais en `style=`. */
+.page { max-width: 1080px; margin: 0 auto; padding: 40px max(16px, env(safe-area-inset-left, 0px)) 80px; }
+.page > header p { max-width: 62ch; }
+.page h1 { font-size: var(--text-titre-xl); }
+section { margin-top: 48px; }
+section > h2 { font-size: var(--text-titre-m); margin-bottom: 18px; }
+.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: 22px 18px; align-items: start; }
+.grille--etroite { grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); }
+.cas { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.cas > small { font-size: var(--text-note); color: var(--color-gris); }
+.nuance { height: 64px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-petit); display: grid; place-items: center; font-size: 0.84rem; }
+.scene { position: relative; height: 330px; overflow: hidden; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-bloc); }
+.pastilles { display: flex; gap: 8px; flex-wrap: wrap; }
+.carte { display: flex; flex-direction: column; padding: 16px; }
+.cas > small.erreur { color: var(--color-erreur); }

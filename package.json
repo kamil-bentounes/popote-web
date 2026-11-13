@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "jetons:verifie": "node scripts/verifie-jetons.mjs",
-    "build:verifie": "node scripts/verifie-build.mjs dist"
+    "build:verifie": "node scripts/verifie-build.mjs dist",
+    "build:banc": "tsc -b && vite build --mode banc",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.106.1",
