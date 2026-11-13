@@ -113,8 +113,10 @@ réduit). Elle tient en une phrase et porte son bouton dans la bulle :
     « Annuler » retire l'écriture en attente : rien ne part, la chose retrouve son bouton.
   - **Incertain** (la requête est partie, les reprises n'ont pas eu de réponse) : la bulle dit « Je vérifie… »,
     bouton désactivé, et l'écran relit P1. La chose n'y est plus : c'est réglé, la bulle confirme. Elle y est
-    encore : cas « refusé ». P1 ne répond pas non plus : « **Pas sûr que ce soit réglé.** Je n'arrive pas à joindre
-    la cuisine. » avec le bouton « Vérifier », qui relit P1 et n'envoie aucune écriture.
+    encore : le résultat reste incertain (le premier envoi peut encore arriver), jamais « refusé » sans erreur du
+    serveur ; la bulle dit « **Pas sûr que ce soit réglé.** » et son bouton devient « Réessayer », qui rejoue la
+    même opération avec la même clé. P1 ne répond pas non plus : « **Pas sûr que ce soit réglé.** Je n'arrive pas à
+    joindre la cuisine. » avec le bouton « Vérifier », qui relit P1 et n'envoie aucune écriture.
   - **Refusé** (le serveur a répondu par une erreur) : la bulle dit « **Oups, ça n'a pas marché.** Réessaie. » et
     garde son bouton, qui rejoue la même opération avec la même clé : réappuyer est sans effet de plus (P2).
 - Plus rien à faire : la bulle revient à une phrase calme. Si plus aucun repas n'est prévu (ni ce soir ni ensuite)
@@ -140,7 +142,7 @@ Une ligne : la photo du plat (58 px), au-dessus du nom une petite ligne, à droi
 | Un dessert ou un encas vient d'être ajouté | « Ajouté. » et « Annuler » | inchangé | **+ Dessert** |
 | Rien de prévu | « Ce soir » | Rien de prévu ; un carré en pointillés « ? » remplace la photo | **Noter** (blanc), ouvre la feuille « Qu'as-tu mangé ? » |
 | En attente (l'appareil est hors ligne) | « En attente. » et « Annuler » ; la bulle dit « **Part dès que le réseau revient.** Je le garde d'ici là. » | inchangé, sans tampon | **+ Dessert** |
-| Résultat incertain (la requête est partie, les reprises n'ont pas eu de réponse) | « Je vérifie… », puis, sans réponse, « Pas sûr que ce soit noté. » | inchangé | « … » désactivé, puis **Vérifier** (jaune) |
+| Résultat incertain (la requête est partie, les reprises n'ont pas eu de réponse) | « Je vérifie… », puis « Pas sûr que ce soit noté. » | inchangé | « … » désactivé, puis **Vérifier** (jaune) si P1 n'a pas répondu, **Réessayer** (jaune) si P1 ne montre pas la saisie |
 | Refusé (le serveur a répondu par une erreur : rien n'est noté) | « Pas noté. » | inchangé | **Réessayer** (jaune) |
 
 - Le nom tient sur deux lignes au plus, coupé par « … » au-delà. Un plat sans photo montre un carré de couleur avec
@@ -237,8 +239,9 @@ l'écriture est déjà partie, « Annuler » devient l'annulation ordinaire de l
 
 1. Toujours pas de réponse : la ligne dit « Je vérifie… », le bouton passe en « … » désactivé, et l'écran relit P1,
    qui fait foi.
-2. P1 montre la saisie : c'est noté, l'écran suit le cas de réussite. P1 ne la montre pas : l'état « Refusé » du
-   § 4.3 (« Pas noté. », « Réessayer »).
+2. P1 montre la saisie : c'est noté, l'écran suit le cas de réussite. P1 ne la montre pas : le résultat reste
+   incertain, car le premier envoi peut encore arriver ; la ligne garde « Pas sûr que ce soit noté. » et le bouton
+   devient « Réessayer ». Ce n'est pas l'état « Refusé », réservé à une erreur rendue par le serveur.
 3. P1 ne répond pas non plus : la ligne dit « Pas sûr que ce soit noté. » avec le bouton « Vérifier ».
 
 « Vérifier » relit P1 et n'envoie aucune écriture : il reprend au point 2. Seul « Réessayer » rejoue l'écriture, avec
@@ -606,7 +609,8 @@ s'agite ni d'ondes (un anneau fixe dit « écoute ») ; les chiffres des jauges 
     « Annuler » avant, *alors* aucune requête ne part au retour du réseau. *Quand* la requête est partie et reste
     sans réponse après deux reprises, *alors* l'écran ne dit ni « noté » ni « pas noté » : « Je vérifie… », puis « Pas
     sûr que ce soit noté. » avec « Vérifier », qui relit P1 sans rien écrire : si le serveur avait noté, l'écran
-    montre « Mangé » ; sinon, « Pas noté. » avec « Réessayer », qui seul rejoue l'écriture, avec la même clé. « Je
+    montre « Mangé » ; sinon la ligne garde « Pas sûr que ce soit noté. » et propose « Réessayer », qui seul
+    rejoue l'écriture, avec la même clé ; « Pas noté. » ne s'affiche que sur une erreur rendue par le serveur. « Je
     les sors » et « Jeté » suivent la même règle (§ 4.2). Dans tous les cas, rien n'est noté deux fois et rien n'est
     gardé dans le stockage du navigateur.
 13. *Quand* Popote a atteint sa limite, *alors* la feuille le dit avec l'heure de retour, et « Mangé », les tuiles et

@@ -40,8 +40,9 @@ fusion, 400 lignes visées ; les coupes prévues sont écrites.
   la mutation suspendue de la file (aucune requête ne part au retour du réseau). Après l'échec des reprises d'une
   requête partie, le résultat est **incertain** : l'écran dit « Je vérifie… » puis « Pas sûr que ce soit noté. »
   (bouton « Vérifier »), relit P1 et s'y range. **« Vérifier » ne fait que relire P1 : il n'envoie jamais
-  d'écriture.** « Pas noté. » et « Réessayer » viennent d'une erreur rendue par le serveur, ou d'une relecture de P1
-  qui ne montre pas la saisie ; seul « Réessayer » rejoue l'écriture, avec la même clé d'opération. Les choses à
+  d'écriture.** « Pas noté. » ne vient que d'une erreur rendue par le serveur. Si la relecture de P1 ne montre pas
+  la saisie, l'état reste incertain (« Pas sûr que ce soit noté. ») et le bouton devient « Réessayer » ; seul
+  « Réessayer » rejoue l'écriture, avec la même clé d'opération. Les choses à
   faire (P2) suivent la même politique que les repas (P3, P4). Chaque écriture porte sa cible
   explicite : le jour, le repas et la version affichés, jamais déduits de l'heure. Ni la clé ni la saisie ne vont
   dans le stockage du navigateur. Chaque tâche qui écrit teste ces points.
@@ -117,7 +118,7 @@ plan du socle. **Coupe prévue :** en-tête, bulle et repas (H2a) ; jauges et tu
 - Tests : deux choses à la suite ; la chose déjà réglée par l'autre membre ; hors ligne : la bulle montre l'attente,
   la tuile ne bouge pas, l'écriture part seule au retour du réseau, une seule fois ; « Annuler » hors ligne : aucun
   POST ne part au retour du réseau ; requête partie puis deux reprises sans réponse : état incertain, « Vérifier »
-  relit P1 et n'émet aucun POST (chose disparue : réglée ; chose encore là : refusé) ; refus du serveur (« Oups, ça
+  relit P1 et n'émet aucun POST (chose disparue : réglée ; chose encore là : l'état reste incertain, le bouton devient « Réessayer », jamais « refusé » sans erreur du serveur) ; refus du serveur (« Oups, ça
   n'a pas marché. », le bouton reste, rien ne change, réappuyer rejoue la même clé) ; l'annonce et le focus après
   l'appui ; mouvement réduit (pas de délai).
 
@@ -135,7 +136,7 @@ plan du socle. **Coupe prévue :** en-tête, bulle et repas (H2a) ; jauges et tu
   soir » et « Mangé »** ; requête partie puis deux reprises sans réponse : l'écran passe à
   l'état incertain ; rien n'est écrit dans le stockage du navigateur ; réponse perdue alors que le serveur a noté :
   « Vérifier » relit P1 et montre « Mangé », sans doublon ; **« Vérifier » n'émet aucun POST, que le serveur ait noté
-  ou non ; si P1 ne montre pas la saisie, l'écran passe à « Pas noté. »** ; seul « Réessayer » rejoue l'écriture, avec la même clé ; cible portée par
+  ou non ; si P1 ne montre pas la saisie, l'écran garde « Pas sûr que ce soit noté. » et propose « Réessayer » ; « Pas noté. » ne s'affiche que sur une erreur rendue par le serveur** ; seul « Réessayer » rejoue l'écriture, avec la même clé ; cible portée par
   l'écriture : à 15 h 00 min 10 s, « Mangé » sur le midi affiché envoie le midi, et un refus pour état périmé met
   l'écran à jour sans rien noter ; deux membres sur la dernière part (« Sam vient de prendre la dernière part. »,
   « Autre chose ? », « Fermer ») ; annulation de la saisie montrée, pas de la dernière ; chaque bulle (protéines manquantes, atteintes, énergie dépassée, sans objectifs) ; l'état tient après
