@@ -1,0 +1,71 @@
+/* Jetons du style « Jeu » de Popote (Tailwind 4).
+   Source unique des couleurs, typographies, rayons, ombres et courbes.
+   `jetons-racine.css` en est la copie pour la page de référence : `sed 's/^@theme {/:root {/' jetons.css > jetons-racine.css`. */
+@theme {
+  /* Fonds et encre */
+  --color-creme: #FFF3D9;        /* fond de tous les écrans */
+  --color-papier: #FFFFFF;       /* blocs, champs, bulles */
+  --color-encre: #2A1A4A;        /* texte, contours, ombres dures */
+  --color-gris: #65568A;         /* texte secondaire : 5,8:1 sur crème, 6,6:1 sur papier */
+
+  /* Couleurs franches : toujours avec du texte encre, jamais blanc */
+  --color-tomate: #FF5A47;       /* la marmite, le micro */
+  --color-jaune: #FFC62E;        /* action d'envoi, onglet actif, soleil */
+  --color-menthe: #2FD6A3;       /* action principale, réussite */
+  --color-ciel: #4D8DFF;         /* fond des écrans d'attente et de voix */
+  --color-rose: #FF8FC7;         /* étiquettes de mission, enveloppe */
+
+  /* Versions foncées : les seules qui portent du texte blanc (4,5:1 au moins) */
+  --color-tomate-fonce: #D93A27; /* bouton de danger */
+  --color-ciel-fonce: #2F6FE6;
+  --color-erreur: #C22A17;       /* texte d'erreur sur crème : 5,2:1 */
+
+  /* Versions pâles : fonds de pastilles et d'états */
+  --color-jaune-pale: #FFE08A;
+  --color-menthe-pale: #A9F0D8;
+  --color-rose-pale: #FFC4E1;
+  --color-tomate-pale: #FFD3CC;
+  --color-lilas-pale: #EEE7FF;
+  --color-filet: #E9E2F5;        /* séparateur de lignes dans un bloc */
+  --color-soleil-a: #FFD75E;
+  --color-soleil-b: #FFE48A;
+
+  /* Typographies : Fredoka pour ce qui se touche et ce qui s'annonce, Nunito pour ce qui se lit */
+  --font-titre: "Fredoka", "Nunito", system-ui, sans-serif;
+  --font-texte: "Nunito", system-ui, sans-serif;
+  --text-note: 0.875rem;         /* 14 px : aides, légendes */
+  --text-texte: 1.03125rem;      /* 16,5 px : texte courant */
+  --text-bouton: 1.3125rem;      /* 21 px */
+  --text-titre-s: 1.375rem;      /* 22 px : titre de bloc */
+  --text-titre-m: 2.125rem;      /* 34 px : titre d'écran */
+  --text-titre-l: 2.5rem;        /* 40 px : grands moments */
+  --text-titre-xl: 3.75rem;      /* 60 px : le nom « Popote » */
+
+  /* Rayons */
+  --radius-petit: 16px;          /* petits boutons, retour */
+  --radius-champ: 18px;
+  --radius-bouton: 22px;
+  --radius-bloc: 26px;
+  --radius-feuille: 34px;        /* feuille qui monte du bas */
+  --radius-pastille: 999px;
+
+  /* Ombres dures : aucun flou, c'est ce qui donne le relief du jeu */
+  --shadow-dur: 0 7px 0 var(--color-encre);
+  --shadow-dur-petit: 0 5px 0 var(--color-encre);
+  --shadow-enfonce: 0 1px 0 var(--color-encre);
+  --inset-shadow-reflet: inset 0 4px 0 rgb(255 255 255 / 0.45);
+
+  /* Courbes de mouvement */
+  --ease-rebond: cubic-bezier(0.34, 1.56, 0.64, 1);   /* entrées, tampons, tout ce qui « pop » */
+  --ease-sortie: cubic-bezier(0.22, 1, 0.36, 1);      /* écrans et feuilles qui glissent */
+
+  /* Mesures */
+  --trait: 3.5px;                /* contour des blocs, boutons, champs */
+  --trait-fin: 2.5px;            /* contour des pastilles */
+  --enfoncement: 6px;            /* course d'un bouton appuyé */
+  --cible: 44px;                 /* plus petite zone touchable */
+  --duree-appui: 90ms;
+  --duree-entree: 550ms;         /* un élément qui rebondit en place */
+  --decalage-entree: 70ms;       /* écart entre deux éléments d'un écran */
+  --duree-ecran: 500ms;          /* un écran qui monte */
+}
