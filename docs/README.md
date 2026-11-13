@@ -6,6 +6,7 @@
 | [`../README.md`](../README.md) | Lancer en local, vérifier |
 | [`superpowers/specs/2026-11-12-socle-design.md`](superpowers/specs/2026-11-12-socle-design.md) | La spec du socle (étape 0) : la référence des deux dépôts |
 | [`superpowers/plans/2026-11-12-socle-0-2.md`](superpowers/plans/2026-11-12-socle-0-2.md) | Le plan de l'étape 0.2 ; ses amendements, en fin de fichier, priment |
+| [`superpowers/plans/2026-11-13-fondation-du-front.md`](superpowers/plans/2026-11-13-fondation-du-front.md) | Le plan de la fondation du nouveau front (retrait de l'ancien, squelette, système « Jeu », états, PWA, banc, budgets) ; ses amendements, en fin de fichier, priment |
 
 La base, l'API, l'ingestion, les prompts et le modèle de données sont documentés dans `popote-api`.
 
