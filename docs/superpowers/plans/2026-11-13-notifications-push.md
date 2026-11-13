@@ -437,7 +437,7 @@ set local statement_timeout = '30s';
 
 create table public.push_setting (
   person_id uuid not null references auth.users (id) on delete cascade,
-  world text not null check (world ~ '^[a-z][a-z0-9_](2, 40)$'),
+  world text not null check (world ~ '^[a-z][a-z0-9_]{2,40}$'),
   enabled boolean not null,
   updated_at timestamptz not null default now(),
   primary key (person_id, world)
