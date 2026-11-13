@@ -28,6 +28,8 @@ jobs:
       - run: npx tsc -p relais
       - run: npm test
       - run: npm run build
+      # L'arbre de routes commité est celui que le plugin du routeur génère (le build l'a régénéré).
+      - run: git diff --exit-code -- src/routeTree.gen.ts
       # L'essai sert `dist/` : il lui faut une page, un `sw.js` qui remplace l'ancien service worker
       # (voir scripts/verifie-sw-remplacant.mjs) et aucune trace de l'ancien front.
       - name: Garde du build
