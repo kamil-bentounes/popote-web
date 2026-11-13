@@ -5,7 +5,7 @@ const SECRET = 'secret-de-test-pas-un-vrai'
 const ORIGINE = 'https://api.exemple.test'
 
 function environnement(surcharge: Partial<Env> = {}) {
-  const assets = vi.fn(async () => new Response('<html></html>', { headers: { 'Content-Type': 'text/html' } }))
+  const assets = vi.fn<() => Promise<Response>>(async () => new Response('<html></html>', { headers: { 'Content-Type': 'text/html' } }))
   const env = {
     ASSETS: { fetch: assets } as unknown as Fetcher,
     API_ORIGIN: ORIGINE,
@@ -86,7 +86,7 @@ describe('relais — les fichiers du front', () => {
 })
 
 describe('relais — /api/*', () => {
-  const amont = vi.fn()
+  const amont = vi.fn<typeof fetch>()
 
   beforeEach(() => {
     amont.mockReset()
@@ -276,7 +276,7 @@ describe('relais — /api/*', () => {
 })
 
 describe('relais — l’amont est en panne', () => {
-  const amont = vi.fn()
+  const amont = vi.fn<typeof fetch>()
 
   beforeEach(() => {
     amont.mockReset()
