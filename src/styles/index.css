@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "./jetons.css";
+@import "./polices.css";
+@import "./base.css";
+@import "./composants.css";

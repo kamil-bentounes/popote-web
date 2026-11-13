@@ -1,4 +1,4 @@
-import './styles/coque.css'
+import './styles/index.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
