@@ -16,6 +16,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Rigueur : `strict` est explicite (TypeScript 6 l'active par défaut) pour qu'aucune copie ne l'éteigne sans le dire */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "isolatedModules": true,
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
