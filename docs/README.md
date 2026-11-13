@@ -4,6 +4,7 @@
 |---|---|
 | [`conventions.md`](conventions.md) | Les règles de code du front |
 | [`../README.md`](../README.md) | Lancer en local, vérifier |
+| [`contrat.md`](contrat.md) | La copie épinglée du contrat de `popote-api`, le client généré, la CI de dérive |
 | [`superpowers/specs/2026-11-12-socle-design.md`](superpowers/specs/2026-11-12-socle-design.md) | La spec du socle (étape 0) : la référence des deux dépôts |
 | [`superpowers/plans/2026-11-12-socle-0-2.md`](superpowers/plans/2026-11-12-socle-0-2.md) | Le plan de l'étape 0.2 ; ses amendements, en fin de fichier, priment |
 | [`superpowers/plans/2026-11-13-fondation-du-front.md`](superpowers/plans/2026-11-13-fondation-du-front.md) | Le plan de la fondation du nouveau front (retrait de l'ancien, squelette, système « Jeu », états, PWA, banc, budgets) ; ses amendements, en fin de fichier, priment |

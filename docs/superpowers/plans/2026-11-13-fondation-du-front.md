@@ -1422,6 +1422,28 @@ La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F
 | A2 | F5a (`erreurs.ts`) et F19 (`ErreurEcran`) | `ErreurApi` : `status`, `code`, `title`, `detail`, … ; l'écran montre `title` et `detail` | `ErreurApi` garde **`type`** (l'URI du problème, RFC 9457) **et `code` si l'API le rend**. L'écran choisit son texte **d'après `type`** (phrase du catalogue `src/textes/`, repli par classe de statut puis phrase générique), **jamais d'après `detail`, qui n'est jamais affiché** (ni `message`, ni la pile). La référence (`instance`) reste affichée. Tests : un problem+json `500` dont le `detail` est un texte piège (mot anglais, détail technique) n'affiche **aucun** mot de ce `detail` et montre la phrase de son `type` ; un `type` inconnu donne la phrase de sa classe de statut ; mutation : afficher `detail` (casse) |
 | A3 | F18, F19, F20, F21 | chacun pose ses phrases dans son catalogue ; rien n'interdit à un parcours d'en écrire d'autres | **F18 à F21 sont la seule source des textes des états communs** : réveil, perte de réseau, `429`, `5xx` (et erreur générique), session expirée (`src/textes/reveil.ts`, `etats.ts`, `limite.ts`, `reseau.ts`, `session.ts`). Un parcours qui rencontre l'un de ces états rend le composant correspondant et **ne redéfinit pas** sa phrase ; une erreur propre au parcours (un champ refusé, un code faux) reste dans son propre catalogue |
 
+### Constats de F4 (revues adverses de la PR de F4, 13/11/2026) : ils priment sur le texte de F4
+
+- **13 chemins, pas 12** : la copie épinglée (`popote-api@cda4b61`) compte 13 chemins, 16 opérations, dont 10 protégées (`login-codes` a
+  été ajouté après le relevé du plan). Ce nombre bouge : ne pas l'écrire dans le code ni dans un test (les tests ne comptent que des
+  routes nommées).
+- **`oasdiff breaking` laisse passer une route dépréciée puis retirée** (avec ou sans date de fin ; rejoué : code 0, même avec
+  `--deprecation-days-stable 36500`) et une **protection qui change** (`info`, code 0). `scripts/compare-contrats.mjs` les refuse : toute
+  opération retirée, toute route dont la protection change (la liste des routes protégées serait périmée). Le job `contrat-amont` joue les deux.
+- **Codes de `contrat-amont.sh`** : 1 = rupture, 2 = amont injoignable ou absent (rien n'a été comparé) ; l'annotation d'une demande de
+  fusion les distingue. `git ls-remote` a un délai (30 s), pas d'invite, un SHA validé à chaque essai.
+- **« Octet à octet » était inexact** : la copie et sa vérification passent par `normalise` (LF, un seul saut de ligne final). La comparaison
+  est exacte aux fins de ligne près ; le texte de F4 et `docs/contrat.md` le disent.
+- **Durcissements de `sync-contrat.mjs`** : aucune redirection suivie (`redirect: 'error'`, plus de `--location`), contrat limité à 1 Mio,
+  version `3.1.x` stricte, refus d'écrire à travers un lien symbolique, nouvelle tentative sur 403 et 429 (limite de débit), message
+  distinct pour un jeton refusé (401), `per_page=1` sur la comparaison. Un chemin décrit par `$ref` est refusé, non ignoré.
+- **Le test de la CI joue le script de `resultat`** tel qu'il est écrit dans `ci.yml`, et vérifie `continue-on-error: ${{ !inputs.strict }}`,
+  les deux étapes de `contrat` et le `if` de `deploie-essai` : les mutations correspondantes cassent un test.
+- **Risque accepté** : une panne de `api.github.com` ou de `raw.githubusercontent.com` met `contrat`, donc `resultat`, au rouge sur toute
+  demande de fusion (trois essais, puis rouge : jamais vert par défaut). Un nouvel essai de la CI suffit.
+- **Le contrôle quotidien peut s'éteindre** : GitHub désactive les workflows planifiés d'un dépôt public après 60 jours sans activité
+  (écrit dans `docs/contrat.md`). Les élargissements d'énumération (`WARN` d'oasdiff, vert même en strict) se voient au `tsc -b` après `contrat:sync`.
+
 ---
 
 ## Sources (vérifiées en ligne ou par essai le 13/11/2026)
