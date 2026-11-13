@@ -36,10 +36,13 @@ fusion, 400 lignes visées ; les coupes prévues sont écrites.
   **Politique de mutation de ce parcours** (spec § 5) : celle de la fondation, sans exception
   (`mutations.networkMode: 'online'` et `reessaieEcriture` de F5b : au plus deux reprises automatiques sur coupure,
   502, 503 ou 504, avec la même `Idempotency-Key` dans les variables). Hors ligne, l'écriture attend et repart seule
-  (F21) : l'écran la montre avec la marque « Part dès que le réseau revient. ». Après l'échec des reprises d'une
+  (F21) : l'écran la montre « En attente. », la bulle dit « Part dès que le réseau revient. », et « Annuler » retire
+  la mutation suspendue de la file (aucune requête ne part au retour du réseau). Après l'échec des reprises d'une
   requête partie, le résultat est **incertain** : l'écran dit « Je vérifie… » puis « Pas sûr que ce soit noté. »
-  (bouton « Vérifier »), relit P1 et s'y range. « Pas noté. » et « Réessayer » ne viennent que d'une erreur rendue
-  par le serveur. Chaque écriture porte sa clé d'opération (même clé à « Réessayer » et à « Vérifier ») et sa cible
+  (bouton « Vérifier »), relit P1 et s'y range. **« Vérifier » ne fait que relire P1 : il n'envoie jamais
+  d'écriture.** « Pas noté. » et « Réessayer » viennent d'une erreur rendue par le serveur, ou d'une relecture de P1
+  qui ne montre pas la saisie ; seul « Réessayer » rejoue l'écriture, avec la même clé d'opération. Les choses à
+  faire (P2) suivent la même politique que les repas (P3, P4). Chaque écriture porte sa cible
   explicite : le jour, le repas et la version affichés, jamais déduits de l'heure. Ni la clé ni la saisie ne vont
   dans le stockage du navigateur. Chaque tâche qui écrit teste ces points.
 - Le texte de Popote arrive en segments typés (simple, gras) et se rend en JSX ; le récapitulatif se rend depuis le
@@ -108,8 +111,15 @@ plan du socle. **Coupe prévue :** en-tête, bulle et repas (H2a) ; jauges et tu
 
 - [ ] La chose courante remplace la salutation après 1,5 s ; son bouton la règle ; confirmation, tuile mise à jour,
   chose suivante prise dans la réponse.
-- Tests : deux choses à la suite ; la chose déjà réglée par l'autre membre ; l'échec (« Oups, ça n'a pas marché. »,
-  le bouton reste, rien ne change) ; l'annonce et le focus après l'appui ; mouvement réduit (pas de délai).
+- [ ] Les trois cas de la politique de mutation pour « Je les sors » et « Jeté » (spec § 4.2) : en attente (« Part
+  dès que le réseau revient. », « Annuler », la tuile ne bouge pas), incertain (« Je vérifie… », « Pas sûr que ce
+  soit réglé. », « Vérifier »), refusé (« Oups, ça n'a pas marché. », le bouton reste).
+- Tests : deux choses à la suite ; la chose déjà réglée par l'autre membre ; hors ligne : la bulle montre l'attente,
+  la tuile ne bouge pas, l'écriture part seule au retour du réseau, une seule fois ; « Annuler » hors ligne : aucun
+  POST ne part au retour du réseau ; requête partie puis deux reprises sans réponse : état incertain, « Vérifier »
+  relit P1 et n'émet aucun POST (chose disparue : réglée ; chose encore là : refusé) ; refus du serveur (« Oups, ça
+  n'a pas marché. », le bouton reste, rien ne change, réappuyer rejoue la même clé) ; l'annonce et le focus après
+  l'appui ; mouvement réduit (pas de délai).
 
 ### H4 : « Mangé », « Annuler », l'échec
 
@@ -117,12 +127,15 @@ plan du socle. **Coupe prévue :** en-tête, bulle et repas (H2a) ; jauges et tu
 
 - [ ] L'enchaînement complet de « Mangé » (attente, tampon, confettis, jauges, tuile Frigo, série si c'est le premier
   repas du jour), les quatre bulles du § 5.1, « Annuler » (qui désigne la saisie montrée, noms accessibles « Annuler
-  le dessert » et « Annuler le repas »), l'état en attente (« Part dès que le réseau revient. »), l'état incertain (« Je vérifie… », « Pas sûr que ce soit noté. »,
+  le dessert » et « Annuler le repas »), l'état en attente (« En attente. », la bulle « Part dès que le réseau revient. »), **« Annuler » sur une écriture en attente, qui retire la mutation suspendue de la file**, l'état incertain (« Je vérifie… », « Pas sûr que ce soit noté. »,
   « Vérifier »), l'état refusé (« Pas noté. », « Réessayer »), le conflit de dernière part, l'état périmé.
 - Tests : double appui (une seule note) ; refus puis réussite ; hors ligne : l'écran montre l'attente, la saisie
-  repart seule au retour du réseau, une seule fois ; requête partie puis deux reprises sans réponse : l'écran passe à
+  repart seule au retour du réseau, une seule fois ; **hors ligne, « Mangé » puis « Annuler » : la mutation suspendue
+  est retirée, et au retour du réseau aucun POST ne part (le test compte les requêtes) ; la ligne a retrouvé « Ce
+  soir » et « Mangé »** ; requête partie puis deux reprises sans réponse : l'écran passe à
   l'état incertain ; rien n'est écrit dans le stockage du navigateur ; réponse perdue alors que le serveur a noté :
-  « Vérifier » relit P1 et montre « Mangé », sans doublon ; « Réessayer » rejoue la même clé ; cible portée par
+  « Vérifier » relit P1 et montre « Mangé », sans doublon ; **« Vérifier » n'émet aucun POST, que le serveur ait noté
+  ou non ; si P1 ne montre pas la saisie, l'écran passe à « Pas noté. »** ; seul « Réessayer » rejoue l'écriture, avec la même clé ; cible portée par
   l'écriture : à 15 h 00 min 10 s, « Mangé » sur le midi affiché envoie le midi, et un refus pour état périmé met
   l'écran à jour sans rien noter ; deux membres sur la dernière part (« Sam vient de prendre la dernière part. »,
   « Autre chose ? », « Fermer ») ; annulation de la saisie montrée, pas de la dernière ; chaque bulle (protéines manquantes, atteintes, énergie dépassée, sans objectifs) ; l'état tient après

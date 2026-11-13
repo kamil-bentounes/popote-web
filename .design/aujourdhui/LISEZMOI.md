@@ -7,8 +7,8 @@ Le prototype animé du deuxième parcours (l'accueil, noter ce qu'on mange, Popo
 
 | Fichier | Rôle |
 |---|---|
-| `prototype.html` | Le film du parcours et ses 19 moments rejouables, sur téléphone et sur PC. À ouvrir dans un navigateur, sans serveur. |
-| `captures/` | 38 captures : les étapes de chaque moment (390 px), états d'erreur compris, et l'écran PC. |
+| `prototype.html` | Le film du parcours et ses 20 moments rejouables, sur téléphone et sur PC. À ouvrir dans un navigateur, sans serveur. |
+| `captures/` | 40 captures : les étapes de chaque moment (390 px), états d'erreur compris, et l'écran PC. |
 | `img/` | La photo d'exemple du plat. Voir `CREDITS.md`. |
 
 ## Ce qui fait foi

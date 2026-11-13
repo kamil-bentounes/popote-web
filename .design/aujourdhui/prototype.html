@@ -190,6 +190,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
 .ceSoir .btn{flex:none}
 .ceSoir .vd{width:58px;height:58px;border-radius:16px;border:3px dashed #B9AEDA;flex:none;display:grid;place-items:center;font-family:var(--titre);font-size:24px;color:#B9AEDA}
 .ceSoir .vd.est{border-style:solid;border-color:var(--encre);background:#FFE08A;color:var(--encre)}
+.reseau{position:absolute;z-index:40;left:14px;right:14px;top:52px;background:var(--encre);color:#fff;border-radius:16px;padding:10px 14px;font-weight:700;font-size:14.5px;line-height:1.3;box-shadow:0 5px 0 rgba(0,0,0,.25)}
 .ceSoir .tampon{left:3px;top:27px;font-size:13.5px;padding:0 6px;border-width:2.5px;border-radius:9px;box-shadow:0 3px 0 var(--encre)}
 .bz{position:absolute;z-index:3;left:168px;right:16px;top:104px;height:172px;display:flex;align-items:center}
 .bz .bulle{position:relative;width:100%}
@@ -355,7 +356,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
   const el=(tag,cls,html)=>{const e=document.createElement(tag);e.className=cls;e.innerHTML=html;return e};
   const fr=n=>n.toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g,'\u00a0');
   const M=()=>q('[data-m]');
-  function vas(id){feuille=false;fait=false;parts=STOCK-(id==='elle'?1:0);document.querySelectorAll('.e').forEach(s=>{if(s.id!==ici&&s.id!==id)s.innerHTML=''});va(id);document.querySelectorAll('#'+id+' [data-p]').forEach(x=>x.innerHTML=POT)}
+  function vas(id){document.querySelectorAll('.reseau').forEach(x=>x.remove());feuille=false;fait=false;parts=STOCK-(id==='elle'?1:0);document.querySelectorAll('.e').forEach(s=>{if(s.id!==ici&&s.id!==id)s.innerHTML=''});va(id);document.querySelectorAll('#'+id+' [data-p]').forEach(x=>x.innerHTML=POT)}
   const bulle=html=>{const b=q('#bulle');b.innerHTML=html;gsap.fromTo(b,{scale:.85},{scale:1,duration:.35,ease:'back.out(2.5)'})};
   const compte=(e,de,a)=>{const o={v:de};gsap.to(o,{v:a,duration:.9,ease:'power2.out',onUpdate:()=>{e.textContent=fr(Math.round(o.v))}})};
   const note=()=>{const b=q('#mange');b.textContent='+ Dessert';b.className='btn j pt';q('#plat small').innerHTML='<span>Mangé.</span><u>Annuler</u>';gsap.from(b,{scale:.85,duration:.4,ease:'back.out(3)'})};
@@ -384,6 +385,9 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     +'<div class="dose"><div><b>Granola</b><small>10 g prot. aux 100 g</small></div><button type="button" class="btn b pt rond" id="m-c" aria-label="Moins">−</button><span class="q" id="q-c">30 g</span><button type="button" class="btn b pt rond" id="p-c" aria-label="Plus">+</button></div>'
     +'<div class="total"><span>Ce dessert</span><b id="d-tot">+ 280 kcal, + 19 g prot.</b></div><div class="total"><span>Ta journée</span><b id="d-jour">2 000 / 2 000 kcal</b></div>'
     +'<div class="actes"><button type="button" class="btn pt" id="d-ok">Ajouter au dîner</button><button type="button" class="btn b pt">Autre dessert</button></div>';
+  const servi=async()=>{await tamponne();confettis(300,330,36);yeux(M(),'joie');saute(M(),30);monte(86,1240,1720,83,68,99);
+      note();parts--;frigo();
+      bulle('<span class="tt">Bien joué !</span><br>Encore 21 g de protéines et l\'objectif tombe.');await dors(3400);yeux(M(),'ouverts');await dors(500)};
   const S={
     async vide(){vas('vide');await dors(1400);parle(M(),7);cligne(M());await dors(1500);mission();await dors(2600)},
     async perime(){if(ici!=='vide'||feuille||fait){vas('vide');await dors(1300)}if(!q('#jete')){mission();await dors(1500)}
@@ -397,9 +401,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
       await dors(500);await touche(q('#choisir'));yeux(M(),'joie');saute(M(),30);await dors(1500)},
     async soir(){vas('auj');await dors(1300);parle(M(),6);cligne(M());await dors(1500);mission();await dors(2600)},
     async mange(){if(ici!=='auj'||feuille||q('.tampon')){vas('auj');await dors(1300)}
-      await touche(q('#mange'));await tamponne();confettis(300,330,36);yeux(M(),'joie');saute(M(),30);monte(86,1240,1720,83,68,99);
-      note();parts--;frigo();
-      bulle('<span class="tt">Bien joué !</span><br>Encore 21 g de protéines et l\'objectif tombe.');await dors(3400);yeux(M(),'ouverts');await dors(500)},
+      await touche(q('#mange'));await servi()},
     async sortir(){if(ici!=='auj'||feuille||fait){vas('auj');await dors(1300)}if(!q('#sors')){mission();await dors(1500)}
       await touche(q('#sors'));fait=true;bulle('<span class="tt">2 parts sorties !</span><br>Prêtes pour demain midi.');frigo();confettis(285,520,18);yeux(M(),'joie');saute(M(),24);await dors(2800);yeux(M(),'ouverts')},
     async budget(){if(ici!=='auj'||feuille){vas('auj');await dors(1300)}
@@ -467,6 +469,9 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
       ajoute('rep','J\'ai beaucoup parlé aujourd\'hui : je ne réponds plus jusqu\'à demain matin.<br><b>Tout le reste de l\'appli marche.</b>');const c=q('#a-champ');c.disabled=true;c.placeholder='De retour demain à 6 h';gsap.set([c,q('#a-micro')],{opacity:.45});await dors(3400)},
     async panne(){vas('auj');await dors(1200);await touche(q('#mange'));const b=q('#mange');b.textContent='…';await dors(1400);triste(M());gsap.fromTo(b,{x:-8},{x:8,duration:.06,yoyo:true,repeat:5,onComplete:()=>gsap.set(b,{x:0})});
       b.textContent='Vérifier';b.className='btn j pt';b.style.cssText='font-size:15px;padding:0 10px';q('#plat small').innerHTML='<span>Pas sûr que ce soit noté.</span>';bulle('<span class="tt">Pas sûr que ce soit noté.</span><br>Je n\'arrive pas à joindre la cuisine.');await dors(3400)},
+    async horsligne(){vas('auj');await dors(1200);const bd=el('div','reseau','Tu n\'as plus de réseau. Popote reprend toute seule quand il revient.');bd.setAttribute('role','status');document.getElementById('tel').appendChild(bd);gsap.from(bd,{y:-90,duration:.45,ease:'back.out(1.6)'});await dors(1700);
+      await touche(q('#mange'));const b=q('#mange');b.textContent='+ Dessert';b.className='btn j pt';q('#plat small').innerHTML='<span>En attente.</span><u>Annuler</u>';gsap.from(b,{scale:.85,duration:.4,ease:'back.out(3)'});bulle('<span class="tt">Part dès que le réseau revient.</span><br>Je le garde d\'ici là.');await dors(3400);
+      gsap.to(bd,{y:-90,duration:.3,onComplete:()=>bd.remove()});await dors(700);await servi()},
     async pcauj(){vas('pcauj');q('#puces').innerHTML=PUCES.map(p=>'<button type="button" class="btn b pt">'+p+'</button>').join('');gsap.from(q('#puces').children,{y:14,opacity:0,duration:.35,stagger:.07,delay:.5});await dors(1700);parle(M(),6);await dors(900);
       await ecris('On mange quoi demain ?');await pense(1000);parle(q('#a-m'),6);
       ajoute('rep','Demain midi : <b>chili</b>, sors-en 2 parts ce soir. Demain soir : <b>curry de pois chiches</b>.<div class="actes"><button type="button" class="btn b pt">Voir la semaine</button></div>');await dors(3400)}
@@ -477,7 +482,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     ['Un dessert, des chips, autre chose',[['dessert','Une habitude, dosée pour toi','Popote propose les quantités, tu ajustes, tu valides.'],['chips','Des chips, sans les valeurs','Elle demande la quantité, estime, et le dit.'],['habitude','Lui apprendre un produit','Elle dit ce qu\'elle a compris et demande ce qui lui manque.']]],
     ['Popote répond et agit',[['phrase','Tout dire en une phrase','Le plat, le yaourt, les chips : un récapitulatif, une validation.'],['voix','Le mode vocal','Le micro de la barre : elle récapitule, tu dis oui.'],['savoir','Une question','Sur ton frigo, puis sur l\'appli : elle t\'y emmène.']]],
     ['Léa',[['elle','Son accueil','Le même soir, vu par elle, sans objectifs réglés.']]],
-    ['Et si…',[['quota','Popote a trop parlé','L\'assistant se repose, l\'appli marche.'],['panne','Pas de réseau','On ne sait pas si c\'est noté : on le dit, puis on vérifie.']]],
+    ['Et si…',[['quota','Popote a trop parlé','L\'assistant se repose, l\'appli marche.'],['horsligne','Pas de réseau','La saisie attend, et part seule quand le réseau revient.'],['panne','Réponse perdue après l\'envoi','On ne sait pas si c\'est noté : on le dit, puis on vérifie.']]],
     ['Sur PC',[['pcauj','Aujourd\'hui en large','Les mêmes tuiles, et Popote toujours ouverte à droite.']]]];
   const chap=document.getElementById('chap');
   chap.innerHTML=CH.map(([t,xs])=>'<h2>'+t+'</h2>'+xs.map(([id,n,d])=>'<button type="button" data-s="'+id+'">'+n+'<small>'+d+'</small></button>').join('')).join('');
