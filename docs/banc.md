@@ -7,18 +7,23 @@ construite seulement en mode `banc` ; `scripts/verifie-build.mjs` refuse un `ban
 ## L'ouvrir
 - Avec le relais local, CSP en `enforce` (ce que jouent les e2e) : `npm run build:banc`, puis
   `npx wrangler dev --port 4173 --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9`, page `/banc`
-  (le relais redirige `/banc.html` vers `/banc`). `?fige` met les animations de Motion à leur état final.
+  (l'hébergement des fichiers redirige `/banc.html` vers `/banc`). `?fige` met les animations de Motion à leur état final.
 - Avec Vite, sans CSP : `npm run dev`, page `/banc.html`.
 
 ## Les contrôles (`npm run e2e`, job `banc` de la CI)
 Trois projets : `telephone` (Chromium 390 × 844), `pc` (Chromium 1440 × 900), `iphone` (WebKit). WebKit exige des
 bibliothèques système (`npx playwright install-deps`) : sans elles, `--project=telephone --project=pc`.
 - `garde.spec.ts` : aucune violation de CSP, aucune erreur de console ni exception ; la garde relève bien un style injecté
-  et un appel vers un hôte tiers, et la CSP bloque (c'est ce qui prouve `enforce`).
-- `banc.axe.spec.ts` : axe (WCAG 2.0 à 2.2, A et AA, **contraste compris**) sur chaque section, avec et sans mouvement réduit.
+  et un appel vers un hôte tiers, et la CSP les **bloque** (le style n'est pas appliqué, le leurre n'est jamais atteint) : c'est
+  ce qui prouve `enforce`, car l'événement de violation part aussi en `report-only`.
+- `banc.axe.spec.ts` : axe (WCAG 2.0 à 2.2, A et AA, **contraste compris**) sur chaque section, avec et sans mouvement réduit ;
+  le test compte aussi les contrastes mesurés (axe laisse « incomplet » un fond en dégradé ou recouvert : le nombre admis est borné, sa raison écrite).
 - `banc.cibles.spec.ts` : cibles de 44 × 44 px (exceptions écrites une à une), ordre de `Tab`, indicateur de focus, `Maj+Tab`, aucun piège.
 - `banc.base.spec.ts` : le lien d'évitement reste au-dessus d'un `.soleil` (`elementFromPoint`) ; l'anneau de focus de chaque
   composant (encre de 4 px, halo jaune de 11 px) est mesuré tel que Chromium le dessine.
+
+Le banc se construit dans `dist/`, comme la prod : après `npm run e2e`, refaire `npm run build` avant tout `wrangler deploy` à la
+main (la CI et `garde-du-build.sh` refusent un `banc.html` dans un build normal). `captures/` (F8b) est ignoré par Git.
 
 ## Ajouter une section
 Un fichier de `src/banc/sections/` exporte `section: Section` (`src/banc/section.ts`) : `reference` (le `h2` de la section de

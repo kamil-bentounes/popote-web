@@ -3,7 +3,7 @@ import { CONTROLES, ouvreLeBanc } from './banc.ts'
 
 /** Les exceptions à la cible de 44 px, une par une, avec leur raison. */
 const EXCEPTIONS: Record<string, string> = {
-  '.sr-seul': 'le champ réel des cases du code est caché : les cases dessinées sont ce qu’on touche (F11 en fait le conteneur touchable)',
+  '.cases > .sr-seul': 'le champ réel des cases du code est caché : les cases dessinées sont ce qu’on touche (F11 en fait le conteneur touchable)',
 }
 
 test('chaque contrôle visible du banc mesure 44 × 44 px au moins (règle 10 du système)', async ({ page }) => {
@@ -16,6 +16,8 @@ test('chaque contrôle visible du banc mesure 44 × 44 px au moins (règle 10 du
       .map(({ c, boite }) => `${c.outerHTML.slice(0, 70)} : ${Math.round(boite.width)} × ${Math.round(boite.height)}`)
   }, Object.keys(EXCEPTIONS))
   expect(trop_petits).toEqual([])
+  // Le banc a bien des contrôles à mesurer : un sélecteur ou un chargement cassé ne doit pas rendre le test vide.
+  expect(await page.locator(CONTROLES).count()).toBeGreaterThanOrEqual(12)
 })
 
 test('Tab parcourt les contrôles dans l’ordre du DOM, chacun a un indicateur de focus, Maj+Tab revient, aucun piège', async ({ page }) => {
@@ -24,14 +26,16 @@ test('Tab parcourt les contrôles dans l’ordre du DOM, chacun a un indicateur 
   const rangFocalise = () => page.evaluate(() => {
     const actif = document.activeElement
     if (!actif || actif === document.body) return { rang: null, indicateur: false }
+    const rang = actif.getAttribute('data-rang')
     // L'anneau peut être sur un ancêtre (`.cases:focus-within` autour du champ caché).
     let noeud: Element | null = actif
     while (noeud && noeud !== document.body) {
       const style = getComputedStyle(noeud)
-      if (style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0) return { rang: Number(actif.getAttribute('data-rang')), indicateur: true }
+      // L'anneau du système : plein et d'au moins 3 px. Le contour par défaut du navigateur (`auto`) ne compte pas.
+      if (style.outlineStyle === 'solid' && parseFloat(style.outlineWidth) >= 3) return { rang: rang === null ? null : Number(rang), indicateur: true }
       noeud = noeud.parentElement
     }
-    return { rang: Number(actif.getAttribute('data-rang')), indicateur: false }
+    return { rang: rang === null ? null : Number(rang), indicateur: false }
   })
 
   const avant: Array<number | null> = []

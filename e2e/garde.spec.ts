@@ -23,16 +23,22 @@ test('le banc ne déclenche aucune violation de CSP, aucune erreur de console', 
 
 test('la garde relève un style injecté et un appel vers un hôte tiers, tous deux bloqués', async ({ page }) => {
   const problemes = await surveille(page)
+  // Le leurre répondrait 200 : sans CSP l'appel aboutirait. Sous `enforce`, il est bloqué avant d'atteindre le réseau.
+  let appelsAuLeurre = 0
+  await page.route('https://tiers.exemple.invalid/**', (route) => {
+    appelsAuLeurre++
+    return route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, body: 'x' })
+  })
   await ouvreLeBanc(page)
-  const bloque = await page.evaluate(async () => {
+  const resultat = await page.evaluate(async () => {
     const style = document.createElement('style')
     style.textContent = 'body { outline: 9px solid red; }'
     document.head.append(style)
-    const tiers = await fetch('https://tiers.exemple.invalid/x').then(() => false, () => true)
+    const tiers = await fetch('https://tiers.exemple.invalid/x').then(() => 'abouti', () => 'bloque')
     return { styleSansEffet: getComputedStyle(document.body).outlineStyle === 'none', tiers }
   })
-  // `enforce` : le style n'a pas été appliqué (en `report-only`, il l'aurait été, la violation seulement relevée).
-  expect(bloque).toEqual({ styleSansEffet: true, tiers: true })
-  expect(problemes.join('\n')).toMatch(/style-src-elem .*\(enforce\)/)
+  // `enforce` : le style n'est pas appliqué et l'appel n'aboutit pas (en `report-only`, les deux passeraient, la violation seulement relevée).
+  expect({ ...resultat, appelsAuLeurre }).toEqual({ styleSansEffet: true, tiers: 'bloque', appelsAuLeurre: 0 })
+  expect(problemes.join('\n')).toMatch(/style-src(-elem)? .*\(enforce\)/)
   expect(problemes.join('\n')).toMatch(/connect-src https:\/\/tiers\.exemple\.invalid.*\(enforce\)/)
 })

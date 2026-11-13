@@ -1482,23 +1482,31 @@ F8 est coupée comme le plan le prévoit. **F8a** (cette PR) : le banc, sa garde
 (`titre` au lieu de `reference` : « Lien d'évitement », « Anneaux de focus », « Paires texte et fond ») : la comparaison les signale sans échouer. Les cas de Couleurs et de
 Typographie portent une `cle`, sans `reference`.
 
-- **Preuves de F6 et F7, toutes en Chromium** : le lien d'évitement focalisé au clavier est au-dessus d'un `.soleil` de 700 px (`elementFromPoint` au centre et au milieu de chaque
+- **Preuves de F6 et F7, jouées en Chromium en local (les trois projets les jouent en CI)** : le lien d'évitement focalisé au clavier est au-dessus d'un `.soleil` de 700 px (`elementFromPoint` au centre et au milieu de chaque
   bord : les coins sont arrondis, un point à 4 px du coin tombe hors du contour et rend le soleil) ; l'anneau de chaque composant (bouton, champ, lien, cases du code, avatar, place
   libre) est mesuré tel que Chromium le dessine (contour d'encre de 4 px, halo jaune de 11 px) ; axe mesure les paires texte/fond des classes du système sur une section « Paires texte et fond »
   (classes de `composants.css` en HTML brut : les sections des composants, F9 à F13, montrent les vrais ; celle-ci reste la sonde des classes). Mutations jouées, chacune casse son test :
   `z-index` du lien retiré, anneau des cases retiré, halo de l'avatar retiré, `--color-gris` éclairci, bouton de 30 px, `tabIndex` positif, `CSP_MODE` en `report-only`, violations non relevées.
-- **`securitypolicyviolation` part aussi en `report-only`** : la garde y verrait la violation. Ce qui prouve `enforce`, c'est l'**effet** : le style injecté n'est pas appliqué, l'appel vers un hôte tiers échoue,
-  la violation porte `(enforce)`, et la réponse n'a pas `Content-Security-Policy-Report-Only`.
+- **`securitypolicyviolation` part aussi en `report-only`** : la garde y verrait la violation. Ce qui prouve `enforce`, c'est l'**effet** : le style injecté n'est pas appliqué, l'appel vers un hôte tiers n'atteint jamais
+  son leurre (`page.route` compte 0 appel ; un nom en `.invalid` échouerait sans CSP et ne prouverait rien), la violation porte `(enforce)`, et la réponse n'a pas `Content-Security-Policy-Report-Only`.
 - **Un `box-shadow` d'un bouton est en transition (90 ms)** : mesuré aussitôt après `Tab`, il rendait un halo de 7 px à moitié écrit. Les mesures attendent `document.getAnimations()` (les transitions finies y sont) ; F9 et la suite
   qui mesurent un style le font aussi (`attendLeRepos`).
-- **Axe laisse « incomplet » (ni réussi ni violé) un texte de la couleur de son fond (1:1)** : le test de garde de la garde emploie une paire pâle sur menthe. Quelques titres sortent « incomplets » parce que le
-  décor les recouvre (soleil de la section « Lien d'évitement ») : ce ne sont pas des violations.
+- **Axe laisse « incomplet » (ni réussi ni violé) un texte de la couleur de son fond (1:1), un fond en dégradé ou un élément recouvert** : le test de garde de la garde emploie une paire pâle sur menthe ; un test qui ne lit que
+  les `violations` resterait vert si un contraste cessait d'être mesuré. `banc.axe.spec.ts` compte donc les contrastes réussis (au moins 90 ; 102 aujourd'hui) et **borne les incomplets à 4**, tous dans la scène du soleil
+  (le titre de la section, le texte posé sur le dégradé du soleil, sa légende, le titre de la section suivante : axe lit la boîte de 700 px sans le rognage de la scène). Relever cette borne demande une raison écrite.
+  Le lien d'évitement, hors cadre au repos, n'est mesuré qu'une fois focalisé : un test à part le fait.
+- **Une paire reste non mesurée** : le `+` de l'avatar de la place libre (gris sur papier) n'est ni réussi ni incomplet pour axe. À mesurer à part quand F13 livre l'avatar. Axe note aussi `label-content-name-mismatch`
+  (incomplet) sur les avatars de la sonde (`aria-label="Léa"` pour la lettre « L », « Inviter quelqu'un » pour « + ») : F13 choisit un nom qui contient le texte visible (WCAG 2.5.3).
+- **Identifiants du banc** : `aria-labelledby` est une liste d'identifiants séparés par des espaces ; un identifiant tiré d'un titre à plusieurs mots ne nomme aucune section (axe le classe « incomplet »). Ils sont numérotés.
+- **`tabJusqua` borne ses appuis par le nombre de contrôles** (un tour de la page), non par 60 : les lots F9 à F17 ajoutent des dizaines de contrôles avant les sections de la sonde. Les mesures d'anneaux attendent la fin des transitions.
 - **`tsc -b` compile maintenant `playwright.config.ts` et `e2e/` (avec `DOM` dans `lib`)**, et `build:banc` lance `tsc -b` : une faute de type dans un e2e fait échouer le démarrage du serveur des tests (« Process from config.webServer was not
   able to start »), non le test.
 - **`banc.html` sert à `/banc`** (`/banc.html?fige` répond `307` vers `/banc?fige`) ; le build du banc passe `verifie-build.mjs --banc` dans la CI.
 - **Les cases du code** : le champ réel est un `<input class="sr-seul">` dans `.cases` (la sonde de F8a). Le seul contrôle sous 44 px admis est ce champ caché (exception écrite dans `banc.cibles.spec.ts`) ;
   F11 en fait un conteneur touchable (`.cases-champ`) et retire l'exception.
-- **WebKit n'a pas tourné en local** (bibliothèques système absentes, `sudo` demandé) : le projet `iphone` n'a été joué qu'en CI. Voir la PR pour son résultat.
+- **WebKit n'a pas tourné en local** (bibliothèques système absentes, `sudo` demandé) : le projet `iphone` n'a été joué qu'en CI. Voir la PR pour son résultat. Deux hypothèses à confirmer par ce premier passage : WebKit n'applique pas
+  `upgrade-insecure-requests` de la CSP aux sous-ressources en `http://127.0.0.1` (Chromium non ; sinon le banc est passé avec `--var CSP:` sans cette directive, comme les essais de F22), et il nomme la directive du style injecté
+  `style-src` ou `style-src-elem` (la garde accepte les deux).
 - Le job `banc` de la CI est une condition du déploiement de l'essai (`deploie-essai` en dépend), pas encore un `resultat` agrégé : ce job n'existe pas dans ce dépôt.
 
 ---

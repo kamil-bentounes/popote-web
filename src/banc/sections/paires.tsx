@@ -38,7 +38,7 @@ export const section: Section = {
       </div>
     )),
     cas('Tampon', <span className="tampon">Mangé !</span>),
-    cas('Cases du code', (
+    cas('Cases du code, faux', (
       <div className="cases" data-etat="faux">
         <i>1</i><i>3</i><i>5</i><i>7</i><i>9</i><i>0</i>
       </div>

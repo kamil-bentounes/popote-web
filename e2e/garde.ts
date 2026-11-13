@@ -3,6 +3,8 @@ import { expect, test as base, type Page } from '@playwright/test'
 /**
  * Relève ce qu'une page ne doit jamais produire : une violation de CSP, une erreur de console, une exception non
  * attrapée. Posée AVANT toute navigation : l'écouteur `securitypolicyviolation` est dans un script d'amorce.
+ * Une seule fois par page (`exposeFunction` refuse un second nom identique) : le `test` ci-dessous l'appelle déjà ;
+ * un test qui veut lire les problèmes demande la fixture `problemes`, il n'appelle pas `surveille` lui-même.
  */
 export async function surveille(page: Page): Promise<string[]> {
   const problemes: string[] = []
@@ -11,7 +13,7 @@ export async function surveille(page: Page): Promise<string[]> {
     document.addEventListener('securitypolicyviolation', (evenement) => {
       const { violatedDirective, blockedURI, disposition } = evenement
       void (window as unknown as { signaleViolationCsp: (d: string) => void }).signaleViolationCsp(
-        `${violatedDirective} ${blockedURI || 'en ligne'} (${disposition})`,
+        `${violatedDirective} ${blockedURI || 'en ligne'} (${disposition ?? 'inconnue'})`,
       )
     })
   })

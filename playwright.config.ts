@@ -20,7 +20,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: `npm run build:banc && npx wrangler dev --port ${PORT} --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9`,
+    // La CI construit le banc et le contrôle avant (`BANC_CONSTRUIT`) : le serveur sert alors ce `dist` précis, sans le refaire.
+    command: `${process.env.BANC_CONSTRUIT ? '' : 'npm run build:banc && '}npx wrangler dev --port ${PORT} --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9`,
     url: `http://127.0.0.1:${PORT}/`,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
