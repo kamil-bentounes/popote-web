@@ -163,12 +163,11 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
 <section class="e" id="retour">
   <div class="soleil"></div><div class="sol"></div>
   <div class="masc" data-m style="left:100px;top:104px;width:190px;height:190px"></div>
-  <div class="bulle bloc" style="left:92px;top:60px" data-in>Re-bonjour Sam !</div>
-  <div class="col centre" style="top:318px;gap:6px"><h1 class="tt" style="font-size:44px;line-height:1" data-in>Content de te revoir</h1><p class="p" data-in>Ce téléphone te connaît déjà.</p></div>
+  <div class="bulle bloc" style="left:128px;top:60px" data-in>Re-bonjour !</div>
+  <div class="col centre" style="top:318px;gap:6px"><h1 class="tt" style="font-size:44px;line-height:1" data-in>Content de te revoir</h1><p class="p" data-in>Entre avec ton empreinte, ou reçois un code.</p></div>
   <div class="col" style="top:470px">
     <button type="button" class="btn" id="re-go" data-in><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0110 0v3M5 11h14v10H5z"></path></svg>Entrer avec mon empreinte</button>
     <button type="button" class="btn b" data-in>Recevoir un code par mail</button>
-    <button type="button" class="lien" style="align-self:center" data-in>Ce n'est pas moi</button>
   </div>
 </section>
 
@@ -179,10 +178,10 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
   <div class="env" style="left:232px;top:150px;transform:rotate(10deg)" data-in></div>
   <div class="col" style="top:290px;gap:12px">
     <h1 class="tt" style="font-size:34px" data-in>Regarde tes mails</h1>
-    <p class="p" data-in>Un code à 6 chiffres est parti vers <b id="c-mail">sam@exemple.fr</b>.</p>
+    <p class="p" data-in>Un code à 6 chiffres part vers <b id="c-mail">sam@exemple.fr</b>.</p>
     <div class="cases" id="cases" data-in><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <p class="note" id="c-note">Il marche 10 minutes.</p>
-    <div id="c-bas" style="display:flex;justify-content:center"><button type="button" class="lien" data-in>Renvoyer le code</button></div>
+    <div id="c-bas" style="display:flex;justify-content:center"><button type="button" class="lien" id="c-renvoi" data-in>Recevoir un nouveau code</button></div>
   </div>
 </section>
 
@@ -226,8 +225,8 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     <div class="place bloc" id="f-place" data-in><div class="av vide" id="f-av">+</div><b id="f-nom">Place libre</b><button type="button" class="btn j pt" id="f-inviter">Inviter</button></div>
   </div></div>
   <div class="col" id="f-suivi" style="top:446px;display:none"><div class="bloc suivi">
-    <span style="font-size:15.5px">Invitation partie vers <b>lea@exemple.fr</b></span>
-    <div class="piste3"><div class="fait" id="s1"><u><s></s></u>Envoyée</div><div id="s2"><u><s></s></u>Ouverte</div><div id="s3"><u><s></s></u>Arrivée</div></div>
+    <span style="font-size:15.5px">Le mail part vers <b>lea@exemple.fr</b></span>
+    <div class="piste3"><div class="fait" id="s1"><u><s></s></u>Lancée</div><div id="s2"><u><s></s></u>Ouverte</div><div id="s3"><u><s></s></u>Arrivée</div></div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn b pt">Renvoyer</button><button type="button" class="btn b pt">Copier le lien</button><button type="button" class="lien">Annuler</button></div>
   </div></div>
   <div class="masc" data-m id="f-m" style="left:14px;top:630px;width:124px;height:124px"></div>
@@ -274,10 +273,10 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
   <div class="col" style="top:306px;gap:10px">
     <h1 class="tt" style="font-size:42px;text-align:center" data-in>Salut Léa !</h1>
     <p class="p" style="text-align:center" data-in>Sam t'attend en cuisine.</p>
-    <div class="bloc carte-info" data-in><span class="ic">✓</span><span><b style="display:block">lea@exemple.fr</b><span style="font-size:14px;color:var(--gris)">Vérifiée par le lien que tu viens d'ouvrir</span></span></div>
+    <div class="bloc carte-info" id="r-bloc" data-in><span class="ic">✓</span><span><b style="display:block">Ton adresse est vérifiée</b><span style="font-size:14px;color:var(--gris)">par le lien que tu viens d'ouvrir</span></span></div>
     <div class="champ" data-in><label for="r-prenom">Ton prénom (tu peux le corriger)</label><input id="r-prenom" type="text" value="Léa" autocomplete="given-name"></div>
     <button type="button" class="btn" id="r-go" data-in>Rejoindre le foyer</button>
-    <p class="p" style="font-size:14.5px;text-align:center" data-in>Rien d'autre à taper. Ton compte se crée maintenant.</p>
+    <p class="p" id="r-note" style="font-size:14.5px;text-align:center" data-in>Rien d'autre à taper. Ton compte se crée maintenant.</p>
   </div>
 </section>
 
@@ -341,9 +340,9 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     <h1 class="tt" style="font-size:32px" data-in>Supprimer ton compte</h1>
     <div class="bloc" style="padding:4px 14px" data-in>
       <div class="rang"><span class="fx perd">✕</span><div>Ton prénom, ton e-mail, tes objectifs et tes repas notés <b>disparaissent</b>.</div></div>
-      <div class="rang"><span class="fx perd">✕</span><div>Tes charges perso et ta part des mois ouverts <b>disparaissent</b>.</div></div>
+      <div class="rang"><span class="fx perd">✕</span><div>Tes charges perso <b>disparaissent</b>. Ce qui est déjà réglé reste partagé.</div></div>
       <div class="rang"><span class="fx reste">✓</span><div>Léa <b>garde</b> le frigo, les recettes et les mois déjà clôturés.</div></div>
-      <div class="rang"><span class="fx change">→</span><div>Léa <b>devient responsable</b> du foyer, et paie les charges communes en entier.</div></div>
+      <div class="rang"><span class="fx change">→</span><div>Léa <b>devient responsable</b> du foyer, et paie les charges communes encore à régler en entier.</div></div>
       <div class="rang"><span class="fx change">→</span><div>Elle est <b>prévenue par mail</b>.</div></div>
     </div>
     <button type="button" class="btn b" id="su-moi" style="height:54px;font-size:19px" data-in><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0110 0v3M5 11h14v10H5z"></path></svg><span>Prouve que c'est toi</span></button>
@@ -373,11 +372,28 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
       <div class="rang"><span class="fx perd">✕</span><div>Elle <b>ne voit plus</b> le frigo, les recettes ni le budget.</div></div>
       <div class="rang"><span class="fx change">→</span><div>Elle garde <b>30 jours</b> pour télécharger ce qui est à elle.</div></div>
       <div class="rang"><span class="fx reste">✓</span><div>Tu <b>gardes</b> tout le foyer. Ses barquettes sont à tout le monde.</div></div>
-      <div class="rang"><span class="fx change">→</span><div>Ses charges perso sortent du budget, les communes passent <b>à 100 % pour toi</b>.</div></div>
+      <div class="rang"><span class="fx change">→</span><div>Ses charges perso sortent du budget, les communes encore à régler passent <b>à 100 % pour toi</b>.</div></div>
     </div>
     <button type="button" class="btn b" id="rt-moi" style="height:54px;font-size:19px" data-in><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0110 0v3M5 11h14v10H5z"></path></svg><span>Prouve que c'est toi</span></button>
     <button type="button" class="btn r tenir" id="rt-go" data-in><s></s><span>Maintiens pour retirer Léa</span></button>
     <button type="button" class="lien" style="align-self:center" data-in>Annuler</button>
+  </div>
+</section>
+
+<section class="e" id="quitter">
+  <button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button>
+  <div class="col" style="top:108px;gap:11px">
+    <h1 class="tt" style="font-size:32px" data-in>Quitter le foyer</h1>
+    <div class="bloc" style="padding:4px 14px" data-in>
+      <div class="rang"><span class="fx perd">✕</span><div>Tu <b>ne vois plus</b> le frigo, les recettes ni le budget.</div></div>
+      <div class="rang"><span class="fx change">→</span><div>Ton compte reste <b>30 jours</b>, puis s'efface.</div></div>
+      <div class="rang"><span class="fx reste">✓</span><div>Léa <b>garde</b> tout le foyer et en devient responsable.</div></div>
+      <div class="rang"><span class="fx change">→</span><div>Elle paie en entier les charges communes <b>encore à régler</b>.</div></div>
+    </div>
+    <button type="button" class="btn b" id="qt-moi" style="height:54px;font-size:19px" data-in><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0110 0v3M5 11h14v10H5z"></path></svg><span>Prouve que c'est toi</span></button>
+    <button type="button" class="btn r tenir" id="qt-go" data-in><s></s><span>Maintiens pour quitter</span></button>
+    <p class="p" style="font-size:14px;text-align:center" data-in>Garde le doigt dessus 2 secondes.</p>
+    <button type="button" class="lien" style="align-self:center" data-in>Finalement, je reste</button>
   </div>
 </section>
 
@@ -386,8 +402,8 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
   <div class="masc" data-m style="left:100px;top:104px;width:190px;height:190px"></div>
   <div class="col centre" style="top:322px;gap:10px">
     <span class="pion g" style="font-size:15px;padding:6px 13px" data-in>Encore 30 jours</span>
-    <h1 class="tt" style="font-size:31px;line-height:1.08" data-in>Tu n'es plus dans le foyer de Sam</h1>
-    <p class="p" data-in>Depuis le 13 novembre. Ton compte s'efface tout seul le 13 décembre.</p>
+    <h1 class="tt" style="font-size:31px;line-height:1.08" data-in>Tu n'es plus dans le foyer</h1>
+    <p class="p" data-in>Depuis le 13 novembre, à la demande de Sam. Ton compte s'efface tout seul le 13 décembre.</p>
   </div>
   <div class="col" style="top:530px"><button type="button" class="btn j" data-in>Télécharger mes données</button><button type="button" class="btn b" data-in>J'ai une nouvelle invitation</button><button type="button" class="lien" style="align-self:center;color:#C22A17" data-in>Supprimer mon compte maintenant</button></div>
 </section>
@@ -413,8 +429,8 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
         <div style="display:grid;grid-template-columns:220px 220px 1fr;gap:22px;margin-top:26px;align-items:start">
           <div class="place bloc" data-in><div class="av">S</div><b>Sam</b><span class="pion">C'est toi</span></div>
           <div class="place bloc" data-in><div class="av t">L</div><b>Léa</b><span class="pion m">Invitée</span></div>
-          <div class="bloc suivi" data-in><span style="font-size:16px">Invitation partie vers <b>lea@exemple.fr</b></span>
-            <div class="piste3"><div class="fait"><u><s style="width:100%"></s></u>Envoyée</div><div class="fait"><u><s style="width:100%"></s></u>Ouverte</div><div><u><s></s></u>Arrivée</div></div>
+          <div class="bloc suivi" data-in><span style="font-size:16px">Le mail part vers <b>lea@exemple.fr</b></span>
+            <div class="piste3"><div class="fait"><u><s style="width:100%"></s></u>Lancée</div><div class="fait"><u><s style="width:100%"></s></u>Ouverte</div><div><u><s></s></u>Arrivée</div></div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn b pt">Renvoyer</button><button type="button" class="btn b pt">Copier le lien</button><button type="button" class="lien">Annuler</button></div></div>
         </div>
         <h2 class="tt" style="font-size:24px;margin-top:34px" data-in>Mes appareils</h2>
@@ -466,7 +482,10 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     a.querySelectorAll('[data-m]').forEach(x=>gsap.from(x,{scale:.4,y:40,duration:.7,ease:'back.out(2)',delay:de?.2:0}))}
   // Les moments du parcours
   const etatSuivi=(etape)=>{$('#f-suivi').style.display='flex';$('#f-av').className='av t';$('#f-av').textContent='L';$('#f-nom').textContent='Léa';$('#f-inviter').outerHTML='<span class="pion m" id="f-pion">Invitée</span>';
-    $('#f-sous').textContent='Léa est invitée. Je te préviens quand elle arrive.';$('#f-bulle').textContent='Le mail est parti !';gsap.set($('#f-m'),{top:652});gsap.set($('#f-bulle'),{top:680});gsap.set('#s1 s',{width:'100%'});if(etape>1){gsap.set('#s2 s',{width:'100%'});$('#s2').className='fait'}};
+    $('#f-sous').textContent='Léa est invitée. Je te préviens quand elle arrive.';$('#f-bulle').textContent='Je lui écris !';gsap.set($('#f-m'),{top:652});gsap.set($('#f-bulle'),{top:680});gsap.set('#s1 s',{width:'100%'});if(etape>1){gsap.set('#s2 s',{width:'100%'});$('#s2').className='fait'}};
+  const variante=(titre,texte,bouton,lien,chagrin,trace)=>{va('lienmort');const h=$('#lienmort h1');h.textContent=titre;if(titre.length>22)h.style.cssText='font-size:30px;line-height:1.1';$('#lienmort .p').textContent=texte;
+    const b=$('#l-go');if(bouton){b.textContent=bouton[0];b.className='btn '+bouton[1]}else b.style.display='none';const l=$('#lienmort .lien');if(lien)l.textContent=lien;else l.style.display='none';
+    if(chagrin)triste(m(''));if(trace)$('#lienmort .p').insertAdjacentHTML('afterend','<p class="p" style="font-size:13px">'+trace+'</p>')};
   const S={
     async porte(){va('porte');await dors(1500);cligne(m(''));await tape('#p-mail','sam@exemple.fr');await dors(350);await touche('#p-go');await dors(250)},
     async code(){va('code');await dors(1300);parle(m(''),5);const cs=$$('#cases i');for(const [i,c] of [...'482913'].entries()){cs[i].textContent=c;gsap.from(cs[i],{scale:1.5,duration:.3,ease:'back.out(3)'});await dors(190)}
@@ -493,11 +512,10 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     async bienvenue(){va('bienvenue');await dors(500);yeux(m(''),'joie');saute(m(''),40);confettis(195,170,40);await dors(1300);yeux(m(''),'ouverts');parle(m(''),8);await dors(2600)},
     async codefaux(){va('code');await dors(1200);const cs=$$('#cases i');for(const [i,c] of [...'135790'].entries()){cs[i].textContent=c;await dors(150)}
       await dors(250);$('#cases').classList.add('non');gsap.fromTo('#cases',{x:-10},{x:10,duration:.07,yoyo:true,repeat:5,onComplete:()=>gsap.set('#cases',{x:0})});
-      $('#c-note').className='note err';$('#c-note').textContent='Ce n\'est pas le bon code. Encore 4 essais.';triste(m(''));await dors(2600)},
-    async expire(){va('code');await dors(900);$('#c-note').className='note err';$('#c-note').textContent='Ce code a plus de 10 minutes : il ne marche plus.';triste(m(''));
-      $('#c-bas').innerHTML='<button type="button" class="btn j" id="c-neuf">M\'envoyer un nouveau code</button>';gsap.from('#c-neuf',{scale:.7,opacity:0,duration:.45,ease:'back.out(2)'});await dors(1500);await touche('#c-neuf');
-      $('#c-note').className='note';$('#c-note').textContent='Nouveau code parti. Il marche 10 minutes.';gsap.fromTo($('#'+ici+' .env'),{y:-40,rotation:-20},{y:0,rotation:10,duration:.6,ease:'bounce.out'});await dors(2000)},
-    async pause(){va('code');await dors(900);$('#cases').classList.add('non');$$('#cases i').forEach(c=>c.textContent='×');$('#c-note').className='note err';$('#c-note').textContent='5 essais ratés. On fait une pause de 15 minutes.';yeux(m(''),'dodo');
+      $('#c-note').className='note err';$('#c-note').textContent='Ce code ne marche pas (faux ou expiré).';triste(m(''));
+      $('#c-bas').innerHTML='<button type="button" class="btn j" id="c-neuf">Recevoir un nouveau code</button>';gsap.from('#c-neuf',{scale:.7,opacity:0,duration:.45,ease:'back.out(2)'});await dors(2200);await touche('#c-neuf');
+      $('#cases').classList.remove('non');cs.forEach(c=>c.textContent='');$('#c-note').className='note';$('#c-note').textContent='Un nouveau code part vers ton adresse. Il marche 10 minutes.';gsap.set(m('').querySelector('.bouche'),{scaleY:1,y:0});gsap.fromTo($('#'+ici+' .env'),{y:-40,rotation:-20},{y:0,rotation:10,duration:.6,ease:'bounce.out'});await dors(2200)},
+    async pause(){va('code');await dors(900);$('#c-note').className='note err';$('#c-note').textContent='Trop de demandes. On fait une pause de 15 minutes.';yeux(m(''),'dodo');
       $('#c-bas').innerHTML='<div style="display:flex;flex-direction:column;gap:12px;width:100%"><span class="pion g" style="align-self:center;font-size:16px;padding:8px 14px">Nouveau code possible dans 14:59</span><button type="button" class="btn">Entrer avec mon empreinte</button></div>';
       gsap.from('#c-bas>div>*',{y:20,opacity:0,duration:.45,stagger:.1,ease:'back.out(2)'});await dors(3000)},
     async alerte(){va('alerte');await dors(2800);await touche('#al-voir');await dors(200);await S.compte()},
@@ -509,13 +527,25 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     async sansfoyer(){va('sansfoyer');triste(m(''));await dors(3200)},
     async pcporte(){va('pcporte');await dors(1200);cligne($('#pcporte [data-m]'));await tape('#pc-mail','sam@exemple.fr');await dors(2200)},
     async pcfoyer(){va('pcfoyer');await dors(1200);parle($('#pcfoyer [data-m]'),6);await dors(2600)},
+    async quitter(){va('quitter');await dors(2600);await prouve('#qt-moi');await dors(700);await maintiens('#qt-go','Tu as quitté le foyer');await dors(700);va('sansfoyer');$('#sansfoyer h1').textContent='Tu as quitté le foyer';
+      $('#sansfoyer .p').textContent='Depuis le 13 novembre. Léa le garde. Ton compte s\'efface tout seul le 13 décembre.';triste(m(''));await dors(3000)},
+    async complet(){va('foyer');$('#f-av').className='av t';$('#f-av').textContent='L';$('#f-nom').textContent='Léa';$('#f-inviter').outerHTML='<span class="pion m">Dans le foyer</span><button type="button" class="lien" style="font-size:14.5px;min-height:30px;padding:0;color:#C22A17">Retirer du foyer</button>';
+      $('#f-sous').textContent='Le foyer est au complet.';await dors(1000);parle(m('#f-m'),6);await dors(2200)},
+    async liencode(){va('rejoindre');$('#r-bloc').innerHTML='<span class="ic" style="background:#FFE08A">@</span><span><b style="display:block">Un code part vers ton adresse</b><span style="font-size:14px;color:var(--gris)">celle où tu as reçu l\'invitation</span></span>';
+      $('#r-note').remove();const b=$('#r-go');b.insertAdjacentHTML('beforebegin','<div class="cases" id="r-cases"><i></i><i></i><i></i><i></i><i></i><i></i></div>');gsap.set(b,{opacity:.45});await dors(1900);
+      const cs=$$('#r-cases i');for(const [i,c] of [...'482913'].entries()){cs[i].textContent=c;gsap.from(cs[i],{scale:1.5,duration:.3,ease:'back.out(3)'});await dors(190)}$('#r-cases').classList.add('oui');gsap.to(b,{opacity:1,duration:.3});await dors(2200)},
+    async inconnu(){variante('Ce lien ne marche plus','Rouvre-le depuis ton mail, ou demande à la personne qui t\'a invitée de t\'en renvoyer un.',null,'J\'ai déjà un compte',true);await dors(3000)},
+    async existant(){variante('Tu as déjà un compte','Avec cette adresse. Entre, puis rouvre ce lien.',['Entrer',''],null,false);await dors(3000)},
+    async horsreseau(){variante('Je n\'arrive pas à joindre la cuisine','Vérifie ta connexion, puis réessaie.',['Réessayer','j'],null,true);await dors(3000)},
+    async casse(){variante('Quelque chose a cassé de mon côté','Réessaie dans un instant.',['Réessayer','j'],null,true,'Trace 4f2a-91c7');await dors(3000)},
     async lienmort(){va('lienmort');triste(m(''));await dors(2100);await touche('#l-go');$('#l-go').textContent='Demande envoyée à Sam';gsap.set(m('').querySelector('.bouche'),{scaleY:1,y:0});saute(m(''),30);await dors(2000)}
   };
-  const CH=[['Sam entre',[['porte','La porte','Un seul champ : son e-mail.'],['code','Le code','Six chiffres reçus par mail.'],['empreinte','L\'empreinte','Proposée une fois, pour ne plus taper de code.'],['reveil','Le réveil','Popote dormait : la marmite se réveille, puis l\'accueil.'],['retour','Quand il revient','Le téléphone le connaît : son doigt suffit.']]],
-    ['Il invite Léa',[['foyer','Notre foyer','Une place libre, un bouton.'],['inviter','Prénom, e-mail','Popote envoie le mail tout seul.'],['suivi','Le suivi','Envoyée, ouverte, arrivée. Renvoyer ou annuler.']]],
+  const CH=[['Sam entre',[['porte','La porte','Un seul champ : son e-mail.'],['code','Le code','Six chiffres reçus par mail.'],['empreinte','L\'empreinte','Proposée une fois, pour ne plus taper de code.'],['reveil','Le réveil','Popote dormait : la marmite se réveille, puis l\'accueil.'],['retour','Quand il revient','Son empreinte suffit ; sinon, un code.']]],
+    ['Il invite Léa',[['foyer','Notre foyer','Une place libre, un bouton.'],['inviter','Prénom, e-mail','Popote envoie le mail tout seul.'],['suivi','Le suivi','Lancée, ouverte, arrivée. Renvoyer ou annuler.']]],
     ['Léa arrive',[['mail','Le mail','Ce qu\'elle reçoit, au style de Popote.'],['rejoindre','Un seul geste','Le lien prouve son e-mail : rien à taper.'],['bienvenue','Bienvenue','Elle arrive dans un foyer qui vit déjà.']]],
-    ['Et si…',[['codefaux','Le code est faux','Les cases tremblent, il reste 4 essais.'],['expire','Le code a expiré','Un bouton en renvoie un.'],['pause','Trop d\'essais','Pause de 15 minutes ; l\'empreinte marche toujours.'],['alerte','Quelqu\'un entre à ma place','Un mail d\'alerte, puis mes appareils : je le déconnecte.'],['lienmort','Le lien d\'invitation a expiré','Elle en redemande un, Sam est prévenu.']]]];
-  CH.push(['Mon compte et les départs',[['compte','Mon compte','Mes appareils : j\'en déconnecte un d\'un geste.'],['partir','Partir','Quitter le foyer, ou tout supprimer.'],['supprimer','Supprimer mon compte','Ce qui disparaît, ce qui reste, puis un appui long.'],['retirer','Retirer Léa','Réservé à celui qui a créé le foyer.'],['sansfoyer','Ce que voit Léa ensuite','30 jours pour récupérer ses données.']]],
+    ['Et si…',[['codefaux','Le code ne marche pas','Faux ou expiré : le même message, et un bouton en renvoie un.'],['pause','Trop de demandes','Pause de 15 minutes ; l\'empreinte marche toujours.'],['alerte','Quelqu\'un entre à ma place','Un mail d\'alerte, puis mes appareils : je le déconnecte.'],['lienmort','Le lien d\'invitation a expiré','Elle en redemande un, Sam est prévenu.'],['inconnu','Le lien est inconnu ou annulé','Rien à demander : elle rouvre son mail.'],['existant','Elle a déjà un compte','Elle entre, puis rouvre le lien.'],['liencode','Le lien copié','Un code reçu par mail en plus.']]]];
+  CH.push(['Mon compte et les départs',[['compte','Mon compte','Mes appareils : j\'en déconnecte un d\'un geste.'],['partir','Partir','Quitter le foyer, ou tout supprimer.'],['quitter','Quitter le foyer','Ce qui change, la preuve, l\'appui long, puis l\'écran d\'après.'],['supprimer','Supprimer mon compte','Ce qui disparaît, ce qui reste, puis un appui long.'],['retirer','Retirer Léa','Réservé au responsable du foyer.'],['sansfoyer','Ce que voit Léa ensuite','30 jours pour récupérer ses données.'],['complet','Le foyer au complet','Le responsable peut retirer l\'autre.']]],
+    ['Quand ça coince',[['horsreseau','Pas de réseau','On le dit, on réessaie.'],['casse','Une panne de notre côté','Avec le numéro de trace.']]],
     ['Sur PC',[['pcporte','La porte','Le même écran, en large.'],['pcfoyer','Le foyer','Le menu à gauche, la marmite toujours là.']]]);
   const chap=document.getElementById('chap');
   chap.innerHTML=CH.map(([t,xs])=>'<h2>'+t+'</h2>'+xs.map(([id,n,d])=>'<button type="button" data-s="'+id+'">'+n+'<small>'+d+'</small></button>').join('')).join('');

@@ -9,20 +9,20 @@ rejoindre, gérer ses appareils, partir, retirer quelqu'un, supprimer son compte
   cette spec fait foi pour les textes, les états et les données.
 - **Côté API :** le socle 0.4bis (`docs/superpowers/plans/2026-11-13-socle-0-4bis-connexion-sans-mot-de-passe.md`).
   Cette spec n'en change aucune valeur de sécurité. Elle demande les ajouts du § 9, planifiés dans le plan du socle.
-- **Prénoms :** « Sam » est la personne qui a créé le foyer, « Léa » la personne invitée. Ce sont des exemples.
+- **Prénoms :** « Sam » a créé le foyer et en est le responsable, « Léa » est la personne invitée. Ce sont des exemples.
 
 ## 1. Décisions du propriétaire (13/11/2026)
 
 | Sujet | Décision |
 |---|---|
 | Entrer | Un code à 6 chiffres reçu par mail, puis l'empreinte ou le visage (clé d'accès) sur l'appareil. Aucun mot de passe. |
-| Inviter | L'hôte tape un prénom et un e-mail, Popote envoie le mail. Suivi : envoyée, ouverte, arrivée. Renvoyer, copier le lien, annuler. |
+| Inviter | L'hôte tape un prénom et un e-mail, Popote envoie le mail. Suivi : lancée, ouverte, arrivée. Renvoyer, copier le lien, annuler. |
 | Rejoindre | Par le lien du mail : un seul geste, rien à taper sauf corriger son prénom. |
-| Retirer quelqu'un | Réservé à la personne qui a créé le foyer. L'autre peut seulement partir d'elle-même. |
+| Retirer quelqu'un | Réservé au responsable du foyer : la personne qui l'a créé, tant qu'elle y est ; le rôle passe à l'autre si elle part. L'autre peut seulement partir d'elle-même. |
 | Quitter le foyer | Le compte est gardé 30 jours (télécharger ses données, rejoindre un foyer par une nouvelle invitation), puis effacé. |
-| Supprimer son compte | Immédiat. Si la personne qui a créé le foyer part et qu'il reste quelqu'un, cette personne garde le foyer et en devient responsable. |
+| Supprimer son compte | Immédiat. Si le responsable part et qu'il reste quelqu'un, cette personne garde le foyer et en devient responsable. |
 | Mails | Expéditeur `bonjour@notre-popote.fr`. Les réponses sont renvoyées vers la boîte du propriétaire. |
-| Réveil | Le serveur dort après une demi-heure sans visite : la marmite dort puis se réveille (5 à 7 s). |
+| Réveil | Quand la réponse tarde après un temps sans visite, l'écran montre la marmite qui dort puis se réveille. C'est un comportement de l'écran, pas un délai promis par le serveur. |
 
 ## 2. Hors périmètre
 
@@ -33,7 +33,7 @@ vocal. Pas de mode hors ligne : sans réseau, l'écran d'erreur réseau du § 6 
 ## 3. Carte du parcours
 
 ```
-/entrer ──(appareil connu)── empreinte ─────────────────────────────┐
+/entrer ──(empreinte proposée)── empreinte ─────────────────────────┐
    │ e-mail                                                          ▼
    ▼                                                        réveil (si besoin) ──▶ /  (Aujourd'hui)
 /entrer/code ──▶ /entrer/cle (proposée une fois) ───────────────────┘
@@ -54,11 +54,12 @@ l'état de la mascotte à l'arrivée.
 
 - **Décor :** soleil jaune, sol, marmite au repos (190 px). Titre « Popote », sous-titre « On cuisine une fois. On se
   régale toute la semaine. »
-- **Appareil inconnu** (aucune clé d'accès utilisable) : champ « Ton e-mail », bouton « Continuer », note « Pas de mot
-  de passe. Je t'envoie un code. »
-- **Appareil connu** (une clé existe : remplissage automatique ou clé découvrable) : bulle « Re-bonjour ! », titre
-  « Content de te revoir », texte « Ce téléphone te connaît déjà. », bouton « Entrer avec mon empreinte », bouton blanc
-  « Recevoir un code par mail », lien « Ce n'est pas moi » (revient à la version « appareil inconnu »).
+- **Sans empreinte** (le navigateur ne sait pas proposer de clé d'accès, ou aucune n'a été créée sur cet appareil) :
+  champ « Ton e-mail », bouton « Continuer », note « Pas de mot de passe. Je t'envoie un code. »
+- **Empreinte proposée** (le navigateur sait proposer une clé d'accès et une clé a déjà été créée ici ; l'écran ne
+  sait pas qui est la personne avant qu'elle entre, et ne le prétend pas) : bulle « Re-bonjour ! », titre « Content
+  de te revoir », texte « Entre avec ton empreinte, ou reçois un code. », bouton « Entrer avec mon empreinte »
+  (remplissage automatique de la clé d'accès), bouton blanc « Recevoir un code par mail » (mène au champ e-mail).
 - **Actions :** « Continuer » → `POST /api/v1/login-codes {email}` puis `/entrer/code`. « Entrer avec mon
   empreinte » → `POST /api/v1/passkey-challenges` puis `POST /api/v1/sessions {method:"passkey"}`.
 - **Erreurs :** e-mail mal formé → sous le champ : « Il manque quelque chose dans cette adresse. » ; `429` → « Trop de
@@ -69,18 +70,20 @@ l'état de la mascotte à l'arrivée.
 ### 4.2 `/entrer/code` : le code
 
 - **Décor :** soleil rose, marmite au repos, enveloppe. Bouton retour vers `/entrer`.
-- **Textes :** titre « Regarde tes mails », « Un code à 6 chiffres est parti vers **{e-mail}**. », six cases, note « Il
-  marche 10 minutes. », lien « Renvoyer le code » (désactivé avec « Renvoyer dans N s » tant que `resend_after_s` court).
+- **Textes :** titre « Regarde tes mails », « Un code à 6 chiffres part vers **{e-mail}**. », six cases, note « Il
+  marche 10 minutes. », lien « Recevoir un nouveau code », toujours visible (désactivé avec « Nouveau code dans N s »
+  tant que `resend_after_s` court). L'écran ne dit jamais que le mail est arrivé : l'envoi part après la réponse.
 - **Saisie :** un seul champ invisible porte la saisie (`inputmode="numeric"`, `autocomplete="one-time-code"`), les six
   cases l'affichent. À six chiffres, l'envoi part seul : `POST /api/v1/sessions {method:"email_code", …}`.
 - **Juste :** cases menthe, note « C'est le bon ! », marmite en joie, puis `/entrer/cle` si la personne n'a aucune clé
   sur cet appareil et n'a pas dit « Plus tard » ici, sinon l'adresse demandée.
-- **Faux (`401 code_incorrect`) :** les cases tremblent une fois et passent en tomate pâle, se vident, note en erreur
-  « Ce n'est pas le bon code. Encore N essais. », marmite inquiète.
-- **Expiré :** note « Ce code a plus de 10 minutes : il ne marche plus. », bouton jaune « M'envoyer un nouveau code ».
-- **Trop d'essais (`429`) :** cases barrées, note « 5 essais ratés. On fait une pause de N minutes. », pastille
-  « Nouveau code possible dans MM:SS » (décompte), marmite en sommeil, et, si une clé existe, bouton « Entrer avec
-  mon empreinte ». La durée vient de `Retry-After` (15 min, puis 30, 60… jusqu'à 24 h).
+- **Refusé (`401`) :** l'API rend exprès la même réponse pour un code faux, expiré ou épuisé. Un seul état : les cases
+  tremblent une fois, passent en tomate pâle et se vident ; note en erreur « Ce code ne marche pas (faux ou
+  expiré). » ; le lien devient le bouton jaune « Recevoir un nouveau code » ; marmite inquiète. Aucun compteur d'essais.
+  Après l'appui : note « Un nouveau code part vers ton adresse. Il marche 10 minutes. »
+- **Trop de demandes (`429`) :** note « Trop de demandes. On fait une pause de N minutes. », pastille « Nouveau code
+  possible dans MM:SS » (décompte), marmite en sommeil, et, si l'empreinte est proposée, bouton « Entrer avec mon
+  empreinte ». La durée vient de `Retry-After`.
 
 ### 4.3 `/entrer/cle` : l'empreinte proposée
 
@@ -95,9 +98,9 @@ l'état de la mascotte à l'arrivée.
 
 ### 4.4 Le réveil
 
-- Affiché selon la règle du plan de fondation (F18 : une requête sans réponse au bout de 2 000 ms, quand l'API n'a
-  répondu à personne depuis 5 minutes). Cette spec en fixe l'aspect : fond ciel, marmite en sommeil avec « z z z »,
-  texte « Popote se réveille… ».
+- Un comportement de l'écran, pas une promesse du serveur : l'animation apparaît quand la réponse tarde, selon la
+  règle du plan de fondation (F18). Cette spec en fixe l'aspect : fond ciel, marmite en sommeil avec « z z z », texte
+  « Popote se réveille… ».
 - À la réponse : la marmite ouvre les yeux, saute, l'écran demandé monte. Au-delà du délai de la fondation : écran
   d'erreur réseau.
 - Tant que le réveil dure, aucun bouton n'est montré : rien à toucher, rien à casser.
@@ -111,9 +114,10 @@ l'état de la mascotte à l'arrivée.
   « Envoyer l'invitation », note « Je lui écris de ta part. Le lien marche 7 jours, pour elle seulement. »
   → `POST /api/v1/me/invitations {first_name, email}`.
 - **Après l'envoi :** l'enveloppe s'envole, confettis, la place devient l'avatar de la personne invitée avec la
-  pastille « Invitée », sous-titre « {Prénom} est invitée. Je te préviens quand elle arrive. », bulle « Le mail est
-  parti ! », et le bloc de suivi : « Invitation partie vers **{e-mail}** », trois étapes « Envoyée », « Ouverte »,
-  « Arrivée », boutons « Renvoyer », « Copier le lien », lien « Annuler ».
+  pastille « Invitée », sous-titre « {Prénom} est invitée. Je te préviens quand elle arrive. », bulle « Je lui
+  écris ! », et le bloc de suivi : « Le mail part vers **{e-mail}** », trois étapes « Lancée », « Ouverte »,
+  « Arrivée », boutons « Renvoyer », « Copier le lien », lien « Annuler ». Aucun écran n'affirme que le mail est
+  arrivé (l'envoi part après la réponse de l'API, sans retour d'échec) : « Renvoyer » reste toujours visible.
 - **Suivi :** lu par `GET /api/v1/me/invitations` à l'ouverture de l'écran et toutes les 30 s tant qu'il est visible.
   `opened` (le lien a été ouvert : aucun mail n'est pisté) → bulle « Elle a ouvert le lien ! ». `accepted` → la pastille
   devient « Dans le foyer », confettis. `expired` → la troisième étape dit « Expirée », « Renvoyer » passe en jaune.
@@ -125,9 +129,11 @@ l'état de la mascotte à l'arrivée.
   Non »). La place redevient libre.
 - **Erreurs de la feuille :** prénom vide ou refusé → « Juste un prénom, sans chiffre ni symbole. » ; e-mail mal
   formé → comme au § 4.1 ; `409 invitation_deja_en_attente` → « Cette personne est déjà invitée. » ;
-  `429 quota_invitations` → « Trop d'invitations aujourd'hui. Réessaie demain. »
-- **Foyer complet :** les deux blocs montrent deux personnes. La personne qui a créé le foyer voit, sur le bloc de
-  l'autre, un menu avec « Retirer du foyer » (§ 4.10). L'autre ne voit aucun menu.
+  `429 quota_invitations` → « Trop d'invitations aujourd'hui. Réessaie demain. » ; `409 foyer_complet` → « Le foyer a
+  déjà ses deux places prises. »
+- **Foyer complet :** sous-titre « Le foyer est au complet. », les deux blocs montrent deux personnes, l'autre avec la
+  pastille « Dans le foyer ». Le responsable voit, sous le bloc de l'autre, le lien de danger « Retirer du foyer »
+  (§ 4.10). L'autre ne le voit pas.
 - **Demande de nouveau lien** (§ 4.7) : le bloc de suivi montre « {Prénom} demande un nouveau lien » et met
   « Renvoyer » en avant.
 
@@ -138,7 +144,8 @@ l'état de la mascotte à l'arrivée.
   une fois, vous vous régalez toute la semaine. Je pèse tes barquettes rien que pour toi. », bouton jaune « Rejoindre
   {Hôte} », note « Ce lien marche 7 jours, et rien que pour toi. »
 - Le bouton mène à `/invitation#<jeton>`. Version texte seul obligatoire, avec le lien en clair.
-- La marmite est une image fixe servie par `notre-popote.fr` : la même adresse pour tous, sans paramètre, avec un texte
+- La marmite est une image fixe (`.design/systeme/mails/marmite-mail.png`, 240 × 240 px, affichée à 120) servie par
+  `notre-popote.fr` : la même adresse pour tous, sans paramètre, avec un texte
   alternatif. Le mail reste lisible sans images. Aucun pixel de suivi, dans aucun mail.
 
 ### 4.7 `/invitation` : rejoindre
@@ -146,11 +153,12 @@ l'état de la mascotte à l'arrivée.
 - À l'ouverture : `POST /api/v1/invitations/inspections {token}` (le jeton vient du fragment d'adresse, il n'est jamais
   envoyé dans une adresse).
 - **Lien valable, venu du mail :** soleil jaune, deux avatars (l'hôte plein, l'invitée en pointillés), titre « Salut
-  {Prénom} ! », « {Hôte} t'attend en cuisine. », bloc « ✓ {e-mail} — Vérifiée par le lien que tu viens d'ouvrir »,
-  champ « Ton prénom (tu peux le corriger) », bouton « Rejoindre le foyer », note « Rien d'autre à taper. Ton compte se
-  crée maintenant. » → `POST /api/v1/invitations/acceptances {token}`.
-- **Lien copié par l'hôte (`needs_mail_code`) :** même écran, mais le bloc dit « Un code est parti vers {e-mail
-  masqué} » et les six cases du § 4.2 remplacent la note ; le bouton s'active à six chiffres
+  {Prénom} ! », « {Hôte} t'attend en cuisine. », bloc « ✓ Ton adresse est vérifiée — par le lien que tu viens
+  d'ouvrir » (l'adresse n'est jamais affichée : l'API ne la rend pas à qui tient le lien), champ « Ton prénom (tu peux
+  le corriger) », bouton « Rejoindre le foyer », note « Rien d'autre à taper. Ton compte se crée maintenant. »
+  → `POST /api/v1/invitations/acceptances {token, first_name}` (le prénom corrigé part avec l'acceptation).
+- **Lien copié par l'hôte (`needs_mail_code`) :** même écran, mais le bloc dit « Un code part vers ton adresse — celle
+  où tu as reçu l'invitation » et les six cases du § 4.2 remplacent la note ; le bouton s'active à six chiffres
   (`POST /api/v1/invitations/codes` à l'ouverture, puis l'acceptation avec le code).
 - **Réussite :** les deux avatars se rejoignent, celui de l'invitée se remplit, confettis, bouton « Te voilà dans le
   foyer ! », puis `/entrer/cle`, puis `/bienvenue`.
@@ -165,7 +173,7 @@ l'état de la mascotte à l'arrivée.
   compte ».
 - **Déjà un compte (`409 compte_existant`) :** « Tu as déjà un compte avec cette adresse. Entre, puis rouvre ce lien. »
   avec le bouton « Entrer ».
-- **Déjà dans un foyer :** « Tu fais déjà partie d'un foyer. Quitte-le d'abord pour rejoindre celui de {Hôte}. »
+- **Déjà dans un foyer (`409 deja_dans_un_foyer`) :** « Tu fais déjà partie d'un foyer. Quitte-le d'abord pour rejoindre celui de {Hôte}. »
 
 ### 4.8 `/bienvenue`
 
@@ -197,9 +205,9 @@ l'état de la mascotte à l'arrivée.
   d'abord ». **Seule dans le foyer :** la phrase d'en-tête devient « Tu es seule dans le foyer : il disparaît avec
   toi. » et seul le bloc « Supprimer mon compte » reste.
 - **`/compte/supprimer`** : titre « Supprimer ton compte », bloc de lignes d'effet :
-  ✕ « Ton prénom, ton e-mail, tes objectifs et tes repas notés **disparaissent**. » ; ✕ « Tes charges perso et ta part
-  des mois ouverts **disparaissent**. » ; ✓ « {Autre} **garde** le frigo, les recettes et les mois déjà clôturés. » ;
-  → « {Autre} **devient responsable** du foyer, et paie les charges communes en entier. » ; → « Elle est **prévenue par
+  ✕ « Ton prénom, ton e-mail, tes objectifs et tes repas notés **disparaissent**. » ; ✕ « Tes charges perso
+  **disparaissent**. Ce qui est déjà réglé reste partagé. » ; ✓ « {Autre} **garde** le frigo, les recettes et les mois déjà clôturés. » ;
+  → « {Autre} **devient responsable** du foyer, et paie les charges communes encore à régler en entier. » ; → « Elle est **prévenue par
   mail**. » Puis le bouton blanc « Prouve que c'est toi » (empreinte, sinon code par mail : § 5), le bouton de danger
   à maintenir « Maintiens pour supprimer », la note « Garde le doigt dessus 2 secondes. », le lien « Finalement, je
   reste ». Le bouton à maintenir reste désactivé tant que la preuve n'est pas faite. Réussite → `/adieu`.
@@ -207,30 +215,39 @@ l'état de la mascotte à l'arrivée.
   budget. » et ✕ « L'invitation en attente **s'éteint**. »
 - **Quitter le foyer** : même écran, titre « Quitter le foyer », lignes : ✕ « Tu **ne vois plus** le frigo, les
   recettes ni le budget. » ; → « Ton compte reste **30 jours**, puis s'efface. » ; ✓ « {Autre} **garde** tout le
-  foyer. » ; → « Tes charges perso sortent du budget. » ; bouton à maintenir « Maintiens pour quitter ». Réussite →
-  `/sans-foyer`.
-- **`/foyer/retirer/:id`** (personne qui a créé le foyer seulement) : avatar de l'autre, titre « Retirer {Prénom} du
+  foyer et en devient responsable. » ; → « Elle paie en entier les charges communes **encore à régler**. » ; preuve,
+  puis bouton à maintenir « Maintiens pour quitter ». Réussite → `/sans-foyer`. Une ligne du budget déjà confirmée
+  garde son partage : seules les charges communes encore à régler changent.
+- **`/foyer/retirer/:id`** (responsable du foyer seulement) : avatar de l'autre, titre « Retirer {Prénom} du
   foyer ? », « Elle est déconnectée tout de suite et prévenue par mail. », lignes : ✕ « Elle **ne voit plus** le
   frigo, les recettes ni le budget. » ; → « Elle garde **30 jours** pour télécharger ce qui est à elle. » ; ✓ « Tu
   **gardes** tout le foyer. Ses barquettes sont à tout le monde. » ; → « Ses charges perso sortent du budget, les
-  communes passent **à 100 % pour toi**. » Preuve, puis « Maintiens pour retirer {Prénom} », lien « Annuler ».
+  communes encore à régler passent **à 100 % pour toi**. » Preuve, puis « Maintiens pour retirer {Prénom} », lien « Annuler ».
   Réussite : retour à `/foyer` avec une place libre et la bulle « {Prénom} n'est plus dans le foyer. »
 - **`/adieu`** : soleil ciel, marmite inquiète, « C'est supprimé », « Merci d'avoir cuisiné avec moi. Si tu reviens
   un jour, il te faudra une nouvelle invitation. », bouton « Fermer » (vers `/entrer`).
 - **`/sans-foyer`** (toute personne connectée sans foyer y est conduite) : soleil ciel, marmite inquiète, pastille
-  « Encore N jours », titre « Tu n'es plus dans le foyer de {Hôte} », « Depuis le {date}. Ton compte s'efface tout seul
-  le {date}. », bouton jaune « Télécharger mes données », bouton blanc « J'ai une nouvelle invitation » (explique :
-  « Ouvre le lien reçu par mail, sur cet appareil. »), lien de danger « Supprimer mon compte maintenant ».
+  « Encore N jours », puis un texte selon `left_reason` :
+  - `removed` : titre « Tu n'es plus dans le foyer », « Depuis le {date}, à la demande de {Autre}. Ton compte s'efface
+    tout seul le {date}. »
+  - `left` : titre « Tu as quitté le foyer », « Depuis le {date}. {Autre} le garde. Ton compte s'efface tout seul le
+    {date}. »
+  - `other_member_first_name` nul : la phrase qui cite {Autre} est retirée.
+  Bouton jaune « Télécharger mes données », bouton blanc « J'ai une nouvelle invitation » (explique : « Ouvre le lien
+  reçu par mail, sur cet appareil. »), lien de danger « Supprimer mon compte maintenant ».
 
 ## 5. Prouver que c'est toi
 
 Avant supprimer, quitter, retirer, ajouter ou retirer une empreinte : si la dernière preuve a plus de 5 minutes
 (`403 reauthentification_requise`), le bouton « Prouve que c'est toi » lance l'empreinte
 (`POST /api/v1/me/passkey-challenges {purpose:"reauthentication"}` puis `POST /api/v1/me/reauthentication`). Sans
-clé, ou si elle échoue : une feuille « Un code est parti vers {e-mail} » avec les six cases
+clé, ou si elle échoue : une feuille « Un code part vers {e-mail} » avec les six cases
 (`POST /api/v1/me/reauthentication-codes`). Réussite : le bouton devient menthe pâle, « C'est bien toi ».
 
 ## 6. États communs
+
+Ces états et leurs textes appartiennent à la fondation du front (F18 à F21), source unique. Le tableau rappelle ce que
+le parcours en attend ; en cas d'écart de texte, la fondation gagne.
 
 | État | Ce qu'on voit |
 |---|---|
@@ -243,12 +260,12 @@ clé, ou si elle échoue : une feuille « Un code est parti vers {e-mail} » ave
 | Session fermée ailleurs | même chose, bulle « Cet appareil a été déconnecté. » |
 
 Une route du foyer qui répond `403 aucun_foyer` conduit à `/sans-foyer`.
-Ces états sont construits par la fondation du front (F18 à F21) ; cette spec en fixe l'aspect et les textes.
 Les erreurs de l'API arrivent au format RFC 9457 ; l'écran choisit son texte d'après `type`, jamais d'après `detail`.
 
 ## 7. Les autres mails
 
-Même gabarit que le § 4.6 (bandeau, marmite, un seul bouton), toujours avec une version texte. Un objet ne porte ni
+Même gabarit que le § 4.6 (bandeau, marmite, un seul bouton), toujours avec une version texte. Le gabarit HTML et
+texte et les objets sont la tâche F1 du plan 0.4ter (PR popote-web #42). Un objet ne porte ni
 code ni prénom ; le prénom passe dans le corps. Seule exception : le prénom de l'hôte dans l'objet de l'invitation et
 dans celui du retrait, passé par le même filtre que dans le corps et coupé à 30 caractères. Si le filtre le refuse,
 ces objets deviennent « Une place t'attend en cuisine » et « Tu n'es plus dans ton foyer Popote ».
@@ -286,8 +303,8 @@ leur numéro.
 | R1 | `POST /api/v1/invitations/renewal-requests {token}` (publique) | Une personne dont le lien est mort redemande un lien. Réponse `202` constante. Si le lien est échu (statut `expired`) : marque l'invitation « redemandée » et envoie le mail « demande de nouveau lien » à l'hôte, une fois par 24 h et par invitation. Un lien annulé par l'hôte ne lui écrit pas. |
 | R2 | `GET /api/v1/household` | Le foyer de la personne : membres (`id`, `first_name`, `role` : `owner` ou `member`, `is_me`), nombre de places (2). |
 | R3 | `POST /api/v1/me/household-departure` (preuve récente) | Quitter le foyer : la personne sort du foyer, ses charges perso et ses lignes ouvertes partent (règle du socle pour un départ), son compte reste avec `scheduled_deletion_at` à + 30 jours. Si elle est `owner` et qu'il reste un membre, celui-ci devient `owner`. Refus `409 seule_dans_le_foyer` si elle est seule. |
-| R4 | `DELETE /api/v1/household/members/{id}` (`owner`, preuve récente) | Retirer un membre : mêmes effets que R3 pour lui, ses sessions sont fermées, mail « retrait du foyer ». `403 reserve_au_createur` pour un `member`. |
-| R5 | `GET /api/v1/me` gagne `household` (ou `null`), `role`, `scheduled_deletion_at`, `left_household_at`, `former_host_first_name` | Permet de conduire une personne sans foyer vers `/sans-foyer` et d'y écrire « Tu n'es plus dans le foyer de {Hôte} », « Depuis le {date} ». |
+| R4 | `DELETE /api/v1/household/members/{id}` (`owner`, preuve récente) | Retirer un membre : mêmes effets que R3 pour lui, ses sessions sont fermées, mail « retrait du foyer ». Refus `403` pour qui n'est pas responsable. |
+| R5 | `GET /api/v1/me` gagne `household` (ou `null`), `role`, `scheduled_deletion_at`, `left_household_at`, `left_reason` (`left` ou `removed`), `other_member_first_name` (ou `null`) | Permet de conduire une personne sans foyer vers `/sans-foyer` et d'y écrire le bon texte selon qu'elle est partie ou a été retirée (§ 4.10). |
 | R6 | `DELETE /api/v1/me` : transfert | Quand un `owner` supprime son compte et qu'il reste un membre, celui-ci devient `owner` ; mail « départ de l'autre ». |
 | R7 | Tâche quotidienne | Efface les comptes dont `scheduled_deletion_at` est passé ; envoie le rappel à J − 7. |
 | R8 | `GET /api/v1/me/invitations` : état « redemandée » | `renewal_requested_at` dans la liste de l'hôte. |
@@ -324,7 +341,10 @@ annoncées (`role="alert"`) et liées à leur champ. Le bouton à maintenir acce
 tenue 2 secondes, et son texte le dit aux lecteurs d'écran (« Maintenir 2 secondes pour supprimer »). Pour qui ne peut
 pas maintenir (F10 du plan de fondation) : deux appuis brefs espacés d'au moins 0,6 s ; après le premier, le bouton
 dit « Appuie encore pour confirmer » pendant 5 s, puis revient à son libellé. La marmite est
-décorative (`aria-hidden`), sauf sa bulle, qui est du texte. Contrastes et zones touchables : règles du système.
+décorative (`aria-hidden`), sauf sa bulle, qui est du texte. Tout changement sans changement d'écran (appareil
+déconnecté, « Lien copié », ouverture du lien détectée, confirmation en ligne, ligne qui se referme) est annoncé dans
+une région `status`, et le focus revient à un endroit fixé d'avance : l'élément suivant de la liste, sinon le titre
+du bloc. Contrastes et zones touchables : règles du système.
 
 ## 12. Critères d'acceptation (scénarios au clic)
 
@@ -332,16 +352,17 @@ décorative (`aria-hidden`), sauf sa bulle, qui est du texte. Contrastes et zone
    après la proposition d'empreinte.
 2. *Étant donné* une empreinte activée, *quand* Sam rouvre Popote, *alors* « Entrer avec mon empreinte » le fait
    entrer sans code.
-3. *Quand* le code est faux, *alors* les cases tremblent et le texte dit combien d'essais restent ; au cinquième,
-   l'écran de pause affiche un décompte.
-4. *Quand* Sam invite Léa, *alors* un mail part vers son adresse, le suivi montre « Envoyée », puis « Ouverte » après
+3. *Quand* le code est refusé (faux ou expiré, sans que l'écran sache lequel), *alors* les cases tremblent, le texte
+   dit « Ce code ne marche pas (faux ou expiré). » et « Recevoir un nouveau code » en envoie un ; après trop de
+   demandes, l'écran de pause affiche un décompte.
+4. *Quand* Sam invite Léa, *alors* un mail part vers son adresse, le suivi montre « Lancée », puis « Ouverte » après
    l'ouverture du lien, puis « Dans le foyer ».
 5. *Quand* Léa ouvre le lien du mail et touche « Rejoindre le foyer », *alors* son compte existe, elle est dans le
    foyer de Sam, et l'écran de bienvenue montre des faits du foyer.
 6. *Quand* le lien est expiré, *alors* « Demander un nouveau lien » envoie un mail à Sam, et son suivi le signale.
 7. *Quand* Sam déconnecte un autre appareil, *alors* la ligne disparaît et cet appareil revient à `/entrer` à sa
    prochaine action.
-8. *Étant donné* Léa membre, *alors* elle ne voit aucun moyen de retirer Sam ; Sam, lui, peut la retirer, après
+8. *Étant donné* Léa membre et Sam responsable, *alors* elle ne voit aucun moyen de retirer Sam ; Sam, lui, peut la retirer, après
    preuve et appui de 2 secondes ; Léa arrive alors sur `/sans-foyer`.
 9. *Quand* Sam supprime son compte alors que Léa est dans le foyer, *alors* Léa devient responsable et le foyer est
    intact.
