@@ -1412,6 +1412,16 @@ suppression de fichiers.
   `upgrade-insecure-requests` (en https, sur l'essai, il n'y a pas de problème ; à confirmer au premier déploiement de F1).
 - Le nombre de tests du relais est **43**, pas 22.
 
+## Amendements du 13/11 après la relecture d'« Entrer » — ils priment sur le texte des tâches
+
+La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F21 ne tenaient pas.
+
+| N° | Tâche | Avant | Après |
+|---|---|---|---|
+| A1 | F5a (`Retry-After`), et la ligne de « Valeurs proposées » | borné de 1 à **900** s ; absent ou illisible sur une `429` : 10 s | borné de 1 à **86 400** s (24 h) : l'API bloque certains codes jusqu'à 24 h, et l'écran doit afficher le vrai temps, pas un plafond de 15 min. Le repli de 10 s ne change pas. Les cas de test `99999` et « `Retry-After` non borné » visent désormais 86 400 ; un `Retry-After: 86400` passe tel quel. Conséquence pour F20 (à régler dans F20) : la durée affichée et annoncée est formatée en unités lisibles (secondes, minutes, heures), et le compte à rebours ne s'annonce toujours que deux fois |
+| A2 | F5a (`erreurs.ts`) et F19 (`ErreurEcran`) | `ErreurApi` : `status`, `code`, `title`, `detail`, … ; l'écran montre `title` et `detail` | `ErreurApi` garde **`type`** (l'URI du problème, RFC 9457) **et `code` si l'API le rend**. L'écran choisit son texte **d'après `type`** (phrase du catalogue `src/textes/`, repli par classe de statut puis phrase générique), **jamais d'après `detail`, qui n'est jamais affiché** (ni `message`, ni la pile). La référence (`instance`) reste affichée. Tests : un problem+json `500` dont le `detail` est un texte piège (mot anglais, détail technique) n'affiche **aucun** mot de ce `detail` et montre la phrase de son `type` ; un `type` inconnu donne la phrase de sa classe de statut ; mutation : afficher `detail` (casse) |
+| A3 | F18, F19, F20, F21 | chacun pose ses phrases dans son catalogue ; rien n'interdit à un parcours d'en écrire d'autres | **F18 à F21 sont la seule source des textes des états communs** : réveil, perte de réseau, `429`, `5xx` (et erreur générique), session expirée (`src/textes/reveil.ts`, `etats.ts`, `limite.ts`, `reseau.ts`, `session.ts`). Un parcours qui rencontre l'un de ces états rend le composant correspondant et **ne redéfinit pas** sa phrase ; une erreur propre au parcours (un champ refusé, un code faux) reste dans son propre catalogue |
+
 ---
 
 ## Sources (vérifiées en ligne ou par essai le 13/11/2026)
