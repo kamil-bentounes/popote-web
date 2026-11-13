@@ -1,0 +1,22 @@
+/* Fredoka (ce qui se touche et s'annonce) et Nunito (ce qui se lit) : OFL 1.1, servies par notre domaine
+   (CSP `font-src 'self'`, spec § 7.3). Les fichiers passent par le pipeline de Vite (noms hachés) ; le build
+   n'incorpore jamais une police en `data:` (`assetsInlineLimit: 0`). Les licences sont dans `public/licences/`.
+   Copiées de `.design/systeme/composants.css`, hors de toute couche (`@font-face` ne se range pas dans une couche).
+   `unicode-range` : le latin étendu ne se charge que si une page en a besoin ; seuls les deux fichiers latins
+   sont préchargés (index.html). */
+@font-face {
+  font-family: "Fredoka"; src: url("./polices/fredoka-latin.woff2") format("woff2"); font-weight: 300 700; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212;
+}
+@font-face {
+  font-family: "Fredoka"; src: url("./polices/fredoka-latin-ext.woff2") format("woff2"); font-weight: 300 700; font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C0;
+}
+@font-face {
+  font-family: "Nunito"; src: url("./polices/nunito-latin.woff2") format("woff2"); font-weight: 200 1000; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212;
+}
+@font-face {
+  font-family: "Nunito"; src: url("./polices/nunito-latin-ext.woff2") format("woff2"); font-weight: 200 1000; font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C0;
+}

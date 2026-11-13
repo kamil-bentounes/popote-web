@@ -7,6 +7,10 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icone-192.png" />
     <link rel="apple-touch-icon" href="/icone-192.png" />
+    <!-- Les deux polices latines, seules préchargées : le latin étendu se charge à la demande (unicode-range).
+         `crossorigin` est obligatoire, même pour notre domaine : sans lui la police est chargée deux fois. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/styles/polices/fredoka-latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/styles/polices/nunito-latin.woff2" />
     <meta name="description" content="Ce qu’on mange et ce que ça coûte, à deux." />
   </head>
   <body>
