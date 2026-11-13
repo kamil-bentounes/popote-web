@@ -112,7 +112,7 @@ describe('la coque', () => {
 
   it('supprime l’anneau de focus du conteneur #contenu : un conteneur n’est pas un contrôle', () => {
     // Vitest ne traite pas le CSS (`?raw` rend une chaîne vide) : on lit le fichier.
-    const css = readFileSync(resolve(process.cwd(), 'src/styles/coque.css'), 'utf8')
+    const css = readFileSync(resolve(process.cwd(), 'src/styles/base.css'), 'utf8')
     expect(css).toMatch(/main\[tabindex="-1"\]:focus\s*\{\s*outline:\s*none/)
   })
 })
