@@ -21,12 +21,34 @@ const FORME_PROMPT_AVEC_CLAIM =
   '{e.data&&"SKIP_WAITING"===e.data.type&&self.skipWaiting()}),e.clientsClaim(),e.precacheAndRoute([],{})});'
 
 describe('remplaceLAncienServiceWorker', () => {
+  it('accepte aussi « ; » entre les deux appels et un nom de variable avec « $ »', () => {
+    expect(
+      remplaceLAncienServiceWorker('define(["./w"],function($){"use strict";self.skipWaiting();$.clientsClaim()});'),
+    ).toBe(true)
+  })
+
+  it('refuse les deux appels écrits seulement dans un commentaire', () => {
+    expect(
+      remplaceLAncienServiceWorker(FORME_PROMPT + '/* self.skipWaiting(),e.clientsClaim() */'),
+    ).toBe(false)
+  })
+
+  it('refuse les deux appels écrits seulement dans une chaîne', () => {
+    expect(
+      remplaceLAncienServiceWorker(FORME_PROMPT + 'var texte = "self.skipWaiting(),e.clientsClaim()";'),
+    ).toBe(false)
+  })
+
+  it('refuse un sw.js qui ne s’exécute pas', () => {
+    expect(remplaceLAncienServiceWorker('self.skipWaiting(),e.clientsClaim(')).toBe(false)
+  })
+
   it('accepte la forme autoUpdate : elle s’active seule', () => {
     expect(remplaceLAncienServiceWorker(FORME_AUTO_UPDATE)).toBe(true)
   })
 
   it('accepte un autre nom de variable minifiée', () => {
-    expect(remplaceLAncienServiceWorker(FORME_AUTO_UPDATE.replaceAll('e.', 'x.'))).toBe(true)
+    expect(remplaceLAncienServiceWorker(FORME_AUTO_UPDATE.replaceAll('function(e)', 'function(x)').replaceAll('e.clientsClaim', 'x.clientsClaim').replaceAll('e.precacheAndRoute', 'x.precacheAndRoute').replaceAll('e.cleanupOutdatedCaches', 'x.cleanupOutdatedCaches'))).toBe(true)
   })
 
   it('refuse la forme prompt : skipWaiting n’y est que dans un écouteur de message', () => {
@@ -80,4 +102,3 @@ describe('la commande', () => {
     expect(resultat.status).toBe(1)
   })
 })
-

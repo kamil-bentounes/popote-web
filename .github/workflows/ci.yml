@@ -35,7 +35,10 @@ jobs:
           test -f dist/index.html
           test -f dist/sw.js
           node scripts/verifie-sw-remplacant.mjs dist/sw.js
-          ! grep -rqiE 'supabase|sb_publishable' dist
+          if grep -rqiE 'supabase|sb_publishable' dist; then
+            echo "dist contient une trace de l'ancien front (supabase ou sb_publishable)" >&2
+            exit 1
+          fi
       - run: npm audit --omit=dev --audit-level=high
   secrets:
     runs-on: ubuntu-24.04
