@@ -1,0 +1,65 @@
+/* La base de l'appli, dans `@layer base` (sous les composants et les utilitaires). Remplace `coque.css` de F3. */
+@layer base {
+  /* La racine : le fond couvre tout l'écran, même sous la barre d'état d'un téléphone ; la police, la graisse, la taille et
+     l'interligne sont ce qu'était `.jeu` dans le système (la police se pose ici, sur `html`, pour que tout en hérite,
+     même hors du corps). */
+  html {
+    background: var(--color-creme);
+    color: var(--color-encre);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    font-family: var(--font-texte);
+    font-weight: 700;
+    font-size: var(--text-texte);
+    line-height: 1.35;
+  }
+
+  /* Le corps : la hauteur de l'écran et la zone sûre des téléphones (`viewport-fit=cover` dans index.html). Les marges sont
+     déjà nulles (preflight), qui ferme aussi `[hidden]` (même contre `.bouton` en `inline-flex`). */
+  body {
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: var(--color-creme);
+    color: var(--color-encre);
+  }
+
+  /* Du texte pour les lecteurs d'écran seulement. */
+  .sr-seul {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Un conteneur qu'on focalise par programme n'est pas un contrôle : pas d'anneau. */
+  main[tabindex="-1"]:focus { outline: none; }
+
+  /* Le lien d'évitement ne se voit qu'au focus, avec le même anneau que tout contrôle du système. */
+  .evitement {
+    position: absolute;
+    left: 0.5rem;
+    top: -6rem;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--cible);
+    padding: 0 16px;
+    z-index: 100; /* au-dessus de tout élément positionné : un décor (le soleil, 700 px) ne doit pas le cacher au clavier */
+    border: var(--trait) solid var(--color-encre);
+    border-radius: var(--radius-petit);
+    background: var(--color-papier);
+    color: var(--color-encre);
+    font-family: var(--font-titre);
+    font-weight: 600;
+  }
+  .evitement:focus-visible {
+    top: 1rem; /* sous le halo de 11 px, qui ne doit pas sortir de l'écran */
+    outline: 4px solid var(--color-encre);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 11px var(--color-jaune);
+  }
+}
