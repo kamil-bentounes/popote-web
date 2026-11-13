@@ -160,8 +160,8 @@ Sentry, palier gratuit, décidé le 13/11 ; son intégration est une tâche à p
 
 1. *Étant donné* l'essai qui sert encore l'ancien front, *quand* F1 est déployé, *alors* `https://essai.notre-popote.fr/`
    répond 200 avec les en-têtes de sécurité, la fumée est verte, `dist/` ne contient ni `supabase` ni `sb_publishable`,
-   un navigateur qui avait l'ancien service worker passe au nouveau à sa visite suivante, et ses clés `sb-*` du
-   `localStorage` sont effacées. [F1]
+   un navigateur qui avait l'ancien service worker passe au nouveau **à sa deuxième visite** (la première est encore servie par
+   l'ancien service worker ; voir « Constats de F1 »), et ses clés `sb-*` du `localStorage` sont effacées. [F1]
 2. *Étant donné* le contrat épinglé, *quand* quelqu'un modifie `contrat/openapi.json` ou `src/api/schema.d.ts` sans
    régénérer l'autre, *alors* la CI échoue ; *quand* `popote-api` publie sur `main` une rupture de son contrat (**tout** le
    contrat compte : on ne tient pas la liste des routes consommées), *alors* le contrôle quotidien et celui de `main`
@@ -1390,6 +1390,27 @@ la PR #38 a été **fusionnée** (08d4fb4) avec ses corrections ; le plan est re
 vérifié, dit : collage dans un `maxLength` (comportement de la spécification HTML, non joué), lecteurs d'écran, `gitleaks` sur la
 suppression de fichiers.
 
+
+### Constats de F1 (revues adverses de la PR de F1, 13/11/2026) : ils priment sur le texte de F1
+
+- **Deux visites, pas une.** Rejoué dans Chromium (ancien build de l'étiquette, puis la page d'attente, même origine, même profil) : à la
+  1re visite après le déploiement, l'ancien service worker sert encore l'ancienne appli (« Connexion ») et les clés `sb-*` sont encore là ;
+  le nouveau s'installe, s'active et prend la main en arrière-plan ; à la 2e visite : « Popote revient bientôt », clés effacées, anciens
+  caches nettoyés. Personne n'est bloqué. Un rechargement forcé de l'onglet ouvert est **refusé** (décision 4 : jamais de rechargement
+  forcé). Non rejoué : une ancienne page restée ouverte pendant la bascule peut perdre ses morceaux de code (le précache ancien est nettoyé).
+- **`supabase.auth.token` n'est pas effacé** : l'ancien front n'a jamais écrit cette clé (bibliothèque en v2 : `sb-<projet>-auth-token` et
+  ses variantes ; `git grep` à l'étiquette ne la trouve nulle part), et la garde `dist/` interdit le mot « supabase » (la minification
+  replie même un nom assemblé). `nettoieAncienFront` n'efface donc que `sb-*`.
+- **La garde exécute le `sw.js`** au lieu de chercher un motif : `scripts/verifie-sw-remplacant.mjs` le joue dans un bac à sable (workbox
+  simulé) sans événement et exige `self.skipWaiting()` et `clientsClaim()` appelés au démarrage ; un commentaire, une chaîne ou la forme
+  `prompt` ne passent pas.
+- **La mutation « `registerType: 'prompt'` » seule ne casse pas la garde** : avec `skipWaiting` et `clientsClaim` explicites dans
+  `workbox`, le `sw.js` est identique dans les deux modes. La mutation qui la casse retire ces deux options (rejouée : sortie 1).
+- **`wrangler dev` en http : le précache du service worker échoue** avec la CSP de `wrangler.jsonc`. `upgrade-insecure-requests` réécrit en
+  `https://127.0.0.1` la redirection `/index.html` vers `/` que suit le service worker pendant l'installation (`ERR_SSL_PROTOCOL_ERROR`) ;
+  le service worker devient inutile. Les essais de F8 et F22 qui installent un service worker passent `--var "CSP:…"` **sans**
+  `upgrade-insecure-requests` (en https, sur l'essai, il n'y a pas de problème ; à confirmer au premier déploiement de F1).
+- Le nombre de tests du relais est **43**, pas 22.
 
 ---
 
