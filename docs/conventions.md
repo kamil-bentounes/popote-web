@@ -21,6 +21,32 @@ Reprises du § 8 de la [spec du socle](superpowers/specs/2026-11-12-socle-design
   environnement en configuration.
 - Suivi des erreurs du navigateur (D4) et budgets de performance (Lighthouse) dans l'intégration continue.
 
+#### Règles durables de la fondation du front
+Tirées des règles d'exécution du [plan de la fondation](superpowers/plans/2026-11-13-fondation-du-front.md) ; elles valent
+pour toute la vie du dépôt. Chaque règle dit **où est sa garde** : une garde « à venir » n'existe pas encore, la règle
+tient alors à la relecture.
+- **Aucun `fetch`, `XMLHttpRequest`, `WebSocket` ni `EventSource` hors de `src/api/`** : garde à venir (test d'architecture, F5b).
+  **Pas d'`import.meta.env.VITE_*`** : garde à venir (même test). **Pas de `dangerouslySetInnerHTML`** : garde en place
+  (oxlint `react/no-danger`). **Pas de `<div onClick>`**, d'`<img>` sans `alt`, de `<label>` orphelin : garde en place (oxlint `jsx-a11y`).
+- **Aucun texte en dur dans le JSX** : un catalogue par domaine, `src/textes/<domaine>.ts` (fonctions typées, pluriels par
+  `Intl.PluralRules('fr')`). Les mots de la marque et les légendes du banc font exception. Pas de garde automatique prévue :
+  relecture.
+- **Une frontière d'erreur par route**, et un `document.title` par route : garde à venir (test des routes, F3 puis F19).
+- **Pas de `style=` en ligne dans un fichier HTML, ni de `<script>` en ligne** : la CSP sera en `enforce` dès F23
+  (`script-src 'self'; style-src 'self'`) ; garde à venir dans le build (F6).
+- **Tests par rôle et nom** (`getByRole` d'abord, puis `getByLabelText` ; `getByTestId` en dernier recours), interactions par
+  `userEvent.setup()`, chemin clavier avec `user.tab()`, horloge et hasard injectés : relecture. **`verifieAxe`
+  (`src/test/axe.ts`) sur chaque composant** : relecture, puis le banc (F8) le parcourt. `verifieAxe` est une garde partielle :
+  il ne mesure ni le contraste, ni la taille des cibles, ni les zones défilantes (happy-dom n'a pas de mise en page), qui se
+  vérifient dans Chromium sur le banc.
+- **Aucune donnée personnelle** dans les fixtures, le banc, les captures : prénom d'exemple « Léa », adresses `@exemple.fr`.
+- **Pas de barrel `index.ts`** : on importe par chemin (relecture).
+- **TypeScript strict** (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`) : garde en place, les tests sont compilés par
+  `npx tsc -b`.
+- **Dépendances** : les outils de test et de construction ajoutés par la fondation sont en versions exactes (`--save-exact`) ; une
+  mise à jour est le travail de Dependabot, pas un effet de bord. Seules les licences MIT, Apache-2.0 et OFL-1.1 (polices)
+  entrent dans le build livré (les outils de test, comme `axe-core` en MPL-2.0, n'y entrent jamais) : relecture et `npm view`.
+
 ---
 
 
