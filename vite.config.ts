@@ -42,6 +42,11 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // Une police sous 4 096 octets serait incorporée en `data:font/woff2`, que la CSP (`font-src 'self'`) refuse
+    // en silence : `fredoka-latin-ext.woff2` en fait 4 576, à 480 octets de la limite. Rien n'est incorporé.
+    assetsInlineLimit: 0,
+  },
   test: {
     // Trois projets qui héritent de la configuration racine (`extends` vaut `true` par défaut).
     projects: [

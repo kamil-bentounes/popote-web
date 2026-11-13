@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "./jetons.css";
+@import "./polices.css";
+/* F7 y ajoute les composants du système, dans `@layer components`. */
