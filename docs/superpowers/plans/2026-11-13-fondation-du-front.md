@@ -1,7 +1,8 @@
 # La fondation du nouveau front
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or
-> superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `sp-subagent-driven-development` (recommended) or
+> `sp-executing-plans` (les noms exacts de l'outil Skill de cette session, vérifiés le 13/11/2026 ; ce ne sont pas les
+> `superpowers:*` des anciens plans) to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for
 > tracking.
 
 **Goal :** retirer l'ancien front de `popote-web` et poser, à sa place, la fondation du nouveau : squelette
@@ -34,12 +35,11 @@ Versions vérifiées sur le registre npm le 13/11/2026 ; la dernière version de
 **jsdom non retenu** (voir D2). Playwright 1.65.0 (05/11), Tailwind 4.3.4 (celle du verrou ; 4.3.5 est sortie le 11/11).
 
 **Hors périmètre :** les écrans des parcours (« Entrer » et les suivants : chacun a sa spec) et la navigation
-générale (barre d'onglets, hub) ; le suivi des erreurs du navigateur (décision D4 de la spec, pas encore posée : la
+générale (barre d'onglets, hub) ; le suivi des erreurs du navigateur (D4 de la spec : Sentry, palier gratuit, décidé le 13/11 ; son intégration est une tâche à part, la
 fondation ne fait que `console.error` d'une référence) ; la lecture des images et des photos (§ 6) ; le temps réel
 de la session de cuisine ; les aperçus par demande de fusion (`*.workers.dev`) ; le déploiement de la prod et son
 fichier de configuration du relais (étape 0.8) ; l'internationalisation au-delà du français (voir « Écarts assumés ») ;
-les corrections du système de design lui-même (déjà faites par la session de design dans la PR #38 fusionnée ; les écarts qui restent lui sont renvoyés en F25) ; WebKit dans
-la CI (voir questions) ; toute logique métier (règles d'argent, du cycle : elles vivent dans l'API).
+les corrections du système de design lui-même (déjà faites par la session de design dans la PR #38 fusionnée ; les écarts qui restent lui sont renvoyés en F25) ; toute logique métier (règles d'argent, du cycle : elles vivent dans l'API).
 
 ---
 
@@ -56,7 +56,7 @@ tâche F1 reporte ces lignes dans la spec.
 | § 1 « Hors périmètre » | « Le design, les nouveaux parcours » | le design (système « Jeu ») est **dans** le périmètre de l'étape 0 pour sa part technique : tokens, composants, harnais ; les parcours restent hors de l'étape 0 sauf « Entrer », qui rend la connexion utilisable |
 | § 1 « But » (« sans changer les écrans ») | écrans inchangés | écrans **neufs** ; l'ancienne appli reste telle quelle en prod jusqu'au jour J |
 | § 2 « Les deux dépôts » (`popote-web` « reprend l'historique du dépôt actuel ») | l'ancien front vit dans `popote-web` | l'ancien front est retiré de `popote-web` (F1) ; `popote-web` ne contient que le nouveau front, le relais et le système de design |
-| § 7.3 CSP | « posés par l'hôte du front » ; `report-only` tant que le front parle à Supabase | **enforce** dès F23 : plus aucun appel direct à Supabase ; la CSP ne change pas (`'self'` partout, `img-src` avec `data:` et `blob:`) ; aucune police, image ni script d'un autre domaine ; le build interdit tout script ou style en ligne et tout `data:` de police (F6) |
+| § 7.3 CSP | « posés par l'hôte du front » ; `report-only` tant que le front parle à Supabase | **enforce** dès F23 : plus aucun appel direct à Supabase ; la CSP gagne seulement **`object-src 'none'`** (le skill `building-frontends` l'exige ; F23) ; le reste ne change pas (`'self'` partout, `img-src` avec `data:` et `blob:`) ; aucune police, image ni script d'un autre domaine ; le build interdit tout script ou style en ligne et tout `data:` de police (F6) |
 | § 8.3 `popote-web` | « routes typées… aucun `fetch` hors de la couche API » | inchangé, **et vérifié** : test d'architecture (F5) ; plus : une frontière d'erreur déclarée **par route** (F3, F19) ; `document.title` par route ; aucune variable `VITE_*` |
 | § 9.1 dernière puce | « les specs Playwright aussi, jouées contre une pile locale complète (base, API, front) » | les specs Playwright du front se jouent **contre le relais local** (`wrangler dev`, CSP en `enforce`), l'API réelle pour les parcours (pile locale), une API simulée (MSW ou un relais sans amont) pour le banc |
 | § 9.2 ligne `popote-web` | oxlint, tsc, vitest, génération du client, build, npm audit, gitleaks, Playwright | + **dérive du contrat** (copie épinglée, `oasdiff` contre `popote-api`), **garde du build** (CSP, `/api` hors cache), axe sur le banc, captures de comparaison (artefact), **Lighthouse** (budgets) |
@@ -81,6 +81,8 @@ connexion sans mot de passe (D3, plan 0.4bis).
 
 ### Décisions de ce plan (justifiées, vérifiées le 13/11/2026)
 
+(Les **D1 à D13 de ce tableau sont celles de ce plan** ; la spec a ses propres D1 à D6 au § 12, qu'on cite toujours comme « D1 **de la spec** ».)
+
 | N° | Décision | Pourquoi (source ou essai) |
 |---|---|---|
 | D1 | **TypeScript reste en `~6.0.x`** (pas la 7.0.2) ; `openapi-typescript` y est rattaché par `overrides` | `openapi-typescript@7.13.0` déclare `typescript: ^5.x` : `npm i` avec TS 6 échoue en `ERESOLVE`. Essayé : avec `"overrides": {"openapi-typescript": {"typescript": "$typescript"}}`, la génération marche avec TS 6.0.3 et **plante avec TS 7.0.2** (le port natif n'a pas l'API JS que le générateur emploie). `dependabot.yml` ignore déjà les majeures de `typescript` : cohérent |
@@ -101,27 +103,31 @@ connexion sans mot de passe (D3, plan 0.4bis).
 
 | Valeur | Choix | Pourquoi |
 |---|---|---|
-| Seuil du réveil | 2 000 ms sans réponse **et aucune réponse depuis 5 minutes**, affichage 1 200 ms au moins, message plus long après 12 s | la veille dure 5 à 7 s (consigne) ; elle suit une inactivité ; en dessous de 2 s, une page lente n'est pas une veille ; le relais coupe à 30 s. Les 5 minutes sont un choix de ce plan (à ajuster quand D1 aura fixé la durée de vie du conteneur) |
+| Seuil du réveil | 2 000 ms sans réponse **et aucune réponse depuis 5 minutes**, affichage 1 200 ms au moins, message plus long après 12 s | la veille dure 5 à 7 s (consigne) ; elle suit une inactivité ; en dessous de 2 s, une page lente n'est pas une veille ; le relais coupe à 30 s. Les 5 minutes sont un choix de ce plan (à ajuster à la mesure : Kamil a décidé le 13/11 **pas d'instance toujours allumée**, donc la veille sera fréquente ; la durée réelle d'inactivité avant la veille se mesure sur l'essai) |
 | Reprises | `GET` : 2 reprises sur réseau, `502`, `503`, `504` (attente `Retry-After`, 10 s au plus) ; `POST` : seulement avec la **même** `Idempotency-Key` ; jamais sur 4xx | `normes-api.md` § 3.5 et § 3.6 |
 | `Retry-After` absent ou illisible sur une `429` | 10 s | l'API le pose toujours ; ceci n'est qu'un repli |
 | Maintien | 2 000 ms (règle 8 du système) ; **alternative sans maintien** : deux appuis brefs, 0,6 s au moins et 5 s au plus d'écart | WCAG 2.1.1 (toute fonction au clavier) et 3.3.4 (confirmer un geste irréversible) ; sans alternative, une personne qui ne peut pas tenir 2 s ne pourrait plus supprimer. À valider avec la session de design et à la main (question 2) |
 | Budgets Lighthouse (mobile, build de prod, `/entrer`) | performance ≥ 0,9 ; accessibilité = 1 ; bonnes pratiques ≥ 0,95 ; LCP ≤ 2 500 ms ; CLS ≤ 0,1 ; TBT ≤ 200 ms ; **JS ≤ 200 ko, CSS ≤ 30 ko, polices ≤ 80 ko, requêtes tierces = 0** | LCP, CLS : skill `building-frontends` (web.dev) ; les poids sont **provisoires** : F24 mesure et fige « mesure + 15 % » ; on ne les relève jamais sans raison écrite |
 | Entrée d'écran | le premier élément (rang 0) n'a aucun retard ; au plus ~650 ms au total pour les premiers éléments | une entrée qui part de `opacity: 0` retarde le LCP : le budget le mesure |
 
-### À poser (en chat, en mots simples ; la valeur du plan vaut tant qu'il n'y a pas de réponse)
+### Questions tranchées le 13/11/2026 (et ce qui reste ouvert)
 
-1. Les icônes de l'appli (192, 512, maskable) sont encore celles de l'ancien style (vertes). La session de design
-   livre-t-elle la marmite en PNG ? (valeur du plan : on garde les anciennes jusque-là ; F22 les remplace sur
-   réception)
-2. **Bouton à maintenir** : en plus des 2 secondes, toute personne qui ne peut pas tenir (clavier, doigt, lecteur d'écran, commande
-   vocale) peut confirmer par **deux appuis brefs espacés d'au moins 0,6 s et de moins de 5 s**. Cela adoucit la règle 8 du système :
-   OK pour la session de design ? (valeur du plan : oui ; sinon ces personnes ne peuvent plus supprimer)
-3. WebKit (iPhone) dans la CI en plus de Chromium ? (valeur du plan : Chromium seul ; Safari se juge à la main sur
-   le téléphone, regroupé en F25)
-4. Mise à jour de l'appli : une bannière « Nouvelle version, recharger » plutôt qu'un rechargement forcé, pour ne
-   jamais perdre une saisie en cours. OK ? (valeur du plan : oui)
-5. Les phrases d'état (réveil, trop de demandes, perte de réseau, session expirée) sont proposées dans les
-   catalogues `src/textes/` ; Kamil les relit sur le banc (F25).
+1. **Icônes** : la session de design les livrera plus tard dans `.design/systeme/icones/` (SVG source, PNG 192 et 512, maskable,
+   `apple-touch-icon` 180, favicon). F22 les prend **si elles sont là**, sinon garde les anciennes (vertes).
+2. **Bouton à maintenir : la session de design accepte les deux appuis brefs, à une condition.** Après un premier appui bref, le libellé
+   devient « Appuie encore pour confirmer » et le bouton **reste armé 5 s**, puis revient à « Maintiens pour supprimer » ; le second appui n'est
+   accepté **qu'après 0,6 s** ; l'annonce (`role="status"`) dit **la même phrase** ; **la preuve d'identité reste exigée avant**, dans les deux cas ;
+   **pas de case « Je confirme »**. (F10, avec ses tests.)
+3. **WebKit dans la CI : oui** pour les e2e des parcours (Kamil parle de Face ID, donc d'un iPhone), **au moins le parcours critique et le banc** ;
+   Chromium seul pour le reste si c'est trop lent (F8).
+4. **Bannière « Nouvelle version » : oui, jamais de rechargement forcé**, et **pas de mise à jour tant qu'un formulaire est modifié ou qu'une écriture
+   attend** (F22).
+5. **Phrases d'état** (réveil, trop de demandes, perte de réseau, session expirée) : proposées dans `src/textes/` ; **Kamil les relit sur le banc dès
+   que F8 existe** (le banc les montre toutes ; F8 le note).
+6. **Seuils et budgets** : provisoires jusqu'à la mesure de F24 ; **les budgets Lighthouse sont tous en `error`**.
+
+Reste ouvert : la durée réelle d'inactivité avant la veille du conteneur (se mesure sur l'essai) ; le suivi des erreurs du navigateur (D4 de la spec :
+Sentry, palier gratuit, décidé le 13/11 ; son intégration est une tâche à part).
 
 ### Hypothèses non vérifiées (à confirmer à la source avant la tâche concernée)
 
@@ -167,7 +173,7 @@ connexion sans mot de passe (D3, plan 0.4bis).
    le build**. [F6, F8, F23]
 4. *Étant donné* chaque composant du système et chacun de ses états (tableau du `LISEZMOI` du système), *quand* le
    banc le rend, *alors* il existe en React, a ses tests Testing Library (rôle, nom, clavier), **zéro violation axe**
-   dans Chromium aux deux tailles, une capture placée à côté de la même section de `reference.html`, et sous
+   dans Chromium et WebKit aux deux tailles, **des cibles d'au moins 44 × 44 px et un parcours au clavier prouvés par mesure**, une capture placée à côté de la même section de `reference.html`, et sous
    `prefers-reduced-motion` les **sept états de la marmite se distinguent** par leur dessin. [F8 à F17, F25]
 5. *Étant donné* une API lente, limitée, coupée ou qui répond `401`, *quand* l'écran appelle l'API, *alors* le réveil
    s'affiche après 2 s et disparaît à la première réponse ; une `429` montre un compte à rebours fondé sur
@@ -246,10 +252,12 @@ commits Conventional en français, `Refs: #<issue>`, **aucune ligne de co-auteur
 `~/PERSO/popote-web-<sujet>`, remote `github-perso`, **jamais `gh`** (API REST) ; aucun accès à la prod ; secrets
 seulement dans `~/.config/popote/secrets.env`, jamais affichés ; `main` protégée. Ajouts :
 
-- **Skills à charger avant d'écrire du code :** `silae-engineering:building-frontends`, `writing-tests`,
+- **Skills à charger avant d'écrire du code**, par leur **nom exact dans l'outil Skill** (tous vérifiés le 13/11 dans la liste de la
+  session ; un nom absent de la liste d'un agent est un défaut du plan : il s'arrête et le dit) : `sp-writing-plans` (si le plan doit
+  être recoupé), `silae-engineering:building-frontends`, `writing-tests`,
   `writing-clean-code`, `writing-commits`, `opening-pull-requests`, plus `building-ci-pipelines` (F1, F4, F8, F23, F24),
   `managing-dependencies-and-licenses` (toute tâche qui ajoute un paquet), `researching-official-docs` (F2, F3, F5,
-  F6, F22, F24), `securing-code` (F5, F21), `frontend-design:frontend-design` (F9 à F17, F25). **Un agent ne cite rien de
+  F6, F22, F24), `securing-code` (F5, F21), `frontend-design:frontend-design` (F9 à F17, F25) ; `sp-test-driven-development` et `sp-verification-before-completion` pour toute tâche. **Un agent ne cite rien de
   mémoire** : il relit la page de la source nommée dans la tâche.
 - **Chaque composant (F9 à F17) livre quatre choses :** (1) le composant et son test Testing Library (requêtes par rôle
   et nom d'abord, `userEvent.setup()`, chemin clavier avec `user.tab()`, horloge et hasard injectés, `axe` de
@@ -354,6 +362,8 @@ police externe), `src/main.ts`, `src/attente.css`, `src/ancien-front.ts`, `src/a
   servait aux tests de base). Garder `VitePWA` avec `registerType: 'autoUpdate'` et
   `workbox: { cleanupOutdatedCaches: true, clientsClaim: true, skipWaiting: true, navigateFallbackDenylist: [/^\/api\//, /^\/mail\//] }` ;
   manifeste : `start_url: '/'`, sans `base`.
+- [ ] `tsconfig.app.json` (réécrit ici, pas en F2 : **sans `vite-plugin-pwa/client` dans `types`, `src/main.ts` ne compile pas**, `virtual:pwa-register` est
+  alors introuvable, `TS2307`) : `types: ["vite/client", "vite-plugin-pwa/client"]`, `include: ["src"]`. `npx tsc -b` est vert sur un clone propre.
 - [ ] `src/ancien-front.ts` : `nettoieAncienFront(stockage: Pick<Storage, 'key' | 'removeItem' | 'length'>)` efface
   les clés `sb-*` et `supabase.auth.token` (les jetons que l'ancien front lisait en JavaScript) et **rien d'autre** ;
   ne lève jamais (stockage refusé : navigation privée). `src/main.ts` l'appelle puis `registerSW({ immediate: true })`
@@ -400,7 +410,7 @@ détecter** une violation. **Dépend de :** F1. **En parallèle de :** rien. **T
 `src/test/axe.ts`, `src/test/outillage.test.tsx`, `docs/conventions.md`.
 
 - [ ] `tsconfig.app.json` : ajouter `"strict": true`, `"noUncheckedIndexedAccess": true`, `"noImplicitOverride": true`,
-  `"isolatedModules": true` (l'ancien fichier **n'avait pas** `strict`) ; `types: ["vite/client", "vite-plugin-pwa/client"]` ;
+  `"isolatedModules": true` (l'ancien fichier **n'avait pas** `strict`) ; les `types` posés par F1 restent ;
   inclure les tests (`tsc -b` les compile : c'est ce qui rend les `// @ts-expect-error` des tests de types).
 - [ ] `.oxlintrc.json` : `plugins: ["react", "jsx-a11y", "typescript", "oxc", "vitest"]`, `categories: { correctness: "error" }`,
   règles `react/rules-of-hooks`, `react/exhaustive-deps`, `react/only-export-components` (warn),
@@ -408,7 +418,8 @@ détecter** une violation. **Dépend de :** F1. **En parallèle de :** rien. **T
   `jsx-a11y/label-has-associated-control`, `react/no-danger` ; `ignorePatterns` : `src/routeTree.gen.ts`,
   `src/api/schema.d.ts`, `dist`, `.wrangler`. (Essayé le 13/11 : `<div onClick>` et `<img>` sans `alt` sont refusés.)
 - [ ] Dépendances de développement : `happy-dom@21.0.4`, `@testing-library/react@16.3.3`, `@testing-library/dom@10.4.2`,
-  `@testing-library/user-event@14.6.9`, `@testing-library/jest-dom@7.0.1`, `axe-core@4.14.0`, `msw@3.0.4`
+  `@testing-library/user-event@14.6.9`, `@testing-library/jest-dom@7.0.1`, `axe-core@4.14.0`, `msw@3.0.4`,
+  **`@axe-core/playwright@4.14.0`** (paquet séparé : Playwright le documente ainsi, F8 en a besoin) ; **`@playwright/test` passe de `^1.64.1` à `1.65.0` exact**
   (versions exactes, `--save-exact` : une mise à jour est un travail de Dependabot, pas un effet de bord).
 - [ ] `vite.config.ts`, `test.projects` : `web` (`environment: 'happy-dom'`, `include: ['src/**/*.test.{ts,tsx}']`,
   `setupFiles: ['src/test/setup.ts']`), `relais` (`environment: 'node'`, `include: ['relais/**/*.test.ts']`), `scripts`
@@ -450,7 +461,7 @@ route »). **Dépend de :** F2. **En parallèle de :** F4, F6. **Taille :** ≈ 
   (le `QueryClient` est créé ici ; F5b lui donne ses réglages). `StrictMode` activé.
 - [ ] `__root.tsx` : `createRootRouteWithContext<{ queryClient: QueryClient }>()` ; **lien d'évitement** « Aller au
   contenu » en premier élément focalisable ; `<HeadContent />` ; `<main id="contenu" tabIndex={-1}>` autour de
-  `<Outlet />` ; quand le **chemin** change (pas pour un simple changement de paramètre de recherche : `?retour=`, un filtre) et **pas au premier chargement**, le focus passe à `#contenu` (WCAG 2.4.3), dont l'anneau est supprimé (`main[tabindex="-1"]:focus { outline: none }` : un conteneur n'est pas un contrôle) ;
+  `<Outlet />`, **le tout dans `<div id="coque">`** (que F18 rend `inert`) ; `<Transverses />` est **hors** de `#coque` ; quand le **chemin** change (pas pour un simple changement de paramètre de recherche : `?retour=`, un filtre) et **pas au premier chargement**, le focus passe à `#contenu` (WCAG 2.4.3), dont l'anneau est supprimé (`main[tabindex="-1"]:focus { outline: none }` : un conteneur n'est pas un contrôle) ;
   un composant `<Transverses />` (vide : F18 et F21 y ajoutent **chacun une ligne**), `errorComponent: ErreurRoute` et `notFoundComponent: NonTrouvee` **importés de `src/etats/`** (versions provisoires minimales : un titre, « Réessayer » ; F19 en remplace le contenu **sans toucher aux routes ni à la racine**).
   Retirer le `<title>` de `index.html` (la doc du routeur : il entrerait en conflit avec celui des routes).
 - [ ] `index.tsx` : redirige vers `/entrer`. `entrer.tsx` : **écran d'attente du parcours 1** (un `h1`, rien d'autre ;
@@ -511,7 +522,10 @@ version et somme d'`oasdiff`), `normes-api.md` § 3.9.
   Hôte injoignable : trois essais, puis rouge (« amont injoignable », jamais vert par défaut).
 - [ ] Un job agrégé `resultat` (`needs: [front, secrets, contrat]`, `if: always()`) qui échoue si l'un d'eux n'a pas
   réussi : seul lui sera exigé par la règle de branche (geste de Kamil, regroupé en F25) ; chaque tâche qui ajoute un job
-  l'ajoute à `needs`.
+  l'ajoute à `needs`. **`deploie-essai` passe à `needs: [resultat]`** (il ne dépendait que de `front` et `secrets` : un `contrat` rouge avec
+  un `front` vert aurait déployé un client qui ne correspond pas à son contrat). `contrat-amont` n'est **pas** dans `resultat` : une rupture
+  **amont** est rouge toute seule sur `main` et au quotidien, mais bloquer le déploiement du front n'y change rien (c'est l'API qui a bougé, le
+  front est resté cohérent avec **sa** copie, que `contrat` garantit) ; choix écrit, à relire en revue.
 - [ ] `docs/contrat.md` : comment reprendre le contrat (`npm run contrat:sync -- main && npm run contrat:genere`, commiter
   les deux), ce qu'une rupture d'amont demande, comment lire le job.
 
@@ -520,7 +534,7 @@ version et somme d'`oasdiff`), `normes-api.md` § 3.9.
 sinon. Fixtures `oasdiff` (deux petits contrats, binaire figé en CI seulement : test marqué `oasdiff`, joué dans le job
 `contrat-amont`) : une route retirée → code non nul ; une route ajoutée → `0`. `npm run contrat:verifie` rend `1` si
 `schema.d.ts` reçoit un caractère en plus (essayé le 13/11 : « Generated types are not up-to-date! »).
-**Mutations :** CRLF à l'écriture (`--verifie` casse) ; `--fail-on ERR` retiré de `contrat-amont.sh` (le test à fixtures
+**Mutations :** `deploie-essai` sans `needs: [resultat]` (un `contrat` rouge déploie : le test de la CI, joué avec une copie retouchée, casse) ; CRLF à l'écriture (`--verifie` casse) ; `--fail-on ERR` retiré de `contrat-amont.sh` (le test à fixtures
 casse) ; contrôle d'ancêtre retiré (le test « SHA de branche » casse) ; une route protégée retirée de `routes-protegees.ts` (`contrat:verifie` casse) ; la comparaison `--verifie` ignore les espaces (le test « un octet change » casse) ; `continue-on-error` aussi sur
 `push` (à relire en revue : la CI de `main` doit être rouge) ; le cron retiré.
 **Retour arrière :** retirer les jobs et le dossier `contrat/` ; rien en dépend avant F5.
@@ -574,7 +588,7 @@ porte des écrans connectés ; la preuve d'architecture. **Dépend de :** F3, F4
 `reference/QueryClient`, `guides/mutations` (reprise hors ligne).
 
 **Fichiers :** `src/api/query-client.ts`, `src/api/reprises.ts`, `src/api/ressources/moi.ts`, `src/api/chemin-sur.ts`,
-`src/routes/_connecte.tsx`, `src/routes/index.tsx` (garde), `src/routes/entrer.tsx` (accepte `retour`),
+`src/routes/_connecte.tsx`, `src/routes/_connecte.accueil.tsx` (route protégée provisoire), `src/routes/index.tsx` (garde), `src/routes/entrer.tsx` (accepte `retour`),
 `src/architecture.test.ts`, `src/api/*.test.ts(x)`.
 
 - [ ] `reprises.ts` : `reessaieLecture(nombre, erreur)` : vrai pour `ErreurReseau`, `502`, `503`, `504`, jamais sur
@@ -592,9 +606,11 @@ porte des écrans connectés ; la preuve d'architecture. **Dépend de :** F3, F4
   décodé, au plus 200 caractères ; sinon `undefined`. `entrer.tsx` : `validateSearch` n'accepte que `retour` (passé
   par `cheminSur`) et `raison` (`'expiree'` seulement).
 - [ ] `_connecte.tsx` (route sans chemin, `beforeLoad`) : `ensureQueryData(moiOptions)` ; une `401` lève
-  `redirect({ to: '/entrer', search: { retour: cheminSur(location.href) } })` ; toute autre erreur remonte à la
-  frontière de la route (pas de redirection pour un `503`). `index.tsx` : `/` mène à `/entrer` si pas de session, sinon à
-  l'accueil (route d'accueil des parcours : non créée ici, `/` reste la redirection de F3 tant que le hub n'existe pas).
+  `redirect({ to: '/entrer', search: { retour: cheminSur(location.pathname + location.search) } })` (**le chemin et la requête, jamais
+  l'URL absolue ni le fragment** : `cheminSur` refuse toute URL absolue, donc `cheminSur(location.href)` perdait toujours le retour) ; toute autre erreur remonte à la
+  frontière de la route (pas de redirection pour un `503`). **`_connecte.accueil.tsx`** (chemin `/accueil`, **enfant de `_connecte`**) : une route protégée **provisoire** (un `h1`, `head` « Accueil · Popote »,
+  `errorComponent: ErreurRoute`) que le hub remplacera ; sans elle la garde n'aurait aucune route enfant et **aucune adresse ne la déclencherait**
+  (les tests 401, 200 et 503 passent par `/accueil`). `index.tsx` : `/` mène à `/accueil` ; la garde renvoie à `/entrer` sans session.
 - [ ] `architecture.test.ts` : parcourt `src/**` hors `src/api/` et hors tests et **échoue** sur `\bfetch\s*\(`,
   `XMLHttpRequest`, `new WebSocket`, `new EventSource`, `sendBeacon`, `from 'openapi-fetch'`, `import.meta.env.VITE_`,
   `supabase` (insensible à la casse), `dangerouslySetInnerHTML`, `\beval\(`, `new Function`, **`popLayout`** (`AnimatePresence mode="popLayout"` : `PopChild` de Motion crée un
@@ -605,7 +621,7 @@ porte des écrans connectés ; la preuve d'architecture. **Dépend de :** F3, F4
 
 **Cas de test :** un `GET` en `503` puis `200` rend les données (une reprise, horloge simulée) ; une `404` n'est pas
 réessayée ; deux `POST` identiques après une coupure partent avec **la même** clé (le gestionnaire MSW enregistre les clés) ;
-la garde : cookie absent (`/me` en `401`) → `/entrer?retour=%2F…` ; `/me` en `200` → la page ; `/me` en `503` → la
+la garde : cookie absent (`/me` en `401`) sur **`/accueil?mois=11`** → `/entrer?retour=%2Faccueil%3Fmois%3D11` (le retour est **conservé** : test négatif de la régression « retour toujours perdu ») ; `/me` en `200` → la page ; `/me` en `503` → la
 frontière de la route, **pas** de redirection ; `cheminSur` : `/budget` ok ; `//evil.fr`, `/\evil.fr`, `https://evil.fr`,
 `javascript:alert(1)`, `/%2F%2Fevil.fr`, `/a\nb`, un chemin de 201 caractères, `undefined`, un objet → `undefined`.
 **Mutations :** `cheminSur` accepte `//` (casse) ; `reessaieLecture` réessaie les `404` (casse) ; une clé neuve par
@@ -636,9 +652,11 @@ reprise (casse) ; la garde redirige sur toute erreur (casse) ; retirer le leurre
   préchargé (chargé à la demande par `unicode-range`).
 - [ ] `vite.config.ts` : `tailwindcss()`, `build.assetsInlineLimit: 0` (D4).
 - [ ] `scripts/verifie-build.mjs <dist>` : **échoue** si, dans `dist/**` : `index.html` contient un `<script>` sans
-  `src`, un `<style>`, un attribut `style=` ou un `on…=` ; un `.css` ou `.js` contient `data:font`, `@import url(http`,
-  `url(http`, ou `fonts.googleapis.com` ; un `.html` référence un hôte autre que `'self'` pour un script, une feuille de
-  style, une police ou une image ; `banc.html` existe sans `--banc` ; un `.woff2` référencé manque. Branché sur la CI
+  `src`, un `<style>`, un attribut `style=` ou un `on…=` ; un `.css` ou `.js` contient `data:font` ; **toute URL construite** dans un `.css` (`url(...)` entre guillemets simples, doubles ou nus,
+  avec espaces, `@import "…"` et `@import url(…)`, `src:`, `image-set(…)`) dont le schéma est `http:`, `https:` ou `//` (échappements CSS
+  décodés avant le test : `\68ttps://` est `https://`), ou `data:` autre que `data:image/` ; un `.html` référence un hôte autre que `'self'` pour
+  un script, une feuille de style, une police, une image ou un `<link>` ; un `.js` contient `fonts.googleapis.com` ou `https://` dans un
+  `new URL`/`import(` ; `banc.html` existe sans `--banc` ; un `.woff2` référencé manque. Branché sur la CI
   (étape après `npm run build`). (F22 y ajoute les contrôles du service worker.)
 - [ ] `scripts/verifie-jetons.mjs` : extrait les paires `--nom: valeur` de `.design/systeme/jetons.css` et de
   `src/styles/jetons.css` (hors blocs de réinitialisation) et **échoue** si une paire manque ou diffère (un jeton **en
@@ -650,8 +668,10 @@ reprise (casse) ; la garde redirige sur toute erreur (casse) ; retirer le leurre
   rien** ; `--duree-appui`, `--ease-rebond`, `--enfoncement` sont émises même sans utilitaire (`static`).
 
 **Cas de test :** `verifie-build` sur des `dist` factices (un par règle : script en ligne, `style=`, `data:font`,
-police externe, `banc.html`) échoue chaque fois et passe sur un dist propre ; `verifie-jetons` : jeton modifié,
-manquant, en trop → échec ; identique → succès. **Mutations :** `assetsInlineLimit` relevé à 8 000 (`verifie-build` casse
+police externe, `banc.html`, **et les contournements réalistes** : `.x{background:url("https://evil.test/x.svg")}` dans une classe jamais rendue,
+`url( 'https://evil.test/x' )`, `url(//evil.test/x)`, `@import "https://evil.test/a.css"`, `@import url(\68ttps://evil.test/a.css)`,
+`image-set("https://evil.test/x.png" 1x)`) échoue chaque fois et passe sur un dist propre ; `verifie-jetons` : jeton modifié,
+manquant, en trop → échec ; identique → succès. **Mutations :** ne décoder que `url(http` en clair (les fixtures guillemetées et échappées cassent) ; `assetsInlineLimit` relevé à 8 000 (`verifie-build` casse
 sur le `data:font`, constaté le 13/11) ; `@theme static` redevient `@theme` (le test « émises sans utilitaire » casse) ;
 retirer `--color-*: initial` (`bg-red-500` apparaît : casse) ; un jeton retouché dans `src/` (`verifie-jetons` casse) ;
 retirer le `crossorigin` du préchargement (une police préchargée sans lui est chargée **deux fois** : à contrôler
@@ -671,22 +691,24 @@ marche), les règles de base manquantes, et la **preuve par le calcul** que les 
   règles de classe dans `@layer components { … }` ; `@font-face` (déjà dans `polices.css`) retirés d'ici ; **`@keyframes`
   restent hors couche**. Les écarts sont des commentaires `/* écart au système : … */`.
 - [ ] `base.css` (`@layer base`) : `html` (fond crème, `color-scheme: light`, `-webkit-text-size-adjust: 100%`),
-  `body` (police et couleur du système, marges nulles, `min-height: 100dvh`, remplissage `env(safe-area-inset-*)`), 
+  `body` (police et couleur du système, marges nulles, `min-height: 100dvh`, remplissage `env(safe-area-inset-*)`),
   `.cases:focus-within` et `.avatar:focus-visible` avec **le même anneau que le système** (revue 19 : il ne le donnait qu'au bouton, au
   champ et au lien), `[hidden] { display: none !important }`, la classe `.sr-seul` (texte réservé aux lecteurs d'écran),
   `main[tabindex="-1"]:focus { outline: none }` ; **aucune règle de mouvement réduit en double** (le système l'a).
+- [ ] **Retirer `.jeu *, .jeu *::before, .jeu *::after`** de `composants.css` (la consigne « À porter » du système : le preflight de Tailwind pose déjà
+  `box-sizing`) ; `.jeu` (fond et police) devient la règle `body` de `base.css`. `/* écart au système : retiré, doublon du preflight */`.
 - [ ] `index.css` : `@import "./base.css"; @import "./composants.css";` dans cet ordre.
 - [ ] Le système fusionné n'a plus de couleur en dur (la session de design a ajouté `voile`, `tomate-clair`, `ciel-clair`, les soleils, les
   tailles de texte) : **vérifier** qu'il n'en reste aucune dans `composants.css` (test ci-dessous) et que toute valeur qui manque encore
   est signalée par `/* écart au système : jeton manquant */`.
 
-**Cas de test :** `css.test.ts` analyse `composants.css` : **aucune règle de sélecteur en dehors de `@layer
+**Cas de test :** `css.test.ts` analyse `composants.css` : **aucun sélecteur ne contient `.jeu *`** ; **aucune règle de sélecteur en dehors de `@layer
 components`**, seulement des `@keyframes` ; aucune valeur hexadécimale hors des déclarations marquées « écart » ;
 `contraste.test.ts` calcule, à partir de `jetons.css`, le rapport de chaque paire de la revue (texte ≥ 4,5 : encre/crème
 14,2, encre/tomate 5,06, encre/ciel 4,88, encre/menthe 8,4, encre/jaune 9,9, encre/rose 7,4, blanc/tomate-foncé 4,58,
 blanc/ciel-foncé 4,63, erreur/crème 5,24, gris/crème 5,87, gris/papier, gris/lilas ; **composants ≥ 3** : l'anneau
 encre contre crème, papier, menthe, jaune, ciel, rose, tomate) **et échoue** si `--color-erreur` est utilisée sur
-`--color-tomate-pale` pour du texte (4,25 : revue 15). **Mutations :** sortir une règle de la couche (casse) ; changer
+`--color-tomate-pale` pour du texte (4,25 : revue 15). **Mutations :** remettre `.jeu *` (casse) ; sortir une règle de la couche (casse) ; changer
 `--color-gris` en `#8E82B0` dans `src/` (`verifie-jetons` et le contraste cassent) ; retirer l'anneau encre (casse) ;
 oublier l'`@media (prefers-reduced-motion)` des `cases` (casse : le test cherche `tremble`).
 **Retour arrière :** `git revert`.
@@ -701,7 +723,7 @@ commun hors `vite.config.ts`, `package.json`, `ci.yml`). **Taille :** ≈ 380 li
 
 **Fichiers :** `banc.html`, `src/banc/main.tsx`, `src/banc/banc.css`, `src/banc/section.ts` (type d'une section),
 `src/banc/sections/couleurs.tsx`, `src/banc/sections/typographie.tsx`, `playwright.config.ts`, `tsconfig.node.json`, `e2e/garde.ts`
-(fixture), `e2e/banc.axe.spec.ts`, `e2e/comparaison.spec.ts`, `e2e/comparaison/index.mjs`, `scripts/capture-index.test.mjs`,
+(fixture), `e2e/banc.axe.spec.ts`, `e2e/banc.cibles.spec.ts`, `e2e/comparaison.spec.ts`, `e2e/comparaison/index.mjs`, `scripts/capture-index.test.mjs`,
 `vite.config.ts` (mode `banc`), `package.json`, `.github/workflows/ci.yml`, `docs/banc.md`.
 
 - [ ] **Entrée du banc** : `banc.html` + `src/banc/main.tsx` ; `vite.config.ts` n'inclut `banc.html` dans
@@ -721,8 +743,10 @@ commun hors `vite.config.ts`, `package.json`, `ci.yml`). **Taille :** ≈ 380 li
 - [ ] **Configuration Playwright neuve** (`playwright.config.ts`) : `webServer` = `npm run build:banc && npx wrangler dev
   --port 4173 --var CSP_MODE:enforce --var RELAY_SECRET:banc --var API_ORIGIN:http://127.0.0.1:9` (D7 ; `url`
   `http://127.0.0.1:4173/`, délai 120 s, `reuseExistingServer: !process.env.CI`) ; `locale: 'fr-FR'`,
-  `timezoneId: 'Europe/Paris'` ; deux projets Chromium : **`telephone`** (390×844, `deviceScaleFactor: 2`, `isMobile`,
-  `hasTouch`) et **`pc`** (1440×900, facteur 1). `e2e/` est laissé organisé pour les parcours (S16 de 0.4bis y ajoute
+  `timezoneId: 'Europe/Paris'` ; trois projets : **`telephone`** (Chromium, 390×844, `deviceScaleFactor: 2`, `isMobile`,
+  `hasTouch`), **`pc`** (Chromium, 1440×900, facteur 1) et **`iphone`** (**WebKit**, 390×844 : Kamil se connectera par Face ID, donc sur un iPhone). `iphone` joue le
+  banc (axe, garde de CSP, cibles, clavier) et, plus tard, **le parcours critique** (« Entrer ») ; le reste des e2e des parcours reste en Chromium si WebKit
+  est trop lent (`npx playwright install --with-deps chromium webkit`, installation mise en cache). Si le job dépasse 10 min, `iphone` devient un job `banc-webkit` à part. `e2e/` est laissé organisé pour les parcours (S16 de 0.4bis y ajoute
   `banc-connexion/`).
 - [ ] **Garde** (`e2e/garde.ts`, fixture automatique) : installe avant toute page un écouteur
   `securitypolicyviolation` qui range les violations, écoute `console` (type `error`) et `pageerror` ; **échoue le test**
@@ -731,6 +755,11 @@ commun hors `vite.config.ts`, `package.json`, `ci.yml`). **Taille :** ≈ 380 li
   }).include(section).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze()` et `expect(violations).toEqual([])` ;
   le contraste est inclus (vrai navigateur). Une seconde passe avec `reducedMotion: 'reduce'`. **Le banc est parcouru SANS `?fige`** (`skipAnimations` court-circuite le chemin des
   animations : la garde de CSP ne verrait pas ce que Motion injecte à l'exécution) ; seule la comparaison utilise `?fige`.
+- [ ] **Cibles et clavier** (`e2e/banc.cibles.spec.ts`, les trois projets) : pour chaque contrôle visible du banc (`button`, `a[href]`, `input`, `select`,
+  `textarea`, `[role=button]`, `summary`), `boundingBox()` ≥ **44 × 44** (la règle 10 du système ; exceptions écrites, une par une, avec leur raison, par exemple un
+  lien dans une phrase) ; **`Tab` parcourt les contrôles de chaque section dans l'ordre du DOM**, chacun montre un **indicateur de focus visible** (`outline` ou `box-shadow`
+  de focus calculé, non nul), et `Shift+Tab` revient en arrière ; aucun piège (on sort de la section avec `Tab`). Axe ne couvre qu'une partie des critères
+  (Playwright le dit) : ceci en prouve deux de plus, sans lecteur d'écran.
 - [ ] **Comparaison** (`comparaison.spec.ts`) : pour chaque projet, ouvre `file://…/.design/systeme/reference.html` (le
   chemin se calcule depuis la racine du dépôt) et `/banc?fige` (**attention : le relais sert `banc.html` à `/banc`**, `/banc.html` répond `307` vers `/banc` : essayé le 13/11 avec `wrangler dev`, la
   requête et son `?fige` sont conservés ; `vite dev` sert `/banc.html`) ; pour chaque section du banc, **apparie les cas par
@@ -741,12 +770,13 @@ commun hors `vite.config.ts`, `package.json`, `ci.yml`). **Taille :** ≈ 380 li
   pixels ne fait échouer le test** (la session de design juge : on ne compare pas un pixel qui change à chaque
   espacement) ; le test échoue seulement si une légende de la référence **manque** au banc pour une section déjà portée,
   si un `reference` de cas ne désigne aucune légende (ou plusieurs), ou si une capture est vide. `captures/` est dans `.gitignore`.
-- [ ] CI, job `banc` (≤ 10 min, `permissions: contents: read`) : `npm ci`, `npx playwright install --with-deps chromium`,
-  `npx playwright test e2e/banc.axe.spec.ts e2e/comparaison.spec.ts`, **dépose `captures/comparaison/` en artefact**
+- [ ] CI, job `banc` (≤ 10 min, `permissions: contents: read`) : `npm ci`, `npx playwright install --with-deps chromium webkit`,
+  `npx playwright test e2e/banc.axe.spec.ts e2e/banc.cibles.spec.ts e2e/comparaison.spec.ts`, **dépose `captures/comparaison/` en artefact**
   (`actions/upload-artifact` épinglé par SHA : `git ls-remote` au moment de l'écrire) ; ajoute `banc` à `needs` de
   `resultat`.
 - [ ] `tsconfig.node.json` : inclure `playwright.config.ts` et `e2e/**/*.ts` (`tsc -b` ne les voyait pas : une faute de type dans un test e2e passerait
   la CI) ; les scripts `.mjs` restent hors compilation (leurs tests Node les exercent).
+- [ ] **Les phrases d'état** (F18 à F21) apparaissent dans le banc dès qu'elles existent ; Kamil les relit **sur le banc** (décision du 13/11) ; `docs/banc.md` dit comment ouvrir le banc (`npm run build:banc` puis le relais local, ou `vite dev` et `/banc.html`).
 - [ ] `docs/banc.md` : comment ajouter une section, comment lire l'index de comparaison, le principe « un fichier =
   une section ».
 
@@ -841,12 +871,15 @@ pointant vers un id inexistant (casse) ; `aria-invalid` toujours posé (casse).
   `.sr-seul`) ; messages du catalogue : « Maintiens appuyé 2 secondes pour confirmer » (aussi en
   `aria-describedby`), « Continue de maintenir », « Relâché : rien n'a été fait », « C'est fait ». Pas une annonce par
   seconde.
-- [ ] **Alternative sans maintien, pour tout le monde** : une personne qui ne peut pas tenir 2 s (clavier, doigt, lecteur d'écran,
-  commande vocale) n'avait, avec le seul maintien, **aucun** autre chemin. Donc : un appui **bref** (relâché avant 2 s) ou un `click`
-  sans `pointerdown` ni `keydown` préalables **arme** le bouton 5 s : le libellé devient « Appuie encore pour confirmer », la région
-  l'annonce ; un deuxième appui bref, **au moins 600 ms après le premier** (un double clic accidentel ne suffit pas), appelle
-  `onHold` ; sinon il se désarme. Le maintien de 2 s confirme toujours d'un coup. (Cela adoucit la règle 8 du système : question 2 ;
-  VoiceOver et TalkBack : non prouvé, gestes de Kamil.)
+- [ ] **Alternative sans maintien, pour tout le monde** (acceptée par la session de design le 13/11, **à ces conditions**) : une personne qui ne peut pas
+  tenir 2 s (clavier, doigt, lecteur d'écran, commande vocale) n'avait, avec le seul maintien, aucun autre chemin. Donc : un appui **bref** (relâché
+  avant 2 s) ou un `click` sans `pointerdown` ni `keydown` préalables **arme** le bouton **5 s** : le libellé devient **« Appuie encore pour
+  confirmer »** et la région `role="status"` dit **cette même phrase** ; un second appui bref n'est accepté **qu'au bout de 0,6 s** (un double
+  clic accidentel ne suffit pas) et appelle `onHold` ; au bout de 5 s sans second appui, le bouton **se désarme et le libellé revient à « Maintiens pour
+  supprimer »**. Le maintien de 2 s confirme toujours d'un coup. **Pas de case « Je confirme »** (le test vérifie qu'aucune `checkbox` n'est rendue).
+  **La preuve d'identité reste exigée avant, dans les deux cas** : `HoldButton` prend une prop **`preuveFaite: boolean` obligatoire** ; tant qu'elle est
+  fausse, le bouton est en `pause` (F9) avec « Confirme ton identité d'abord » et **ni le maintien ni les appuis brefs ne comptent** ; c'est l'écran
+  qui pose la preuve (parcours « Mon compte »). VoiceOver et TalkBack : non prouvé, gestes de Kamil.
 - [ ] Banc : « À maintenir 2 s » (début de la légende de la référence, repos), tenu à mi-course (`forceProgress` réservé au banc, **figé** à 50 %),
   abouti. Playwright (`maintenir.spec.ts`) : maintien réel à la souris, au toucher (`page.touchscreen`) et au clavier ;
   relâcher à 1,5 s ne supprime rien.
@@ -854,10 +887,10 @@ pointant vers un id inexistant (casse) ; `aria-invalid` toujours posé (casse).
 **Cas de test** (horloge simulée, `userEvent.setup({ advanceTimers })`) : 1 999 ms → `onHold` jamais ; 2 000 → une fois ;
 relâché à 1 500 → pas d'appel, message « Appuie encore pour confirmer », bouton armé ; `Espace` tenu 2 s → une fois ; `Entrée` idem ; `keydown` répété
 (`repeat: true`) ignoré ; `Échap` annule ; `blur` annule ; démontage au milieu → plus aucun appel ni minuteur vivant
-(compteur de minuteurs) ; un appui bref → armé ; un 2e appui bref 300 ms plus tard → **pas d'appel** (double clic accidentel) ; un 2e appui bref 700 ms plus tard (< 5 s) → une fois ; un `click` seul (lecteur d'écran) → armé puis confirmé de même ; armé puis 6 s → désarmé ; deux appuis
-successifs complets → deux appels (et pas un de plus) ; la région `status` existe avant l'interaction. **Mutations :**
+(compteur de minuteurs) ; `preuveFaite` faux → ni maintien ni appui bref n'appellent `onHold`, message « Confirme ton identité d'abord » ; un appui bref → armé, libellé « Appuie encore pour confirmer », **la région dit la même phrase** ; armé puis 5 s sans second appui → libellé **« Maintiens pour supprimer »** de nouveau ; un 2e appui bref 300 ms plus tard → **pas d'appel** (double clic accidentel) ; un 2e appui bref 700 ms plus tard (< 5 s) → une fois ; un `click` seul (lecteur d'écran) → armé puis confirmé de même ; armé puis 6 s → désarmé (libellé d'origine) ; aucune `checkbox` rendue ; deux appuis
+successifs complets → deux appels (et pas un de plus) ; la région `status` existe avant l'interaction ; aucune `checkbox` n'est rendue. **Mutations :**
 2 000 → 200 (casse) ; appeler `onHold` à `pointerdown` (casse) ; ignorer `pointerup` (casse) ; ne pas nettoyer le minuteur
-(casse) ; laisser passer les `repeat` (casse) ; supprimer l'alternative (casse).
+(casse) ; accepter le 2e appui avant 0,6 s (casse) ; ne pas revenir au libellé d'origine après 5 s (casse) ; ignorer `preuveFaite` (casse) ; laisser passer les `repeat` (casse) ; supprimer l'alternative (casse).
 **Retour arrière :** `git revert` ; rien n'en dépend avant les parcours.
 
 ### F11 : Les cases du code
@@ -871,7 +904,9 @@ parallèle de :** F10, F12, F13, F15, F16, F17. **Taille :** ≈ 340 lignes. **S
 `src/ui/code.test.ts`, `src/textes/code.ts`, `src/banc/sections/cases-du-code.tsx`.
 
 - [ ] **Un seul champ réel** (`<input inputMode="numeric" autoComplete="one-time-code">` **sans `maxLength`**, étiqueté, posé
-  par-dessus les cases) ; les six cases sont décoratives (`aria-hidden`). Le collage « 482 913 » ou « 482-913 » est nettoyé
+  par-dessus les cases, **dans un conteneur `.cases-champ` à position relative** : le CSS de `.cases` ne prévoit que des cases, un champ ajouté
+  dedans deviendrait un **septième élément flex** ; `.cases-champ > input` est en position absolue, transparent, de la taille de l'ensemble,
+  `/* écart au système : champ réel */`) ; les six cases sont décoratives (`aria-hidden`). Le collage « 482 913 » ou « 482-913 » est nettoyé
   **dans le gestionnaire** (`code.ts` : chiffres seulement, tronqué à `longueur`) : avec un `maxLength`, le navigateur tronquerait
   « 482 913 » à six caractères **avant** le nettoyage et ne garderait que « 48291 » (comportement de la spécification HTML) ; les lettres sont ignorées ; `onComplete(code)` part **une
   seule fois** à la 6e saisie.
@@ -920,7 +955,7 @@ leurs tests, `src/textes/etats-visuels.ts`, `src/banc/sections/jauge.tsx`, `suiv
 - [ ] `Gauge` : `<div class="jauge" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow aria-label>` ;
   la valeur est **bornée de 0 à 100** (`NaN` → 0) ; le remplissage passe par Motion (`--part` animée avec le rebond du
   jeton), **les rayures ne défilent que pendant l'arrivée** (`data-anime` posé puis retiré à la fin : revue 18, WCAG 2.2.2).
-- [ ] `Steps` : `<ol>` ; chaque étape a **une coche SVG et un texte réservé** (« faite » / « à venir ») ; la dernière
+- [ ] `Steps` : `<ol>` (la liste donne le nombre d'étapes aux lecteurs d'écran) ; **le CSS est adapté** : `.suivi > div` devient `.suivi > li`, avec la remise à zéro de la liste (`list-style: none; padding: 0; margin: 0`), `/* écart au système : structure sémantique */` ; chaque étape a **une coche SVG et un texte réservé** (« faite » / « à venir ») ; la dernière
   étape faite porte `aria-current="step"` (revue 12) ; l'étape qui se remplit joue le remplissage par Motion.
 - [ ] `EffectRow` : `sens` (`perd`, `reste`, `change`), icône **SVG distincte par forme** (croix, coche, flèche : fini les
   glyphes hors police, revue 17), `aria-hidden` ; un préfixe réservé aux lecteurs d'écran (« Disparaît : », « Reste : »,
@@ -952,7 +987,7 @@ parallèle de :** F9, F12, F17. **Taille :** ≈ 360 lignes. **Sources à relire
   `--ease-sortie` `[0.22, 1, 0.36, 1]`) ; `variantesEntree(rang, reduit)` ; `variantesTampon(reduit)` ; en mouvement réduit :
   **ni `y`, ni `scale`, ni `rotate`**, seulement `opacity` en 1 ms (la doc Motion : `reducedMotion="user"` ne coupe que
   les transformations, pas l'opacité : la politique est donc la nôtre, une fois).
-- [ ] `Screen` (`<main>` avec le fond crème et la zone sûre) et `Enter` (`rang` → délai `rang × 70 ms`, premier élément sans
+- [ ] `Screen` (**un `<div>`**, pas un `<main>` : la racine de F3 a déjà `<main id="contenu">`, un second créerait des repères en double, WCAG 1.3.1 ; avec le fond crème et la zone sûre) et `Enter` (`rang` → délai `rang × 70 ms`, premier élément sans
   retard) ; `Stamp` (arrivée en tournant, `onArrive`) ; `Sun` (`variant` ciel ou rose, `aria-hidden`), `Ground`.
 - [ ] Retirer de `composants.css` les `@keyframes entre` et `tampon` et leurs `animation:` (le banc prouve l'identité de
   rendu à l'état final).
@@ -975,14 +1010,14 @@ F10, F11. **Taille :** ≈ 300 lignes. **Sources :** MDN `<dialog>`, APG « Dial
 
 - [ ] `Sheet` : **`<dialog>` natif** ouvert par `showModal()` (piège de focus, `Échap`, retour du focus à l'élément qui
   l'a ouvert : c'est le navigateur) ; `aria-labelledby` vers son titre ; `onClose` branché sur l'événement `cancel` et sur le
-  clic sur le fond ; Motion monte la feuille (`y: 105% → 0`, 500 ms, courbe de sortie), la **redescend avant** `dialog.close()` ;
-  en mouvement réduit, aucun glissement. Fond de la feuille : `background: var(--color-voile)` (le jeton existe : « fond sous une feuille »).
+  clic sur le fond ; Motion monte la feuille (`y: 105% → 0`, 500 ms, courbe de sortie), la **redescend avant** `dialog.close()` ; **l'événement `cancel` (`Échap`) est `preventDefault()`é** (par défaut le navigateur ferme **aussitôt** : MDN, l'animation de sortie
+  ne jouerait jamais) : on joue la sortie, puis `close()` ; le clic sur le fond suit le même chemin ; en mouvement réduit, aucun glissement. Fond de la feuille : `background: var(--color-voile)` (le jeton existe : « fond sous une feuille »).
 - [ ] Banc : un bouton qui l'ouvre ; Playwright : ouverture, `Tab` boucle **dans** la feuille, `Échap` ferme, le focus
   revient au bouton, la page derrière est inerte, axe sur la feuille ouverte.
 
-**Cas de test** (happy-dom : `showModal` existe) : `open` → `getByRole('dialog', { name })` ; `cancel` → `onClose` ; clic
+**Cas de test** (happy-dom : `showModal` existe) : `open` → `getByRole('dialog', { name })` ; `cancel` → `preventDefault` appelé, **le dialogue est encore `open` pendant la sortie**, puis fermé à la fin de l'animation (horloge simulée), `onClose` une seule fois ; clic
 sur le fond → `onClose`, clic dedans → non ; fermé → rien dans le DOM d'accessibilité ; démonter pendant l'animation ne
-lève pas. **Mutations :** `show()` au lieu de `showModal()` (le test Playwright du piège de focus casse) ; retirer
+lève pas. **Mutations :** ne pas empêcher `cancel` (le test « le dialogue reste ouvert pendant la sortie » casse) ; `show()` au lieu de `showModal()` (le test Playwright du piège de focus casse) ; retirer
 `aria-labelledby` (casse) ; ne pas brancher `cancel` (casse) ; `close()` avant l'animation de sortie (le test de séquence
 casse).
 **Retour arrière :** `git revert`.
@@ -1034,7 +1069,7 @@ codée en hexadécimal (`css.test` de F7 casse).
 - [ ] Banc : les sept cas « Repos : `repos` », « Sommeil : `sommeil` », … et la scène « Touche le bouton : confettis et
   joie » (avec F16) et la variante ciel « Ce lien a expiré » (inquiet).
 
-**Cas de test :** sans `nom`, `aria-hidden` et aucun rôle ; avec `nom`, `getByRole('img', { name })` ; chaque `etat` → `data-etat` ; une valeur inconnue → `repos` ; la région existe au
+**Cas de test :** sans `nom`, `aria-hidden` et aucun rôle ; avec `nom`, `getByRole('img', { name })` ; chaque `etat` → `data-etat` ; une valeur inconnue → `repos` ; avec `annonce={true}`, la région existe au
 premier rendu, vide ; `rerender` en `sommeil` met **le même nœud** à jour avec la phrase ; `annonce` absent → aucune région ; `annonce={true}` → une région ; `joie` revient à `repos` à `joieMs` (horloge simulée) et `onJoieFinie` part une fois ; aucune couleur
 hexadécimale dans le DOM rendu ; axe. **Mutations :** région absente au premier rendu avec `annonce` (casse) ; `annonce` vrai par défaut (casse) ;  phrase de `sommeil`
 changée ou vide (casse) ; `joie` ne retourne jamais au repos (casse) ; une valeur d'état inconnue laissée telle quelle
@@ -1059,16 +1094,17 @@ changée ou vide (casse) ; `joie` ne retourne jamais au repos (casse) ; une vale
 - [ ] `EcranReveil` : `Pot etat="sommeil"`, un `Bloc` et une phrase qui évolue à 0 s « Popote se réveille… », 3 s,
   6 s, puis 12 s « C'est plus long que d'habitude, on y est presque. » (changements **visuels** ; **annonces : deux
   seulement**, au début et à la fin « C'est prêt ») ; sortie par Motion (mouvement réduit : sans glissement). Posé dans la
-  racine ; tant qu'il est affiché, **`#contenu` est `inert`** (la page derrière ne reçoit ni focus ni clic : sans cela le focus
-  serait masqué, WCAG 2.4.11), puis retrouvé à la fin ; sa région `status` est **la seule** de l'écran (`Pot` sans `annonce`).
+  racine ; tant qu'il est affiché, ****toute la coque est `inert`** (`#coque` de F3, qui contient le lien d'évitement **et** `main` : `#contenu` seul laisserait Tab
+  atteindre le lien d'évitement masqué ; le focus serait masqué, WCAG 2.4.11), l'écran de réveil étant **hors** de `#coque` ; à l'ouverture le
+  focus **va à l'écran de réveil** (un titre `tabIndex={-1}`), à la fin il **retourne à l'élément qui l'avait** (s'il existe encore, sinon `#contenu`) ; sa région `status` est **la seule** de l'écran (`Pot` sans `annonce`).
 - [ ] Banc : trois moments (début, 6 s, 12 s) en mode figé.
 
 **Cas de test** (MSW avec réponses différées, horloge simulée) : réponse à 1 900 ms → l'écran **n'apparaît jamais** ;
 réponse à 2 100 ms → il apparaît, `Pot` en `sommeil`, `status` annonce ; réponse à 2 100 ms **alors qu'une autre réponse est arrivée 1 minute plus tôt** → pas d'écran ; réponse à 6 500 ms → il
-disparaît après son minimum, et le texte annoncé a changé **exactement deux fois**, `#contenu` redevient interactif, **une seule
-région `status`** est présente ; trois requêtes simultanées → un seul écran ; un `503`
+disparaît après son minimum, et le texte annoncé a changé **exactement deux fois**, `#coque` redevient interactive, le focus est **revenu** à l'élément d'avant, **une seule
+région `status`** est présente ; pendant l'écran, `Tab` ne sort pas de lui (aucun élément focalisable dans `#coque`) ; trois requêtes simultanées → un seul écran ; un `503`
 rapide → pas d'écran de réveil, la frontière d'erreur s'affiche ; démontage → plus de minuteur ; au-delà de 12 s, la
-phrase change. **Mutations :** seuil 2 000 → 200 (casse) ; retirer la condition d'inactivité (casse) ; oublier `inert` (casse) ; supprimer le minimum d'affichage (casse) ; compter une veille par
+phrase change. **Mutations :** seuil 2 000 → 200 (casse) ; retirer la condition d'inactivité (casse) ; oublier `inert` ou ne le poser que sur `main` (le test « aucun focalisable dans la coque » casse) ; ne pas rendre le focus (casse) ; supprimer le minimum d'affichage (casse) ; compter une veille par
 requête (casse) ; annoncer à chaque changement de phrase (casse) ; ne pas arrêter à une erreur (casse).
 **Retour arrière :** `git revert` (la racine retire l'écran).
 
@@ -1141,7 +1177,7 @@ exactement, **une seule région `status`** dans l'écran ; pluriel (« 1 seconde
   une `401` y est traitée par l'écran du formulaire, pas par ce flux. Aucune liste écrite à la main : une synchronisation du
   contrat qui apporte une route (les codes par mail et les clés d'accès de 0.4bis) la classe d'elle-même. Le flux : vide le cache
   (`queryClient.clear()` : plus de donnée privée en mémoire), puis `navigate` vers
-  `/entrer?raison=expiree&retour=<cheminSur(location)>` (`cheminSur` : F5b) **une seule fois** même si trois requêtes reçoivent
+  `/entrer?raison=expiree&retour=<cheminSur(location.pathname + location.search)>` (`cheminSur` : F5b) **une seule fois** même si trois requêtes reçoivent
   un `401` ensemble. L'écran « Entrer » (stub) affiche, pour `raison=expiree`, `Pot inquiet` **sans `annonce`** et « Ta session a
   expiré. Reconnecte-toi pour continuer. » (`role="status"`, **la seule région** de l'écran).
 
@@ -1162,17 +1198,22 @@ l'événement à chaque `401` sans débounce (casse).
 
 **Fichiers :** `package.json` (`vite-plugin-pwa@2.0.0`, `workbox-build@7.4.1`, `workbox-window@7.4.1`), `vite.config.ts`,
 `src/main.tsx`, `src/pwa/MiseAJour.tsx`, `src/pwa/MiseAJour.test.tsx`, `src/textes/pwa.ts`,
-`scripts/verifie-build.mjs` (+ test), `e2e/pwa.spec.ts`, `public/` (icônes, voir question 1), `docs/exploitation-front.md`.
+`scripts/verifie-build.mjs` (+ test), `e2e/pwa.spec.ts`, `public/` et `.design/systeme/icones/` (icônes, voir « Questions tranchées », 1), `docs/exploitation-front.md`.
 
 - [ ] `VitePWA({ registerType: 'prompt', injectRegister: false, manifest: {…}, workbox: { navigateFallback: 'index.html',
   navigateFallbackDenylist: [/^\/api\//, /^\/mail\//], runtimeCaching: [], globIgnores: ['mail/**', '**/*.map'],
   cleanupOutdatedCaches: true } })` ; l'inscription par `useRegisterSW` (`virtual:pwa-register/react`) dans `MiseAJour` :
   un bandeau « Une nouvelle version de Popote est prête. » + bouton « Recharger » (`role="status"`, présent dès le
-  premier rendu) **sans** rechargement forcé (question 4).
+  premier rendu) **sans jamais de rechargement forcé** (décidé). **Pas de mise à jour tant qu'une saisie est modifiée ou qu'une écriture attend** :
+  `src/pwa/saisie-en-cours.ts` (`useSaisieEnCours(sale: boolean)`, un compteur de formulaires modifiés, **en mémoire seulement** : aucune donnée
+  personnelle n'est écrite dans le navigateur) et `useMutationState({ filters: { status: 'pending' } })` (une mutation **suspendue** hors ligne est
+  `pending`) ; si l'un des deux est vrai, le bouton est en `pause` (F9) avec « Termine ta saisie avant de recharger » (ou « Une écriture attend le
+  réseau »), et il se libère tout seul. Les formulaires des parcours appellent `useSaisieEnCours` (règle écrite dans `docs/front.md`).
 - [ ] Manifeste : `id` et `start_url` `/`, `scope` `/`, `display: 'standalone'`, `lang: 'fr'`, `name` et `short_name`
   « Popote », `background_color` et `theme_color` = `--color-creme` (lus de `jetons.css` par la configuration : un test
-  vérifie l'égalité), icônes 192, 512 et maskable (les actuelles tant que la session de design ne livre pas la marmite :
-  question 1). `index.html` : `theme-color` identique.
+  vérifie l'égalité), icônes 192, 512 et maskable, `apple-touch-icon` 180 et favicon : **ceux de `.design/systeme/icones/` s'ils existent** (la session de design les livre plus
+  tard : SVG source, PNG 192 et 512, maskable, 180, favicon), sinon les actuelles (vertes) ; un test `verifie-build` vérifie que chaque icône du manifeste est un fichier du
+  build. `index.html` : `theme-color` identique, `<link rel="icon">` et `apple-touch-icon` vers les mêmes fichiers.
 - [ ] `verifie-build.mjs` : ajouter les contrôles du service worker : `sw.js` contient `/^\/api\//` dans la liste de
   refus, **aucune route d'exécution** (`registerRoute`) dont l'expression reconnaît `/api/`, **aucune URL `/api` dans
   le précache** ; `manifest.webmanifest` a les champs ci-dessus ; `registerSW.js` n'existe pas (inscription par module) ;
@@ -1193,16 +1234,15 @@ l'événement à chaque `401` sans débounce (casse).
 
 **Cas de test :** `verifie-build` sur des `sw.js` factices : retirer la règle `/api/`, ajouter un `registerRoute` qui
 reconnaît `/api/v1/me`, précacher `/api/…` → échec chaque fois ; manifeste sans `lang` → échec ; couleurs ≠ jetons → échec ;
-test Playwright ci-dessus ; `MiseAJour` : `needRefresh` faux → la région existe, vide ; vrai → le bouton apparaît, un clic
+test Playwright ci-dessus ; `MiseAJour` : `needRefresh` faux → la région existe, vide ; vrai **sans saisie ni écriture** → le bouton apparaît, un clic
 appelle `updateServiceWorker` ; axe. **Mutations :** retirer `/^\/api\//` de la liste (le contrôle de build et le test
 Playwright cassent) ; `runtimeCaching` pour `/api` en `StaleWhileRevalidate` (casse) ; `injectRegister: 'inline'` (`verifie-build`
-casse : script en ligne) ; `registerType: 'autoUpdate'` (la bannière disparaît : casse).
+casse : script en ligne) ; `registerType: 'autoUpdate'` (la bannière disparaît : casse) ; le bouton actif malgré un formulaire modifié ou une mutation suspendue (casse) ; `useSaisieEnCours` qui écrit dans `localStorage` (l'architecture refuse : à ajouter au test).
 **Retour arrière :** `selfDestroying: true` puis redéploiement (voir plus haut) ; ou `git revert`.
 
 ### F23 : Le déploiement sur l'essai : CSP en `enforce`, cache des fichiers, fumée plus serrée
 
-**Pourquoi :** consigne 6 (« le déploiement sur l'essai ») ; § 7.3. **Dépend de :** F22, F8. **En parallèle de :** F24 (après
-F22). **Taille :** ≈ 300 lignes. **Sources :** Cloudflare Workers (static assets, headers), `wrangler rollback` (CLI 4.155).
+**Pourquoi :** consigne 6 (« le déploiement sur l'essai ») ; § 7.3. **Dépend de :** F22, F8. **En parallèle de :** rien (F24 en dépend). **Taille :** ≈ 300 lignes. **Sources :** Cloudflare Workers (static assets, headers), `wrangler rollback` (CLI 4.155).
 
 **Fichiers :** `relais/src/index.ts`, `relais/src/index.test.ts`, `wrangler.jsonc`, `scripts/fumee-essai.sh`,
 `.github/workflows/ci.yml` (job `deploie-essai`), `docs/exploitation-front.md`.
@@ -1212,7 +1252,7 @@ F22). **Taille :** ≈ 300 lignes. **Sources :** Cloudflare Workers (static asse
   `/sw.js`, `/manifest.webmanifest`, `/index.html` et **toute réponse HTML** (le repli SPA d'une URL inconnue sous
   `/assets/` rend `index.html` : il ne doit **jamais** être immuable) : `no-cache`. Les en-têtes que l'amont a déjà posés
   priment, comme pour `/api/`.
-- [ ] `wrangler.jsonc` : `CSP_MODE` passe à `"enforce"` (la CSP est inchangée ; elle n'était en `report-only` que parce que
+- [ ] `wrangler.jsonc` : la CSP gagne `object-src 'none'` (et `relais/src/index.test.ts` le vérifie : la chaîne exacte de la CSP est comparée) ; `CSP_MODE` passe à `"enforce"` (la CSP est inchangée ; elle n'était en `report-only` que parce que
   l'ancien front parlait à Supabase ; sans `report-to`, `report-only` ne signale rien à personne ; la preuve de
   l'absence de violation, c'est la garde de F8 sous `enforce`) ; mettre à jour le commentaire.
 - [ ] `scripts/fumee-essai.sh` : exiger `Content-Security-Policy` (et plus l'un **ou** l'autre) ; `GET /sw.js` : 200 et
@@ -1245,16 +1285,16 @@ F23. **Taille :** ≈ 200 lignes. **Source à relire :** `googlechrome.github.io
   npx wrangler dev --port 4173 --var CSP_MODE:enforce …`), `url: ["http://127.0.0.1:4173/entrer"]`,
   `numberOfRuns: 3` (la médiane), préréglage mobile par défaut ; `assert` : `categories:performance` ≥ 0,9 (error),
   `categories:accessibility` = 1 (error), `categories:best-practices` ≥ 0,95 (error), `largest-contentful-paint` ≤
-  2 500 (error), `cumulative-layout-shift` ≤ 0,1 (error), `total-blocking-time` ≤ 200 (warn),
+  2 500 (error), `cumulative-layout-shift` ≤ 0,1 (error), `total-blocking-time` ≤ 200 (**error**),
   `resource-summary:script:size` ≤ 200 000, `resource-summary:stylesheet:size` ≤ 30 000, `resource-summary:font:size` ≤
-  80 000, `resource-summary:third-party:count` = 0 (error) ; `upload.target: 'filesystem'` puis artefact.
+  80 000, **`resource-summary:image:size` ≤ 150 000, `resource-summary:total:size` ≤ 450 000** (toutes en **error**), `resource-summary:third-party:count` = 0 (error) ; `upload.target: 'filesystem'` puis artefact.
 - [ ] **Mesurer d'abord** : lancer trois fois, noter les valeurs dans `docs/performance.md`, **puis fixer les poids à
-  « mesure + 15 % »** (les 200, 30 et 80 ko sont provisoires). Le plus petit budget qui échoue sans raison valable est
+  « mesure + 15 % »** (les 200, 30, 80, 150 et 450 ko sont provisoires). Le plus petit budget qui échoue sans raison valable est
   relevé **dans la PR qui l'explique**, jamais en silence.
 - [ ] CI : job `lighthouse` (≤ 10 min ; `npx playwright install` n'est pas nécessaire, Chrome est celui du runner) ; ajouté
   à `needs` de `resultat`.
 
-**Cas de test :** un build avec un script tiers factice ou un `<img>` de 2 Mo fait échouer `resource-summary` (essayé une
+**Cas de test :** un build avec un script tiers factice, **un `<img>` de 2 Mo** (échoue sur `image:size` et `total:size`) ou un bloc de 900 ms de TBT (échoue sur `total-blocking-time`) fait échouer `lhci` (essayé une
 fois à la main, noté dans la PR) ; le job échoue si `lhci` ne trouve pas Chrome (jamais vert par défaut).
 **Mutations :** `third-party:count` retiré (le script factice passe : casse) ; `numberOfRuns: 1` (un run bruité fait
 échouer au hasard : à constater) ; budget JS relevé sans commentaire (relu en revue).
@@ -1273,8 +1313,11 @@ fois à la main, noté dans la PR) ; le job échoue si `lhci` ne trouve pas Chro
 - [ ] **Jugement de la session de design** : lui remettre l'artefact de comparaison (téléphone 390×844 et PC 1440) et la
   liste des `/* écart au système : … */` (`grep -rn "écart au système" src/`) ; consigner son verdict dans la PR ;
   chaque écart est soit accepté et reporté **dans le système**, soit corrigé.
+- [ ] **Liste de preuves manuelles, remplie dans la PR (bloquante dans sa forme, pas dans son résultat)** : lecteur d'écran (bouton à maintenir et son alternative,
+  annonce de la marmite, réveil, perte de réseau), clavier seul (déjà automatisé : `banc.cibles`), zoom 200 %, largeur 320 px ; **chaque ligne dit « prouvé » ou « non prouvé »
+  avec sa raison** ; la PR ne se ferme pas tant que la liste n'est pas remplie, mais un « non prouvé » écrit et regroupé dans les gestes de Kamil est admis.
 - [ ] **Gestes de Kamil, regroupés (ne bloquent pas le code)** : relire sur le banc les phrases des états
-  (question 5) ; sur son téléphone (PWA de l'essai installée) et sur son PC : ouvrir le banc via `vite dev` ou la
+  (« Questions tranchées », 5) ; sur son téléphone (PWA de l'essai installée) et sur son PC : ouvrir le banc via `vite dev` ou la
   construction du mode `banc`, jouer le bouton à maintenir, les confettis, le réveil ; **avec VoiceOver (iPhone) et le
   lecteur d'écran du PC** : le bouton à maintenir (alternative à deux activations), l'annonce de la marmite, la
   perte de réseau — consigner « prouvé » ou « non prouvé » ; remplacer, dans la règle de branche de GitHub, les
@@ -1315,6 +1358,31 @@ du système sans `url(`, F1 sans référence orpheline.
 | 16 | mineur | fond de la feuille en `color-mix` alors que `--color-voile` existe | F15 utilise `--color-voile` (présent dans le système fusionné) |
 | 17 | mineur | le focus passait à `#contenu` à chaque navigation, y compris un simple changement de `?retour=`, et l'anneau s'y dessinait | F3 : seulement quand le **chemin** change, anneau supprimé sur le conteneur |
 | 18 | mineur | `wrangler dev` pourrait rediriger `/x.html` ; `upgrade-insecure-requests` à vérifier ; `playwright.config.ts`, `e2e/` hors de tout tsconfig | **rejoué** : `/banc.html?fige` répond `307` vers `/banc?fige` (la requête est conservée) : le plan utilise `/banc` ; `upgrade-insecure-requests` ne réécrit pas `http://127.0.0.1` ; F8 inclut `playwright.config.ts` et `e2e/` dans `tsconfig.node.json` |
+
+### Seconde revue (Codex CLI, lecture seule, 13/11/2026) : 4 bloquants, 10 importants, 4 mineurs, tous traités
+
+| N° | Gravité | Constat | Traitement |
+|---|---|---|---|
+| B1 | bloquant | F1 importe `virtual:pwa-register` mais le type `vite-plugin-pwa/client` n'arrive qu'en F2 : `tsc -b` échoue en `TS2307` sur un clone propre | **accepté** : F1 réécrit `tsconfig.app.json` avec `types: ["vite/client", "vite-plugin-pwa/client"]` ; F2 n'y touche plus |
+| B2 | bloquant | la garde de F5b n'a aucune route enfant protégée : aucune adresse ne la déclenche, les tests 401/200/503 ne passent pas par elle | **accepté** : route protégée provisoire `_connecte.accueil.tsx` (`/accueil`), `/` y mène ; tests via `/accueil` |
+| B3 | bloquant | `cheminSur(location.href)` perd toujours le retour (la fonction refuse les URL absolues) ; F21 passait `location` | **accepté** : `location.pathname + location.search` (sans fragment) en F5b et F21 ; test « `/accueil?mois=11` conserve son retour » |
+| B4 | bloquant | les skills `superpowers:*` ne sont pas dans le catalogue des agents | **accepté** : `sp-subagent-driven-development` ou `sp-executing-plans`, `sp-writing-plans`, `sp-test-driven-development`, `sp-verification-before-completion`, `frontend-design:frontend-design` et les `silae-engineering:*`, **noms vérifiés un par un dans la liste de l'outil Skill** ; un nom absent chez un agent est un défaut du plan |
+| I1 | important | `@axe-core/playwright` jamais installé ; `@playwright/test` flottant en `^1.64.1` | **accepté** : F2 installe `@axe-core/playwright@4.14.0` et `@playwright/test@1.65.0`, exacts |
+| I2 | important | `deploie-essai` ne dépend ni de `contrat` ni de `resultat` : un contrat rouge déploie | **accepté** : `deploie-essai` passe à `needs: [resultat]` (F4) ; `contrat-amont` volontairement hors de `resultat` (la rupture est amont ; le front reste cohérent avec sa copie), raison écrite |
+| I3 | important | la garde du build ne voit que `url(http` ; `url("https://…")`, `@import "https://…"`, échappements passent ; pas d'`object-src` | **accepté** : analyse de toute URL construite, échappements CSS décodés, fixtures de contournement ; `object-src 'none'` ajouté à la CSP (F23, test du relais) |
+| I4 | important | la consigne « retirer `.jeu *` » n'était pas exécutée | **accepté** : F7 le retire (`.jeu` devient `body`), test d'absence et mutation |
+| I5 | important | `Screen` crée un second `<main>` ; `Steps` en `<ol>` alors que `.suivi` cible des `div` ; le champ réel de `CodeCells` devient un septième élément flex | **accepté** : `Screen` = `<div>` ; `.suivi > li` avec remise à zéro de la liste ; conteneur `.cases-champ` ; chacun annoté `/* écart au système */` |
+| I6 | important | ni les cibles de 44 px ni le parcours clavier ne sont prouvés ; les vérifications lecteur d'écran sont non bloquantes | **accepté** : `banc.cibles.spec.ts` (`boundingBox` ≥ 44 × 44, ordre de `Tab`, focus visible, aucun piège) sur les trois projets ; liste de preuves manuelles **à remplir** dans la PR de F25 (un « non prouvé » écrit est admis) |
+| I7 | important | l'écran de réveil ne rend inerte que `#contenu` : le lien d'évitement reste atteignable ; pas de focus initial ni de retour | **accepté** : `#coque` (lien d'évitement + `main`) entièrement `inert`, écran hors de `#coque`, focus sur l'écran puis rendu à l'élément d'avant |
+| I8 | important | `Échap` ferme le `<dialog>` aussitôt : l'animation de sortie ne joue jamais | **accepté** : `cancel` est `preventDefault()`é, sortie puis `close()`, test « encore ouvert pendant la sortie » |
+| I9 | important | TBT en `warn`, aucun budget d'image ni de poids total : le scénario « image de 2 Mo » passerait | **accepté** : tout en `error`, + `image:size` et `total:size` |
+| I10 | important | la bannière de mise à jour peut perdre une saisie ou une écriture suspendue | **accepté** : `useSaisieEnCours` (mémoire seule) et `useMutationState` ; bouton en `pause` tant que l'un est vrai ; jamais de rechargement forcé |
+| M1 | mineur | F23 « parallèle de F24 » alors que F24 en dépend | corrigé |
+| M2 | mineur | « D1 » ambigu (TypeScript ou D1 de la spec) | précision en tête du tableau des décisions ; le seuil de veille s'appuie sur la décision du 13/11 (pas d'instance allumée) |
+| M3 | mineur | test de `Pot` contradictoire (région présente puis absente) | le premier cas utilise `annonce={true}` |
+| M4 | mineur | `git diff --check` échoue sur un espace final | corrigé (vérifié) |
+
+**Refusé : rien.** Deux points nuancés : (I2) `contrat-amont` reste hors de `resultat` ; (I6) un « non prouvé » écrit reste admis pour les lecteurs d'écran, car on ne les automatise pas, mais la liste doit être remplie.
 
 **Nuances.** (a) Le constat 13 est confirmé par lecture du code de Motion, pas par une page jouée ; la garde sous CSP `enforce` sans
 `?fige` le rejouera. (b) Le constat 5 reste une hypothèse tant que la transition n'est pas jouée (F22). (c) Entre la rédaction et la revue,
