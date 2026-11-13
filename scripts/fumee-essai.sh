@@ -40,7 +40,7 @@ verifie_front() {
   [ -n "$(entete Referrer-Policy)" ] || { echo "  / : Referrer-Policy absent"; ecarts=1; }
   [ -n "$(entete Permissions-Policy)" ] || { echo "  / : Permissions-Policy absent"; ecarts=1; }
   [ "$(entete Cross-Origin-Opener-Policy)" = same-origin ] || { echo "  / : Cross-Origin-Opener-Policy != same-origin"; ecarts=1; }
-  # Report-only tant que l'appli d'essai parle à Supabase en direct ; l'une ou l'autre doit être là.
+  # Report-only jusqu'à F23 (plan de la fondation du front) ; l'une ou l'autre doit être là.
   if [ -z "$(entete Content-Security-Policy)" ] && [ -z "$(entete Content-Security-Policy-Report-Only)" ]; then
     echo "  / : aucune Content-Security-Policy"; ecarts=1
   fi

@@ -3,8 +3,6 @@ dist/
 .env
 .env.local
 .scaffold/
-supabase/.temp/
-supabase/functions/.env
 .DS_Store
 .shots/
 .design/sources/
@@ -12,10 +10,5 @@ test-results/
 playwright-report/
 .apercu/
 
-# La couverture de branches des écrans : mesure locale, jamais versionnée.
-.nyc_output/
-coverage/
-
-# L'état de la relecture des photos : local à chaque poste (voir scripts/relis-photos.mjs).
-.relis-photos.etat.json
-tests/fixtures/*.local.sql
+# L'état local de `wrangler dev`.
+.wrangler/

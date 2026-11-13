@@ -160,8 +160,8 @@ Sentry, palier gratuit, décidé le 13/11 ; son intégration est une tâche à p
 
 1. *Étant donné* l'essai qui sert encore l'ancien front, *quand* F1 est déployé, *alors* `https://essai.notre-popote.fr/`
    répond 200 avec les en-têtes de sécurité, la fumée est verte, `dist/` ne contient ni `supabase` ni `sb_publishable`,
-   un navigateur qui avait l'ancien service worker passe au nouveau à sa visite suivante, et ses clés `sb-*` du
-   `localStorage` sont effacées. [F1]
+   un navigateur qui avait l'ancien service worker passe au nouveau **à sa deuxième visite** (la première est encore servie par
+   l'ancien service worker ; voir « Constats de F1 »), et ses clés `sb-*` du `localStorage` sont effacées. [F1]
 2. *Étant donné* le contrat épinglé, *quand* quelqu'un modifie `contrat/openapi.json` ou `src/api/schema.d.ts` sans
    régénérer l'autre, *alors* la CI échoue ; *quand* `popote-api` publie sur `main` une rupture de son contrat (**tout** le
    contrat compte : on ne tient pas la liste des routes consommées), *alors* le contrôle quotidien et celui de `main`
@@ -1390,6 +1390,37 @@ la PR #38 a été **fusionnée** (08d4fb4) avec ses corrections ; le plan est re
 vérifié, dit : collage dans un `maxLength` (comportement de la spécification HTML, non joué), lecteurs d'écran, `gitleaks` sur la
 suppression de fichiers.
 
+
+### Constats de F1 (revues adverses de la PR de F1, 13/11/2026) : ils priment sur le texte de F1
+
+- **Deux visites, pas une.** Rejoué dans Chromium (ancien build de l'étiquette, puis la page d'attente, même origine, même profil) : à la
+  1re visite après le déploiement, l'ancien service worker sert encore l'ancienne appli (« Connexion ») et les clés `sb-*` sont encore là ;
+  le nouveau s'installe, s'active et prend la main en arrière-plan ; à la 2e visite : « Popote revient bientôt », clés effacées, anciens
+  caches nettoyés. Personne n'est bloqué. Un rechargement forcé de l'onglet ouvert est **refusé** (décision 4 : jamais de rechargement
+  forcé). Non rejoué : une ancienne page restée ouverte pendant la bascule peut perdre ses morceaux de code (le précache ancien est nettoyé).
+- **`supabase.auth.token` n'est pas effacé** : l'ancien front n'a jamais écrit cette clé (bibliothèque en v2 : `sb-<projet>-auth-token` et
+  ses variantes ; `git grep` à l'étiquette ne la trouve nulle part), et la garde `dist/` interdit le mot « supabase » (la minification
+  replie même un nom assemblé). `nettoieAncienFront` n'efface donc que `sb-*`.
+- **La garde exécute le `sw.js`** au lieu de chercher un motif : `scripts/verifie-sw-remplacant.mjs` le joue dans un bac à sable (workbox
+  simulé) sans événement et exige `self.skipWaiting()` et `clientsClaim()` appelés au démarrage ; un commentaire, une chaîne ou la forme
+  `prompt` ne passent pas.
+- **La mutation « `registerType: 'prompt'` » seule ne casse pas la garde** : avec `skipWaiting` et `clientsClaim` explicites dans
+  `workbox`, le `sw.js` est identique dans les deux modes. La mutation qui la casse retire ces deux options (rejouée : sortie 1).
+- **`wrangler dev` en http : le précache du service worker échoue** avec la CSP de `wrangler.jsonc`. `upgrade-insecure-requests` réécrit en
+  `https://127.0.0.1` la redirection `/index.html` vers `/` que suit le service worker pendant l'installation (`ERR_SSL_PROTOCOL_ERROR`) ;
+  le service worker devient inutile. Les essais de F8 et F22 qui installent un service worker passent `--var "CSP:…"` **sans**
+  `upgrade-insecure-requests` (en https, sur l'essai, il n'y a pas de problème ; à confirmer au premier déploiement de F1).
+- Le nombre de tests du relais est **43**, pas 22.
+
+## Amendements du 13/11 après la relecture d'« Entrer » — ils priment sur le texte des tâches
+
+La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F21 ne tenaient pas.
+
+| N° | Tâche | Avant | Après |
+|---|---|---|---|
+| A1 | F5a (`Retry-After`), et la ligne de « Valeurs proposées » | borné de 1 à **900** s ; absent ou illisible sur une `429` : 10 s | borné de 1 à **86 400** s (24 h) : l'API bloque certains codes jusqu'à 24 h, et l'écran doit afficher le vrai temps, pas un plafond de 15 min. Le repli de 10 s ne change pas. Les cas de test `99999` et « `Retry-After` non borné » visent désormais 86 400 ; un `Retry-After: 86400` passe tel quel. Conséquence pour F20 (à régler dans F20) : la durée affichée et annoncée est formatée en unités lisibles (secondes, minutes, heures), et le compte à rebours ne s'annonce toujours que deux fois |
+| A2 | F5a (`erreurs.ts`) et F19 (`ErreurEcran`) | `ErreurApi` : `status`, `code`, `title`, `detail`, … ; l'écran montre `title` et `detail` | `ErreurApi` garde **`type`** (l'URI du problème, RFC 9457) **et `code` si l'API le rend**. L'écran choisit son texte **d'après `type`** (phrase du catalogue `src/textes/`, repli par classe de statut puis phrase générique), **jamais d'après `detail`, qui n'est jamais affiché** (ni `message`, ni la pile). La référence (`instance`) reste affichée. Tests : un problem+json `500` dont le `detail` est un texte piège (mot anglais, détail technique) n'affiche **aucun** mot de ce `detail` et montre la phrase de son `type` ; un `type` inconnu donne la phrase de sa classe de statut ; mutation : afficher `detail` (casse) |
+| A3 | F18, F19, F20, F21 | chacun pose ses phrases dans son catalogue ; rien n'interdit à un parcours d'en écrire d'autres | **F18 à F21 sont la seule source des textes des états communs** : réveil, perte de réseau, `429`, `5xx` (et erreur générique), session expirée (`src/textes/reveil.ts`, `etats.ts`, `limite.ts`, `reseau.ts`, `session.ts`). Un parcours qui rencontre l'un de ces états rend le composant correspondant et **ne redéfinit pas** sa phrase ; une erreur propre au parcours (un champ refusé, un code faux) reste dans son propre catalogue |
 
 ---
 

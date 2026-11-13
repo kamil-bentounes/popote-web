@@ -8,7 +8,7 @@ export interface Env {
   RELAY_SECRET: string
   /** `prod` seulement sur le domaine racine : `preload` n'a de sens que pour lui (voir `securite`). */
   ENVIRONNEMENT: 'essai' | 'prod'
-  /** `report-only` tant que le front parle encore à Supabase en direct (jusqu'au jour J). */
+  /** `report-only` jusqu'à F23 (plan de la fondation du front), qui passe la CSP en `enforce`. */
   CSP_MODE: 'enforce' | 'report-only'
   CSP: string
 }

@@ -1,16 +1,25 @@
+import './styles/coque.css'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { QueryClientProvider } from '@tanstack/react-query'
-import './index.css'
-import App from './App'
-import { creeLeClient } from './lib/client-requetes.ts'
+import { registerSW } from 'virtual:pwa-register'
+import { nettoieAncienFrontDe } from './ancien-front'
+import { creeRouteur } from './router'
 
-const queryClient = creeLeClient()
+nettoieAncienFrontDe(window)
+// Tant que F22 n'a pas refait la PWA, rien ne doit retirer le `sw.js` qui remplace celui de l'ancien front.
+registerSW({ immediate: true })
 
-createRoot(document.getElementById('root')!).render(
+const queryClient = new QueryClient()
+const routeur = creeRouteur({ queryClient })
+
+const racine = document.getElementById('root')
+if (!racine) throw new Error('#root introuvable dans index.html')
+createRoot(racine).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <RouterProvider router={routeur} />
     </QueryClientProvider>
   </StrictMode>,
 )

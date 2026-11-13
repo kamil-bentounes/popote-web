@@ -27,7 +27,25 @@ jobs:
       - run: npx tsc -b
       - run: npx tsc -p relais
       - run: npm test
-      - run: npm run build -- --mode development
+      - run: npm run build
+      # L'arbre de routes commité est celui que le plugin du routeur génère (le build l'a régénéré).
+      - run: git diff --exit-code -- src/routeTree.gen.ts
+      # L'essai sert `dist/` : il lui faut une page, un `sw.js` qui remplace l'ancien service worker
+      # (voir scripts/verifie-sw-remplacant.mjs) et aucune trace de l'ancien front.
+      - name: Garde du build
+        run: |
+          test -f dist/index.html
+          test -f dist/sw.js
+          node scripts/verifie-sw-remplacant.mjs dist/sw.js
+          if grep -rqiE 'supabase|sb_publishable' dist; then
+            echo "dist contient une trace de l'ancien front (supabase ou sb_publishable)" >&2
+            exit 1
+          fi
+          # axe-core (MPL-2.0) est un outil de test : il ne part jamais dans le build livré.
+          if grep -rqiE 'axe-core' dist; then
+            echo "dist contient axe-core (outil de test, licence MPL-2.0)" >&2
+            exit 1
+          fi
       - run: npm audit --omit=dev --audit-level=high
   secrets:
     runs-on: ubuntu-24.04
@@ -69,8 +87,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # `.env.essai` (versionné) pose l'URL et la clé publiable du projet Supabase d'essai.
-      - run: npm run build -- --mode essai
+      - run: npm run build
       - name: Déployer le Worker
         run: npx wrangler deploy
         env:
