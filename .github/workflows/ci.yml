@@ -39,6 +39,11 @@ jobs:
             echo "dist contient une trace de l'ancien front (supabase ou sb_publishable)" >&2
             exit 1
           fi
+          # axe-core (MPL-2.0) est un outil de test : il ne part jamais dans le build livré.
+          if grep -rqiE 'axe-core' dist; then
+            echo "dist contient axe-core (outil de test, licence MPL-2.0)" >&2
+            exit 1
+          fi
       - run: npm audit --omit=dev --audit-level=high
   secrets:
     runs-on: ubuntu-24.04
