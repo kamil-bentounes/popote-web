@@ -1,0 +1,648 @@
+<title>Popote, le Budget</title>
+<style>
+@font-face{font-family:"Fredoka";src:url("../systeme/polices/fredoka-latin.woff2") format("woff2");font-weight:300 700;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:"Fredoka";src:url("../systeme/polices/fredoka-latin-ext.woff2") format("woff2");font-weight:300 700;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+1E00-1E9F,U+20A0-20AB,U+20AD-20C0}
+@font-face{font-family:"Nunito";src:url("../systeme/polices/nunito-latin.woff2") format("woff2");font-weight:200 1000;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:"Nunito";src:url("../systeme/polices/nunito-latin-ext.woff2") format("woff2");font-weight:200 1000;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+1E00-1E9F,U+20A0-20AB,U+20AD-20C0}
+</style>
+<style>
+/* Un mur sombre, le téléphone au centre, les moments du parcours à gauche. Dans le téléphone : le style « Jeu » choisi. */
+:root{color-scheme:dark;--sol:#0B0A0C;--txt:#F4EFE8;--doux:#B1AAA2;--trait:#2B282D;--choix:#FFC62E;
+  --creme:#FFF3D9;--encre:#2A1A4A;--tomate:#FF5A47;--jaune:#FFC62E;--menthe:#2FD6A3;--ciel:#4D8DFF;--rose:#FF8FC7;--gris:#65568A;
+  --titre:'Fredoka','Nunito',system-ui,sans-serif;--texte:'Nunito',system-ui,sans-serif}
+html,body{height:100%}
+body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
+*{box-sizing:border-box}
+.page{height:100%;display:grid;grid-template-columns:minmax(250px,340px) auto;gap:52px;align-items:center;justify-content:center;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.guide{display:flex;flex-direction:column;gap:14px;min-width:0;max-height:100%;overflow:auto;padding:4px}
+.guide h1{margin:0;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:-.03em}
+.guide p{margin:0;color:var(--doux);font-size:14px;line-height:1.45}
+.film{align-self:flex-start;height:44px;padding:0 18px;border-radius:999px;border:0;background:var(--choix);color:#1B1300;font:inherit;font-size:15px;font-weight:650;cursor:pointer}
+.chap h2{margin:8px 0 6px;font-size:12.5px;font-weight:600;color:var(--doux);letter-spacing:.02em}
+.chap button{display:block;width:100%;text-align:left;padding:8px 12px;margin:0 0 4px;border-radius:12px;border:1px solid var(--trait);background:transparent;color:var(--txt);font:inherit;font-size:14.5px;cursor:pointer}
+.chap button small{display:block;color:var(--doux);font-size:12.5px;margin-top:1px}
+.chap button[aria-current="true"]{border-color:var(--choix);background:rgba(255,198,46,.1)}
+@media (min-width:821px){.page.pc{grid-template-columns:minmax(230px,300px) auto;gap:36px}}
+.film:focus-visible,.chap button:focus-visible{outline:2px solid var(--choix);outline-offset:2px}
+.cadre{position:relative;width:calc(390px*var(--k,1));height:calc(844px*var(--k,1))}
+.tel{position:absolute;left:0;top:0;width:390px;height:844px;transform:scale(var(--k,1));transform-origin:0 0;border-radius:54px;overflow:hidden;background:var(--creme);box-shadow:0 0 0 9px #19181b,0 0 0 10px #3b383e,0 40px 90px rgba(0,0,0,.65)}
+.menu-etroit{display:none}
+@media (max-width:820px){
+  .page{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:8px;justify-items:center;align-items:start;padding-block:8px}
+  .guide{width:100%;gap:6px;overflow:visible}
+  .guide h1,.guide p,.chap{display:none}
+  .guide.ouvert .chap{display:block;position:fixed;z-index:60;left:0;right:0;bottom:0;max-height:70%;overflow:auto;background:#151317;border-top:1px solid var(--trait);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  .barre-etroite{display:flex;gap:8px;width:100%}
+  .film,.menu-etroit{display:block;flex:1 1 0;height:44px;border-radius:12px;font-size:14px}
+  .menu-etroit{border:1px solid var(--trait);background:transparent;color:var(--txt);font:inherit;cursor:pointer}
+  .tel{border-radius:40px;box-shadow:0 0 0 1px #3b383e}
+}
+/* ——— Le style Jeu ——— */
+.e{position:absolute;inset:0;display:none;background:var(--creme);color:var(--encre);font-family:var(--texte);font-weight:700;overflow:hidden}
+.e.on{display:block}
+.e button{font-family:inherit;cursor:pointer}
+.tt{font-family:var(--titre);font-weight:600;letter-spacing:-.01em;margin:0}
+.p{margin:0;font-size:16.5px;line-height:1.35;color:var(--gris)}
+.p b{color:var(--encre)}
+.bloc{background:#fff;border:3.5px solid var(--encre);border-radius:26px;box-shadow:0 7px 0 var(--encre)}
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:60px;border:3.5px solid var(--encre);border-radius:22px;font-family:var(--titre)!important;font-size:21px;font-weight:600;color:var(--encre);background:var(--menthe);box-shadow:0 7px 0 var(--encre),inset 0 4px 0 rgba(255,255,255,.45)}
+.btn.j{background:var(--jaune)}.btn.b{background:#fff}.btn.r{background:var(--tomate);color:#fff}.btn.c{background:var(--ciel);color:#fff}
+.btn.pt{width:auto;height:46px;padding:0 15px;border-radius:16px;font-size:16.5px;box-shadow:0 5px 0 var(--encre)}
+.btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lien{background:none;border:0;font-weight:800;font-size:16px;color:var(--encre);text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:0 6px}
+.champ label{display:block;font-size:14.5px;margin:0 0 6px 4px}
+.champ input{width:100%;height:58px;border:3.5px solid var(--encre);border-radius:18px;background:#fff;padding:0 16px;font-family:var(--texte);font-weight:800;font-size:18px;color:var(--encre);box-shadow:0 5px 0 var(--encre)}
+.champ input::placeholder{color:#9A8FB8}
+.champ input:focus-visible{outline:4px solid var(--jaune);outline-offset:2px}
+.retour{position:absolute;z-index:5;left:16px;top:46px;width:46px;height:46px;border-radius:16px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;padding:0}
+.retour svg{width:22px;height:22px;fill:none;stroke:var(--encre);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.soleil{position:absolute;left:-155px;top:-250px;width:700px;height:700px;border-radius:50%;background:repeating-conic-gradient(#FFD75E 0 12deg,#FFE48A 12deg 24deg);animation:tourne 40s linear infinite}
+.soleil.bleu{background:repeating-conic-gradient(#5E9BFF 0 12deg,#79ADFF 12deg 24deg)}
+.soleil.rose{background:repeating-conic-gradient(#FFA3D0 0 12deg,#FFBBDC 12deg 24deg)}
+@keyframes tourne{to{transform:rotate(360deg)}}
+.sol{position:absolute;left:-40px;right:-40px;top:300px;bottom:-40px;background:var(--creme);border-top:3.5px solid var(--encre);border-radius:50% 50% 0 0/38px 38px 0 0}
+.masc{position:absolute;width:176px;height:176px}
+.masc svg{width:100%;height:100%;overflow:visible}
+.bulle{position:absolute;padding:11px 14px;font-size:16.5px;line-height:1.25;border-radius:22px;box-shadow:0 5px 0 var(--encre)}
+.pion{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;padding:4px 10px;border-radius:999px;border:2.5px solid var(--encre);background:#FFE08A;white-space:nowrap}
+.pion.m{background:#A9F0D8}.pion.r{background:#FFC4E1}.pion.g{background:#EEE7FF}
+.conf{position:absolute;z-index:40;width:12px;height:16px;border:2.5px solid var(--encre);border-radius:4px;pointer-events:none}
+.doigt{position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(42,26,74,.25);border:2.5px solid rgba(42,26,74,.8);pointer-events:none;z-index:99;opacity:0}
+.col{position:absolute;left:18px;right:18px;display:flex;flex-direction:column;gap:14px}
+.centre{text-align:center;align-items:center}
+/* Le code */
+.cases{display:flex;justify-content:space-between}
+.cases i{width:52px;height:64px;border-radius:18px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;font-style:normal;font-family:var(--titre);font-size:32px}
+.cases.non i{background:#FFD3CC}.cases.oui i{background:#A9F0D8}
+.note{min-height:26px;font-size:15.5px;text-align:center}
+.note.err{color:#C22A17}
+.env{position:absolute;width:74px;height:56px;border-radius:14px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);overflow:hidden}
+.env::before{content:"";position:absolute;left:-4px;right:-4px;top:-34px;height:60px;border:3.5px solid var(--encre);background:var(--rose);transform:rotate(45deg) scale(.86);border-radius:8px}
+/* L'empreinte */
+.emp{position:relative;width:170px;height:170px;border-radius:50%;display:grid;place-items:center;background:#fff;border:3.5px solid var(--encre);box-shadow:0 8px 0 var(--encre)}
+.emp svg.d{width:96px;height:96px;fill:none;stroke:var(--encre);stroke-width:2.6;stroke-linecap:round}
+.emp svg.a{position:absolute;inset:-16px;width:calc(100% + 32px);height:calc(100% + 32px);transform:rotate(-90deg)}
+.emp svg.a circle{fill:none;stroke:var(--menthe);stroke-width:9;stroke-linecap:round}
+/* Le foyer */
+.places{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.place{padding:18px 10px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-height:206px}
+.av{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;font-family:var(--titre);font-size:40px;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);background:var(--jaune)}
+.av.t{background:var(--menthe)}.av.vide{background:#fff;border-style:dashed;box-shadow:none;color:#9A8FB8}
+.place b{font-family:var(--titre);font-size:22px;font-weight:600}
+.feuille{position:absolute;z-index:8;left:0;right:0;bottom:-8px;padding:22px 18px 30px;border-radius:34px 34px 0 0;display:flex;flex-direction:column;gap:13px;transform:translateY(105%)}
+.voile{position:absolute;inset:0;z-index:7;background:rgba(42,26,74,.45);opacity:0;pointer-events:none}
+.suivi{padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px}
+.piste3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.piste3 div{text-align:center;font-size:13.5px;color:var(--gris)}
+.piste3 u{display:block;height:14px;border-radius:999px;border:3px solid var(--encre);background:#fff;margin-bottom:5px;overflow:hidden;text-decoration:none}
+.piste3 u s{display:block;height:100%;width:0;background:var(--menthe)}
+.piste3 .fait{color:var(--encre)}
+/* Le mail */
+.boite{background:#ECE8F4}
+.mail-haut{position:absolute;left:0;right:0;top:0;padding:50px 18px 12px;background:#fff;border-bottom:2px solid #D9D2EA;font-size:14px;color:var(--gris)}
+.exp{display:flex;align-items:center;gap:10px;margin-top:10px}
+.exp .rond{width:42px;height:42px;border-radius:50%;background:var(--tomate);border:3px solid var(--encre);flex:none}
+.exp b{display:block;color:var(--encre);font-size:15.5px}
+.objet{margin:10px 0 0;font-family:var(--titre);font-size:19px;color:var(--encre)}
+.lettre{position:absolute;left:14px;right:14px;top:190px;padding:0;overflow:hidden}
+.lettre .tete{position:relative;height:150px;overflow:hidden;border-bottom:3.5px solid var(--encre);background:#FFD75E}
+.lettre .corps{padding:16px 16px 18px;display:flex;flex-direction:column;gap:12px}
+/* Accueil (arrivée) */
+.plat{position:absolute;left:16px;right:16px;top:326px;height:132px;display:flex;align-items:center;padding:0 14px 0 146px}
+.plat img{position:absolute;left:-6px;top:-14px;width:140px;height:140px;object-fit:cover;border-radius:34px;border:3.5px solid var(--encre);box-shadow:0 0 0 5px #fff,0 7px 0 5px var(--encre);transform:rotate(-5deg)}
+.jauge{display:grid;grid-template-columns:86px 1fr 92px;align-items:center;gap:10px;font-size:14.5px}
+.jauge b{font-family:var(--titre);font-weight:600;font-size:16px;text-align:right;white-space:nowrap}
+.rail{height:22px;border-radius:999px;border:3px solid var(--encre);background:#fff;overflow:hidden}
+.rail i{display:block;height:100%;border-right:3px solid var(--encre);background:repeating-linear-gradient(-55deg,var(--tomate) 0 10px,#FF7C6B 10px 20px)}
+.rail.pr i{background:repeating-linear-gradient(-55deg,var(--ciel) 0 10px,#77A8FF 10px 20px)}
+.carte-info{padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:16px;line-height:1.3}
+.carte-info .ic{width:46px;height:46px;border-radius:15px;border:3px solid var(--encre);display:grid;place-items:center;flex:none;font-family:var(--titre);font-size:21px;background:#A9F0D8}
+.rang{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:15.5px;line-height:1.25}
+.rang+.rang{border-top:2.5px solid #E9E2F5}
+.rang .ic,.fx{width:42px;height:42px;border-radius:14px;border:3px solid var(--encre);display:grid;place-items:center;flex:none;background:#EEE7FF}
+.rang .ic svg{width:22px;height:22px;fill:none;stroke:var(--encre);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rang div{flex:1 1 auto;min-width:0}
+.rang small{display:block;font-size:13.5px;color:var(--gris)}
+.fx{width:34px;height:34px;border-radius:12px;font-family:var(--titre);font-size:18px}
+.fx.perd{background:#FFC9C2}.fx.reste{background:#A9F0D8}.fx.change{background:#FFE08A}
+.choix{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:16px;width:100%;color:var(--encre)}
+.choix b{display:block;font-family:var(--titre);font-size:21px;font-weight:600}
+.choix span.d{display:block;font-size:14.5px;line-height:1.3;color:var(--gris);margin-top:3px;font-weight:700}
+.tenir{position:relative;overflow:hidden}
+.tenir s{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(42,26,74,.35)}
+.tenir span{position:relative}
+.ordi-cadre{display:none;position:relative;width:calc(1180px*var(--kp,1));height:calc(740px*var(--kp,1))}
+.ordi{position:absolute;left:0;top:0;width:1180px;height:740px;transform:scale(var(--kp,1));transform-origin:0 0;border-radius:24px;overflow:hidden;background:var(--creme);box-shadow:0 0 0 9px #19181b,0 0 0 10px #3b383e,0 40px 90px rgba(0,0,0,.65)}
+.page.pc .cadre{display:none}.page.pc .ordi-cadre{display:block}
+.nav-pc{position:absolute;left:0;top:0;bottom:0;width:230px;background:#fff;border-right:3.5px solid var(--encre);padding:26px 18px;display:flex;flex-direction:column;gap:10px}
+.nav-pc a{display:flex;align-items:center;height:50px;padding:0 16px;border-radius:16px;font-family:var(--titre);font-size:19px;color:var(--encre);text-decoration:none;border:3px solid transparent}
+.nav-pc a.ici{background:var(--jaune);border-color:var(--encre);box-shadow:0 5px 0 var(--encre)}
+@media (prefers-reduced-motion:reduce){.soleil{animation:none}}
+
+.haut{position:absolute;z-index:3;left:74px;right:18px;top:48px;display:flex;align-items:center;gap:8px}
+.haut .pion{height:44px;padding:0 13px;font-size:16px;background:#fff;box-shadow:0 5px 0 var(--encre);border-width:3.5px}
+.haut .pion.n{background:var(--jaune);min-width:44px;justify-content:center}
+.av.mini{width:46px;height:46px;border-radius:16px;font-size:21px;background:var(--ciel);color:#fff;flex:none}
+.av.mini.t{background:var(--menthe);color:var(--encre)}
+.rg{width:46px;height:46px;flex:none;border-radius:16px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;padding:0}
+.rg svg{width:22px;height:22px;fill:none;stroke:var(--encre);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.bz{position:absolute;z-index:3;left:130px;right:16px;top:98px;height:120px;display:flex;align-items:center}
+.bz .bulle{position:relative;width:100%;font-size:16px}
+.bulle .btn.pt{width:100%;height:40px;margin-top:8px;font-size:15.5px;border-radius:14px;box-shadow:0 4px 0 var(--encre)}
+.bulle b{font-weight:900}
+[hidden]{display:none!important}
+.pts{display:inline-flex;gap:5px;padding:5px 2px}.pts i{width:9px;height:9px;border-radius:50%;background:var(--encre)}
+/* L'écran Budget */
+.hero{position:relative;background:#FFE08A;padding:11px 16px 12px}
+.hero small{display:block;font-size:14.5px}
+.hero b.tt{display:block;font-size:44px;line-height:1.02}
+.hero .sous{font-size:13.5px;line-height:1.3;color:#57487C;margin-top:3px}
+.lu{position:absolute;right:10px;top:10px;display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 9px;border-radius:999px;border:2.5px solid var(--encre);background:#fff;font-size:12.5px;font-weight:800;color:var(--encre)}
+.lu svg{width:14px;height:14px;fill:none;stroke:var(--encre);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.lu.vieux{background:#FFC9C2}
+.vir{display:grid;grid-template-columns:1fr 1fr;padding:0;overflow:hidden}
+.vir .v{display:flex;align-items:center;gap:8px;padding:8px 10px;min-width:0}
+.vir .v+.v{border-left:3px solid var(--encre)}
+.vir .av.mini{width:38px;height:38px;border-radius:13px;font-size:18px;border-width:3px;box-shadow:none}
+.vir .v div{flex:1 1 auto;min-width:0}
+.vir small{display:block;font-size:12.5px;color:var(--gris);line-height:1.15;white-space:nowrap}
+.vir b{display:block;font-size:20px;line-height:1.1;white-space:nowrap}
+.vir .fx{width:30px;height:30px;border-radius:10px;font-size:16px;border-width:2.5px}
+.postes{padding:5px 14px 10px}
+.poste{padding:4px 0 2px}
+.pl{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;margin-bottom:2px}
+.pl b{font-family:var(--titre);font-weight:600;font-size:15.5px;white-space:nowrap}
+.poste .rail{height:13px;border-width:2.5px}
+.poste .rail i{border-right-width:2.5px;background:var(--menthe)}
+.poste .rail i.trop{background:var(--tomate)}
+.fixes{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;padding-top:6px;margin-top:6px;border-top:2.5px solid #E9E2F5}
+.fixes b{font-family:var(--titre);font-weight:600;font-size:15px}
+.carte-info{padding:9px 12px;font-size:14.5px}
+.carte-info>span:nth-child(2){flex:1 1 auto;min-width:0}
+.carte-info .ic{width:40px;height:40px;border-radius:13px;font-size:19px}
+/* Parler à Popote */
+.parle{position:absolute;z-index:6;left:14px;right:14px;bottom:14px;height:66px;border-radius:24px;display:flex;align-items:center;gap:10px;padding:0 8px 0 6px}
+.parle .pp{width:54px;height:54px;flex:none}.parle .pp svg{width:100%;height:100%;overflow:visible}
+.parle .ph{flex:1 1 auto;min-width:0;font-size:17px;color:#9A8FB8;white-space:nowrap;overflow:hidden}
+.parle .ph.tape{display:flex;justify-content:flex-end;color:var(--encre)}
+.micro{width:58px;height:58px;flex:none;border-radius:50%;background:var(--ciel);border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;padding:0}
+.micro svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.parle .micro{width:50px;height:50px;box-shadow:0 4px 0 var(--encre)}
+.aide{position:absolute;z-index:8;left:0;right:0;bottom:-8px;height:694px;padding:16px 16px 30px;border-radius:34px 34px 0 0;display:flex;flex-direction:column;gap:10px;transform:translateY(105%)}
+.aide-haut{display:flex;align-items:center;gap:10px;flex:none}
+.aide-haut h2{font-size:25px;line-height:1.05}.aide-haut .p{font-size:15px}
+.aide-haut .x{position:static;margin-left:auto;font-family:var(--titre);font-size:26px;line-height:1;color:var(--encre);flex:none}
+.fil{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;overflow:hidden;padding-bottom:5px}
+.dit,.rep{padding:10px 14px;font-size:16px;line-height:1.3;border-radius:20px;box-shadow:0 4px 0 var(--encre);max-width:90%;flex:none}
+.dit{align-self:flex-end;background:#FFE08A}.rep{align-self:flex-start}.rep b{font-weight:900}
+.actes{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rep.large{max-width:100%;align-self:stretch}
+.rep .rang{padding:7px 0;font-size:15px}
+.rep .rang b.m{margin-left:auto;font-family:var(--titre);font-weight:600;font-size:16.5px;white-space:nowrap}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-size:14.5px;border-top:2.5px solid #E9E2F5;margin-top:2px;padding-top:9px}.total b{font-family:var(--titre);font-weight:600;font-size:17px}
+.puces{display:flex;flex-wrap:wrap;gap:8px;flex:none;overflow:hidden}.puces .btn{font-size:15px;height:42px;padding:0 12px}
+.saisie{display:flex;gap:10px;align-items:center;flex:none}.saisie input{height:54px}
+.panneau{position:absolute;right:0;top:0;bottom:0;width:360px;background:#fff;border-left:3.5px solid var(--encre);padding:22px 18px;display:flex;flex-direction:column;gap:12px}
+/* La mise en place */
+.etapes{position:absolute;z-index:3;left:74px;right:18px;top:50px;display:flex;gap:6px}
+.etapes span{flex:1 1 0;height:40px;border-radius:14px;border:3px solid var(--encre);background:#fff;display:grid;place-items:center;font-family:var(--titre);font-size:13.5px}
+.etapes span.ici{background:var(--jaune);box-shadow:0 4px 0 var(--encre)}.etapes span.ok{background:#A9F0D8}
+.rail-t{display:flex;gap:6px;justify-content:space-between}
+.rail-t span{width:44px;height:44px;flex:none;border-radius:15px;border:3px solid var(--encre);background:#fff;display:grid;place-items:center}
+.rail-t svg{width:22px;height:22px;fill:none;stroke:var(--encre);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rail-t span.ici{background:var(--jaune);box-shadow:0 4px 0 var(--encre);transform:translateY(-2px)}.rail-t span.ok{background:#A9F0D8}
+.theme{padding:10px 12px 12px}
+.th-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.th-h b{font-size:20px;line-height:1.1}
+.th-h .pion{height:34px;background:#fff;font-family:var(--texte);font-weight:800;font-size:13.5px;color:var(--encre);box-shadow:0 3px 0 var(--encre)}
+.pas{display:flex;flex-wrap:wrap;gap:7px}
+.pa{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 11px;border-radius:13px;border:2.5px solid var(--encre);background:#fff;font-family:var(--texte);font-weight:800;font-size:14.5px;color:var(--encre);white-space:nowrap}
+.pa.on{background:#A9F0D8;padding:0 6px 0 9px}.pa.on b{font-family:var(--titre);font-weight:600;font-size:15px}.pa.deja{border-style:dashed;background:#E4F8F0}
+.qq{display:inline-flex;font-style:normal}.qq u{width:21px;height:21px;border-radius:8px;border:2px solid var(--encre);background:var(--ciel);color:#fff;font-size:11.5px;display:grid;place-items:center;text-decoration:none;font-family:var(--titre)}.qq u.t{background:var(--menthe);color:var(--encre);margin-left:-6px}
+.edit{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:2.5px solid #E9E2F5;overflow:hidden}.edit>b{flex:1 1 auto;min-width:0;font-size:15px}
+.edit .mt{min-width:62px;height:38px;padding:0 9px;border-radius:12px;border:2.5px solid var(--encre);background:#fff;display:grid;place-items:center;font-family:var(--titre);font-size:16px}
+.seg2{display:flex;border:2.5px solid var(--encre);border-radius:12px;overflow:hidden;flex:1 1 100%}.seg2 button{flex:1 1 0;height:44px;border:0;background:#fff;padding:0 9px;font-family:var(--texte);font-weight:800;font-size:13.5px;color:var(--encre)}.seg2 button+button{border-left:2.5px solid var(--encre)}.seg2 button.on{background:var(--jaune)}
+.cumul{display:flex;gap:10px}.cumul .bloc{flex:1 1 0;padding:7px 12px;display:flex;flex-direction:column}.cumul small{font-size:12.5px;color:var(--gris)}.cumul b{font-size:19px;line-height:1.15}
+.ticket{padding:8px 14px 9px}
+.tk-h{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:6px;border-bottom:3px dashed var(--encre)}
+.tk-h b{font-size:18px;white-space:nowrap}.tk-h small{font-size:12.5px;color:var(--gris);font-family:var(--texte)}
+.tk{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4.5px 0;font-size:15px}
+.tk small{font-size:12.5px;color:var(--gris);margin-left:6px}
+.tk b{font-family:var(--titre);font-weight:600;font-size:16px;white-space:nowrap}
+.tk-v{color:#9A8FB8;font-size:14.5px;padding:10px 0 5px}
+.moi{position:absolute;z-index:5;right:16px;bottom:94px;max-width:300px;padding:10px 14px;font-size:16px;line-height:1.3;border-radius:20px;background:#FFE08A;box-shadow:0 4px 0 var(--encre);opacity:0}
+.duo{position:absolute;z-index:5;left:18px;right:18px;bottom:96px;display:flex;gap:10px;opacity:0}
+.sceau{position:absolute;z-index:4;right:14px;top:auto;bottom:-20px;font-family:var(--titre);font-size:24px;color:#fff;background:var(--menthe);border:3.5px solid var(--encre);border-radius:14px;padding:0 13px;box-shadow:0 5px 0 var(--encre);transform:rotate(-10deg);color:var(--encre)}
+.seg{display:flex;border:3.5px solid var(--encre);border-radius:18px;background:#fff;box-shadow:0 5px 0 var(--encre);overflow:hidden}
+.seg button{flex:1 1 auto;height:46px;border:0;background:none;font-family:var(--titre)!important;font-size:15.5px;color:var(--encre);padding:0 8px;white-space:nowrap}
+.seg button+button{border-left:3px solid var(--encre)}
+.seg button.ici{background:var(--jaune)}
+.balance{padding:14px}
+.bar{height:28px;border-radius:999px;border:3px solid var(--encre);background:var(--menthe);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ciel);border-right:3px solid var(--encre)}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.deux>div{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
+.deux .av.mini{width:38px;height:38px;border-radius:13px;font-size:18px;border-width:3px;box-shadow:none}
+.deux small{font-size:13.5px;color:var(--gris)}
+.deux b{grid-column:1/-1;font-size:40px;line-height:1.1;white-space:nowrap}
+.deux em{grid-column:1/-1;font-style:normal;font-size:13.5px;color:var(--gris)}
+.rg-b{width:100%;background:none;border:0;text-align:left;color:var(--encre);font-weight:800;font-size:16.5px}
+.rang small{font-weight:700}
+.coche{width:34px;height:34px;flex:none;border-radius:11px;border:3px solid var(--encre);background:#fff;display:grid;place-items:center;font-family:var(--titre);font-size:19px}
+.coche.on{background:var(--menthe)}
+.avance{height:18px;border-radius:999px;border:3px solid var(--encre);background:#fff;overflow:hidden}.avance i{display:block;height:100%;width:0;background:var(--menthe)}
+/* Les opérations */
+.op{padding:9px 0 10px}.op+.op{border-top:2.5px solid #E9E2F5}
+.op .l1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.op .lib{font-size:13px;font-weight:800;letter-spacing:.03em;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.op .l1 b{font-family:var(--titre);font-weight:600;font-size:18px;white-space:nowrap}
+.op .l2{display:flex;align-items:center;gap:6px;margin-top:5px}
+.op .l2 small{font-size:13px;color:var(--gris);margin-right:auto}
+.pion.et,.th-h .pion{position:relative}.pion.et::after,.th-h .pion::after{content:"";position:absolute;inset:-6px 0}
+.pion.et{font-family:inherit;font-weight:800;font-size:14px;padding:5px 11px;background:#fff;color:var(--encre);box-shadow:0 3px 0 var(--encre)}
+.pion.et.q{background:#FFC9C2}
+.pion.es{font-size:12px;padding:2px 8px}
+.op .ch{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.op.ok .et{background:#A9F0D8;box-shadow:none}
+.btn.attend{background:#fff;color:#9A8FB8;box-shadow:0 3px 0 var(--encre);transform:translateY(4px)}
+.att{font-size:13.5px;line-height:1.3;color:var(--gris);padding:0 4px}
+/* Le point du mois */
+.bl{display:grid;grid-template-columns:1fr auto 54px;align-items:center;gap:8px;padding:6px 0;font-size:15px}
+.bl+.bl{border-top:2.5px solid #E9E2F5}
+.bl b{font-family:var(--titre);font-weight:600;font-size:15.5px;white-space:nowrap}
+.bl .pion{justify-content:center;font-size:12.5px;padding:2px 0;background:#A9F0D8}.bl .pion.plus{background:#FFC9C2}
+.trois{display:flex;gap:7px;margin-top:9px}.trois .btn{flex:1 1 0;padding:0 4px;font-size:15px}.trois .btn.ici{background:var(--jaune)}
+/* Les charges perso : écran qui marche pour de vrai */
+.liste{position:absolute;left:18px;right:18px;top:232px;height:356px;overflow-y:auto;padding:2px 12px;overscroll-behavior:contain}
+.cq{display:flex;align-items:center;gap:8px;padding:7px 0}.cq+.cq{border-top:2.5px solid #E9E2F5}
+.cq div{flex:1 1 auto;min-width:0}.cq b{display:block;font-size:15px;line-height:1.15}.cq small{font-size:13px;color:var(--gris)}
+.qui{display:flex;gap:6px;flex:none}
+.qui button{width:42px;height:42px;border-radius:14px;border:3px solid var(--encre);background:#fff;font-family:var(--titre)!important;font-size:18px;color:var(--encre);padding:0}
+.qui button.on[data-q=k]{background:var(--ciel);color:#fff}.qui button.on[data-q=t]{background:var(--menthe)}
+.garde{position:absolute;left:18px;right:18px;top:602px;padding:2px 12px}
+.garde .g{display:flex;align-items:center;gap:10px;padding:8px 0}.garde .g+.g{border-top:2.5px solid #E9E2F5}
+.garde .av.mini{width:38px;height:38px;border-radius:13px;font-size:18px;border-width:3px;box-shadow:none}
+.garde .g div{flex:1 1 auto;min-width:0}.garde small{display:block;font-size:12.5px;color:var(--gris);line-height:1.15}
+.garde b{font-size:22px;line-height:1.1;white-space:nowrap}
+.garde em{font-style:normal;font-size:12.5px;color:var(--gris);white-space:nowrap}
+.secours{position:absolute;z-index:9;left:18px;right:18px;top:232px;height:356px;border:3.5px solid var(--encre);border-radius:26px;padding:12px;font:inherit;font-size:14px;color:var(--encre);background:#fff;resize:none}
+/* Réglages */
+.rl{display:flex;align-items:center;gap:10px;padding:10px 0;font-size:15.5px;line-height:1.25}.rl+.rl{border-top:2.5px solid #E9E2F5}
+.rl div{flex:1 1 auto;min-width:0}.rl small{display:block;font-size:13px;color:var(--gris)}
+.rl i{font-style:normal;font-family:var(--titre);font-size:22px;color:#B9AEDA}
+/* L'appli de la banque, en schéma */
+.bq{background:#EEF0F3;font-family:system-ui,sans-serif;font-weight:500;color:#1F2937}
+.bq-h{position:absolute;left:0;right:0;top:0;height:100px;background:#fff;border-bottom:1px solid #D5D9E0;padding:58px 20px 0;font-size:18px;font-weight:650}
+.bq-c{position:absolute;left:20px;right:20px;top:170px;background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.14);display:flex;flex-direction:column;gap:12px;font-size:15.5px;line-height:1.4}
+.bq-c b{font-weight:700}.bq-c h2{margin:0;font-size:19px}
+.bq-c p{margin:0}
+.bq-b{display:flex;gap:10px;margin-top:6px}
+.bq-b button{flex:1 1 0;height:48px;border-radius:10px;border:1px solid #9AA3B2;background:#fff;font-size:15px;font-weight:600;color:#1F2937}
+.bq-b button.oui{background:#1F2937;border-color:#1F2937;color:#fff}
+.table{padding:6px 16px 8px}
+.tr{display:grid;grid-template-columns:86px 1fr 170px 90px;gap:10px;align-items:center;padding:7px 0;font-size:14.5px}.tr+.tr{border-top:2.5px solid #E9E2F5}
+.tr b{font-family:var(--titre);font-weight:600;font-size:16px;text-align:right}.tr small{color:var(--gris);font-size:13.5px}
+</style>
+<div class="page">
+  <aside class="guide" id="guide">
+    <h1>Le Budget</h1>
+    <p>Tout tourne autour d'une chose : ce que chacun verse sur le compte joint. Lance le film, ou touche un moment pour le rejouer seul.</p>
+    <div class="barre-etroite"><button type="button" class="film" id="film">Lancer le film</button><button type="button" class="menu-etroit" id="ouvre">Les moments</button></div>
+    <div class="chap" id="chap"></div>
+    <p>Les prénoms, la banque, les revenus, les charges et les opérations sont des exemples.</p>
+  </aside>
+  <div class="cadre" id="cadre"><div class="tel" id="tel">
+
+<section class="e" id="bud">
+  <div class="soleil" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="haut" data-in><span class="pion"><span class="tt" id="mois">Vendredi 13 nov.</span></span><i style="flex:1 1 auto"></i><span class="av mini">S</span><button type="button" class="rg" id="regl" aria-label="Réglages du budget"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M15 4.500v5M9 14.500v5"></path></svg></button></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle"><b>4 opérations</b> à ranger ce soir.<button type="button" class="btn j pt" id="voir">Voir</button></div></div>
+  <div class="col" style="top:230px;gap:9px"><div class="bloc hero" id="hero" data-in><small id="h-l">Pour finir novembre</small><b class="tt"><span id="h-n">299</span> €</b><div class="sous" id="h-s">Soit 16 € par jour. Sur le compte : 379,30 €, dont 80 € gardés pour la copropriété.</div><button type="button" class="lu" id="actu" aria-label="Actualiser"><span id="h-lu">Lu à 21 h</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.500-5.800M20 4v4.500h-4.500"></path></svg></button></div><div class="bloc vir" id="vir" data-in><div class="v" id="v-k"><span class="av mini">S</span><div><small>Ton virement</small><b class="tt">691 €</b></div><span class="fx reste">✓</span></div><div class="v" id="v-t"><span class="av mini t">L</span><div><small>Léa</small><b class="tt">372 €</b></div><span class="fx reste">✓</span></div></div><div class="bloc carte-info" id="avance" hidden><span class="ic" style="background:#CFE0FF">S</span><span id="av-t"></span></div><div class="bloc postes" id="postes" data-in><div class="poste" id="po0"><div class="pl"><span>Courses</span><b><span class="n" data-v="262">262</span> / 500 €</b></div><div class="rail"><i style="width:52%"></i></div></div><div class="poste" id="po1"><div class="pl"><span>Restaurants</span><b><span class="n" data-v="118">118</span> / 200 €</b></div><div class="rail"><i style="width:59%"></i></div></div><div class="poste" id="po2"><div class="pl"><span>Sorties et culture</span><b><span class="n" data-v="40">40</span> / 100 €</b></div><div class="rail"><i style="width:40%"></i></div></div><div class="poste" id="po3"><div class="pl"><span>Fast-food à emporter</span><b><span class="n" data-v="41">41</span> / 80 €</b></div><div class="rail"><i style="width:51%"></i></div></div><div class="fixes"><span>Électricité, internet, assurance</span><b id="fx-t">2 passées sur 3</b></div></div></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div><div class="voile"></div><div class="aide bloc"><div class="aide-haut"><div class="masc" id="a-m" data-m style="position:relative;width:84px;height:84px;flex:none"></div><div style="min-width:0"><h2 class="tt" id="a-titre">Dis-moi</h2><p class="p" id="a-sous">Je réponds, et je fais.</p></div><button type="button" class="retour x" aria-label="Fermer">×</button></div><div class="fil" id="fil"></div><div class="puces" id="puces"></div><div class="saisie"><div class="champ" style="flex:1 1 auto;min-width:0"><input id="a-champ" type="text" placeholder="Écris, ou parle" aria-label="Ta demande"></div><button type="button" class="micro" id="a-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div></div>
+</section>
+
+<section class="e" id="budt">
+  <div class="soleil rose" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="haut" data-in><span class="pion"><span class="tt" id="mois">Mardi 3 nov.</span></span><i style="flex:1 1 auto"></i><span class="av mini t">L</span><button type="button" class="rg" id="regl" aria-label="Réglages du budget"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M15 4.500v5M9 14.500v5"></path></svg></button></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle"></div></div>
+  <div class="col" style="top:230px;gap:9px"><div class="bloc hero" id="hero" data-in><small id="h-l">Pour finir novembre</small><b class="tt"><span id="h-n">299</span> €</b><div class="sous" id="h-s">Soit 16 € par jour. Sur le compte : 379,30 €, dont 80 € gardés pour la copropriété.</div><button type="button" class="lu" id="actu" aria-label="Actualiser"><span id="h-lu">Lu à 21 h</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.500-5.800M20 4v4.500h-4.500"></path></svg></button></div><div class="bloc vir" id="vir" data-in><div class="v" id="v-t"><span class="av mini t">L</span><div><small>Ton virement</small><b class="tt">372 €</b></div><span class="fx reste">✓</span></div><div class="v" id="v-k"><span class="av mini">S</span><div><small>Sam</small><b class="tt">691 €</b></div><span class="fx reste">✓</span></div></div><div class="bloc carte-info" id="avance" hidden><span class="ic" style="background:#CFE0FF">S</span><span id="av-t"></span></div><div class="bloc postes" id="postes" data-in><div class="poste" id="po0"><div class="pl"><span>Courses</span><b><span class="n" data-v="262">262</span> / 500 €</b></div><div class="rail"><i style="width:52%"></i></div></div><div class="poste" id="po1"><div class="pl"><span>Restaurants</span><b><span class="n" data-v="118">118</span> / 200 €</b></div><div class="rail"><i style="width:59%"></i></div></div><div class="poste" id="po2"><div class="pl"><span>Sorties et culture</span><b><span class="n" data-v="40">40</span> / 100 €</b></div><div class="rail"><i style="width:40%"></i></div></div><div class="poste" id="po3"><div class="pl"><span>Fast-food à emporter</span><b><span class="n" data-v="41">41</span> / 80 €</b></div><div class="rail"><i style="width:51%"></i></div></div><div class="fixes"><span>Électricité, internet, assurance</span><b id="fx-t">2 passées sur 3</b></div></div></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div><div class="voile"></div><div class="aide bloc"><div class="aide-haut"><div class="masc" id="a-m" data-m style="position:relative;width:84px;height:84px;flex:none"></div><div style="min-width:0"><h2 class="tt" id="a-titre">Dis-moi</h2><p class="p" id="a-sous">Je réponds, et je fais.</p></div><button type="button" class="retour x" aria-label="Fermer">×</button></div><div class="fil" id="fil"></div><div class="puces" id="puces"></div><div class="saisie"><div class="champ" style="flex:1 1 auto;min-width:0"><input id="a-champ" type="text" placeholder="Écris, ou parle" aria-label="Ta demande"></div><button type="button" class="micro" id="a-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div></div>
+</section>
+
+<section class="e" id="pose">
+  <div class="soleil rose" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="etapes" data-in><span class="ici">Revenus</span><span class="">Charges</span><span class="">Partage</span><span class="">Banque</span></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">On pose le budget ?</span><br>Dis-moi vos revenus nets, à tous les deux.</div></div>
+  <div class="col" style="top:232px;gap:11px">
+    <div class="bloc vir" id="rev" data-in><div class="v" id="r-k"><span class="av mini">S</span><div><small>Sam gagne</small><b class="tt">?</b></div></div><div class="v" id="r-t"><span class="av mini t">L</span><div><small>Léa gagne</small><b class="tt">?</b></div></div></div>
+    <div class="rail-t" id="rail" hidden><span title="Logement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"></path><path d="M10 20v-6h4v6"></path></svg></span><span title="Crédits"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="7.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle><path d="M18 6L6 18"></path></svg></span><span title="Voiture et transports"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17v-4.5l2.5-5.5h13l2.5 5.5V17z"></path><path d="M3 12.5h18M7 17v2M17 17v2"></path></svg></span><span title="Manger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6a2 2 0 004 0V3M8 11v10"></path><path d="M16.5 21V3c-2 2-3 5-3 9h3"></path></svg></span><span title="Abonnements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.5-5.8M20 4v4.5h-4.5"></path></svg></span><span title="Santé et loisirs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"></path></svg></span><span title="Enfants et animaux"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M9 10v.5M15 10v.5M8.5 14a4 4 0 007 0"></path></svg></span></div>
+    <div class="bloc theme" id="theme" hidden><div class="th-h"><b class="tt" id="th-n"></b><button type="button" class="pion" id="th-fin">Rien ici</button></div><div class="pas" id="pas"></div><div class="edit" id="edit" hidden><b id="ed-n"></b><span class="mt" id="ed-v"></span><span class="seg2"><button type="button" id="ed-d">À deux</button><button type="button" id="ed-m">À moi</button><button type="button" id="ed-a">À Léa</button></span></div></div>
+    <div class="cumul" id="cumul" hidden><div class="bloc"><small>À deux, par mois</small><b class="tt"><span id="cu-d">0</span> €</b></div><div class="bloc"><small>À toi, par mois</small><b class="tt"><span id="cu-m">0</span> €</b></div></div>
+  </div>
+  <div class="moi" id="moi"></div>
+  <div class="duo" id="duo"><button type="button" class="btn" id="p-ok">C’est tout bon</button><button type="button" class="btn b" id="p-mod" style="flex:0 0 132px">Modifier</button></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div>
+</section>
+
+<section class="e" id="partage">
+  <div class="soleil" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="etapes" data-in><span class="ok">Revenus</span><span class="ok">Charges</span><span class="ici">Partage</span><span class="">Banque</span></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">Qui verse combien ?</span><br>Je propose selon vos revenus.</div></div>
+  <div class="col" style="top:232px;gap:13px">
+    <div class="seg" data-in><button type="button" class="ici" id="s-rev">Selon les revenus</button><button type="button" id="s-moi">Moitié-moitié</button><button type="button" id="s-aut">Autre</button></div>
+    <div class="bloc balance" data-in><div class="bar"><i id="b-k" style="width:65%"></i></div>
+      <div class="deux"><div><span class="av mini">S</span><small>Sam verse</small><b class="tt"><span id="p-k">691</span> €</b><em id="e-k">27 % de son salaire</em></div>
+      <div><span class="av mini t">L</span><small>Léa verse</small><b class="tt"><span id="p-t">372</span> €</b><em id="e-t">27 % de son salaire</em></div></div></div>
+    <div class="bloc carte-info" data-in><span class="ic">=</span><span><b>1 063 € par mois</b> sur le compte joint, pour vos 8 charges.</span></div>
+    <button type="button" class="btn" id="pa-ok" data-in>C’est bon</button>
+  </div>
+</section>
+
+<section class="e" id="brancher">
+  <div class="soleil" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="etapes" data-in><span class="ok">Revenus</span><span class="ok">Charges</span><span class="ok">Partage</span><span class="ici">Banque</span></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">Le compte joint.</span><br>Il est dans quelle banque ?</div></div>
+  <div class="col" id="zone" style="top:232px;gap:12px"></div>
+</section>
+
+<section class="e bq" id="banq">
+  <div class="bq-h">Ta banque</div>
+  <span class="pion g" style="position:absolute;right:14px;top:58px">Ici, tu es dans l’appli de ta banque</span>
+  <div class="bq-c" data-in><h2 id="bq-t">Autoriser Popote ?</h2><p>Popote pourra <b>lire</b> vos comptes et leurs opérations pendant 180 jours.</p><p>Popote ne pourra faire <b>aucun paiement ni virement</b>.</p>
+    <div class="bq-b"><button type="button">Refuser</button><button type="button" class="oui" id="bq-oui">Valider</button></div></div>
+</section>
+
+<section class="e" id="ops">
+  <div class="soleil" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="haut" data-in><span class="pion"><span class="tt">À ranger</span></span><span class="pion n"><span class="tt" id="reste">4</span></span></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle">Regarde si j’ai bon. Touche une étiquette pour la corriger.</div></div>
+  <div class="col" style="top:232px;gap:11px"><div class="bloc" style="padding:1px 14px" data-in><div class="op" id="o1"><div class="l1"><span class="lib">CB SUPERMARCHE DU PORT</span><b>−63,40 €</b></div><div class="l2"><small>jeudi 12</small><span class="pion g es">estimé</span><button type="button" class="pion et">Courses</button></div></div><div class="op" id="o2"><div class="l1"><span class="lib">CB BURGER EXPRESS 2341</span><b>−11,90 €</b></div><div class="l2"><small>mercredi 11</small><span class="pion g es">estimé</span><button type="button" class="pion et">Restaurants</button></div></div><div class="op" id="o3"><div class="l1"><span class="lib">PRLV SEPA ENERGIE</span><b>−60,00 €</b></div><div class="l2"><small>mardi 10</small><span class="pion m es">charge du mois</span><button type="button" class="pion et">Électricité</button></div></div><div class="op" id="o4"><div class="l1"><span class="lib">VIR SEPA M. MARTIN</span><b>−45,00 €</b></div><div class="l2"><small>mardi 10</small><button type="button" class="pion et q">À toi de dire</button></div></div></div><p class="att" data-in>Une autre opération est en attente chez ta banque : je te la montre quand elle est passée.</p><button type="button" class="btn attend" id="valide" data-in>Encore 1 à dire</button></div>
+</section>
+
+<section class="e" id="point">
+  <div class="soleil rose" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="haut" data-in><span class="pion"><span class="tt">Lundi 30 nov.</span></span></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">Novembre est bouclé !</span><br>60 € n’ont pas été dépensés.</div></div>
+  <div class="col" style="top:232px;gap:11px">
+    <div class="bloc" style="padding:2px 14px" data-in>
+      <div class="bl"><span>Courses</span><b>470 / 500 €</b><span class="pion">−30</span></div><div class="bl"><span>Restaurants</span><b>224 / 200 €</b><span class="pion plus">+24</span></div>
+      <div class="bl"><span>Sorties et culture</span><b>62 / 100 €</b><span class="pion">−38</span></div><div class="bl"><span>Fast-food à emporter</span><b>64 / 80 €</b><span class="pion">−16</span></div>
+      <div class="bl"><span>Charges fixes</span><b>182,40 €</b><span class="pion">pile</span></div></div>
+    <div class="bloc" style="padding:11px 14px 14px" data-in><b class="tt" style="font-size:19px">Les 60 € qui restent ?</b>
+      <div class="trois"><button type="button" class="btn b pt" id="t-cou">Coussin</button><button type="button" class="btn b pt" id="t-vir">Verser moins</button><button type="button" class="btn b pt" id="t-pro">Un projet</button></div></div>
+    <div class="bloc vir" id="dec" data-in><div class="v" id="v-k"><span class="av mini">S</span><div><small>Toi, en décembre</small><b class="tt">691 €</b></div></div><div class="v" id="v-t"><span class="av mini t">L</span><div><small>Léa</small><b class="tt">372 €</b></div></div></div>
+    <button type="button" class="btn attend" id="pt-ok" data-in>Choisis pour les 60 €</button>
+  </div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div>
+</section>
+
+<section class="e" id="regl2">
+  <div class="soleil" style="top:-330px"></div><div class="sol" style="top:220px"></div><button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button><div class="haut" data-in><span class="pion"><span class="tt">Réglages du budget</span></span></div><div class="masc" data-m style="left:16px;top:108px;width:108px;height:108px"></div><div class="bz"><div class="bulle bloc" data-in id="bulle">Tout ce qu’on a posé ensemble est ici. Tu changes ce que tu veux.</div></div>
+  <div class="col" style="top:232px;gap:11px"><div class="bloc" style="padding:10px 14px 12px" data-in><b class="tt" style="font-size:19px">Banque</b><div class="rl" style="padding-bottom:6px"><div><b>Caisse d’Épargne Bretagne Pays de Loire</b><small>Compte joint, branché par Sam. Léa peut le reprendre.</small><small>Accès donné jusqu’au 12 mai 2027.</small></div></div><div class="actes" style="margin-top:4px"><button type="button" class="btn j pt">Renouveler</button><button type="button" class="btn b pt">Changer de banque</button></div></div><div class="bloc" style="padding:2px 14px" data-in><div class="rl"><div><b>Partage</b><small>Selon les revenus : Sam 65 %, Léa 35 %</small></div><i>›</i></div><div class="rl"><div><b>Revenus</b><small>2 600 € et 1 400 € nets par mois</small></div><i>›</i></div><div class="rl"><div><b>Charges à deux</b><small>8 charges, 1 062,40 € par mois</small></div><i>›</i></div><div class="rl"><div><b>Charges perso</b><small>Les charges de chacun</small></div><i>›</i></div><div class="rl"><div><b>Mémoire</b><small>Je garde vos opérations 2 ans</small></div><i>›</i></div></div></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div>
+</section>
+
+    <div class="doigt" id="doigt"></div>
+  </div></div>
+  <div class="ordi-cadre" id="ordi-cadre"><div class="ordi" id="ordi">
+
+    <section class="e" id="pcbud">
+      <div style="position:absolute;left:0;top:0;width:820px;height:208px;overflow:hidden;border-bottom:3.5px solid var(--encre)"><div class="soleil" style="left:-140px;top:-430px;width:1100px;height:1100px"></div>
+        <b class="tt" style="position:absolute;left:28px;top:22px;font-size:30px">Budget</b>
+        <div class="masc" data-m style="left:150px;top:36px;width:160px;height:160px"></div>
+        <div class="bulle bloc" style="left:332px;top:72px;font-size:19px;max-width:330px" data-in id="bulle"><span class="tt" style="font-size:24px">Tout est rangé.</span><br>299 € pour finir novembre.</div>
+        <div class="haut" style="left:auto;right:22px;top:20px" data-in><span class="pion"><span class="tt">Vendredi 13 nov.</span></span><span class="av mini">S</span></div></div>
+      <div style="position:absolute;left:40px;top:228px;width:740px;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:12px"><div class="bloc hero" id="hero" data-in><small id="h-l">Pour finir novembre</small><b class="tt"><span id="h-n">299</span> €</b><div class="sous" id="h-s">Soit 16 € par jour. Sur le compte : 379,30 €, dont 80 € gardés pour la copropriété.</div><button type="button" class="lu" id="actu" aria-label="Actualiser"><span id="h-lu">Lu à 21 h</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.500-5.800M20 4v4.500h-4.500"></path></svg></button></div><div class="bloc vir" data-in><div class="v" id="v-k"><span class="av mini">S</span><div><small>Ton virement</small><b class="tt">691 €</b></div><span class="fx reste">✓</span></div><div class="v" id="v-t"><span class="av mini t">L</span><div><small>Léa</small><b class="tt">372 €</b></div><span class="fx reste">✓</span></div></div></div><div class="bloc postes" id="postes" data-in><div class="poste" id="po0"><div class="pl"><span>Courses</span><b><span class="n" data-v="325">325</span> / 500 €</b></div><div class="rail"><i style="width:65%"></i></div></div><div class="poste" id="po1"><div class="pl"><span>Restaurants</span><b><span class="n" data-v="118">118</span> / 200 €</b></div><div class="rail"><i style="width:59%"></i></div></div><div class="poste" id="po2"><div class="pl"><span>Sorties et culture</span><b><span class="n" data-v="85">85</span> / 100 €</b></div><div class="rail"><i style="width:85%"></i></div></div><div class="poste" id="po3"><div class="pl"><span>Fast-food à emporter</span><b><span class="n" data-v="53">53</span> / 80 €</b></div><div class="rail"><i style="width:66%"></i></div></div><div class="fixes"><span>Électricité, internet, assurance</span><b id="fx-t">3 passées sur 3</b></div></div>
+      </div>
+      <div class="bloc table" style="position:absolute;left:40px;top:484px;width:740px" data-in><b class="tt" style="font-size:19px;display:block;padding:4px 0 2px">Les dernières opérations</b>
+        <div class="tr"><small>jeudi 12</small><span>CB SUPERMARCHE DU PORT</span><span class="pion m" style="justify-self:start">Courses</span><b>−63,40 €</b></div>
+        <div class="tr"><small>mercredi 11</small><span>CB BURGER EXPRESS 2341</span><span class="pion m" style="justify-self:start">Fast-food à emporter</span><b>−11,90 €</b></div>
+        <div class="tr"><small>mardi 10</small><span>PRLV SEPA ENERGIE</span><span class="pion m" style="justify-self:start">Électricité</span><b>−60,00 €</b></div>
+        <div class="tr"><small>mardi 10</small><span>VIR SEPA M. MARTIN</span><span class="pion m" style="justify-self:start">Sorties et culture</span><b>−45,00 €</b></div></div>
+      <aside class="panneau" aria-label="Popote"><div class="aide-haut"><div class="masc" id="a-m" data-m style="position:relative;width:84px;height:84px;flex:none"></div><div style="min-width:0"><h2 class="tt" id="a-titre">Parle-moi</h2><p class="p" id="a-sous">Je réponds, et je fais.</p></div></div><div class="fil" id="fil"></div><div class="puces" id="puces"></div><div class="saisie"><div class="champ" style="flex:1 1 auto;min-width:0"><input id="a-champ" type="text" placeholder="Écris, ou parle" aria-label="Ta demande"></div><button type="button" class="micro" id="a-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div></aside>
+    </section>
+  </div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function(){
+  const POT='<svg viewBox="0 0 200 200" role="img" aria-label="Popote, la petite marmite"><g class="vap" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0"><path d="M78 40q-10-12 0-24"></path><path d="M122 40q10-12 0-24"></path></g><g class="corps"><rect x="12" y="96" width="30" height="18" rx="9" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></rect><rect x="158" y="96" width="30" height="18" rx="9" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></rect><path d="M34 84h132v54a40 40 0 01-40 40H74a40 40 0 01-40-40z" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5" stroke-linejoin="round"></path><path d="M48 98v34" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".45"></path><circle cx="62" cy="142" r="9" fill="#FF8FC7" opacity=".85"></circle><circle cx="138" cy="142" r="9" fill="#FF8FC7" opacity=".85"></circle><g class="yeux"><ellipse cx="78" cy="122" rx="13" ry="15" fill="#fff" stroke="#2A1A4A" stroke-width="4"></ellipse><ellipse cx="122" cy="122" rx="13" ry="15" fill="#fff" stroke="#2A1A4A" stroke-width="4"></ellipse><circle cx="80" cy="124" r="6.500" fill="#2A1A4A"></circle><circle cx="124" cy="124" r="6.500" fill="#2A1A4A"></circle><circle cx="82" cy="121" r="2" fill="#fff"></circle><circle cx="126" cy="121" r="2" fill="#fff"></circle></g><g class="dodo" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round" opacity="0"><path d="M66 124q12 9 24 0"></path><path d="M110 124q12 9 24 0"></path></g><g class="joie" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0"><path d="M66 128l12-12 12 12"></path><path d="M110 128l12-12 12 12"></path></g><path class="bouche" d="M88 147q12 12 24 0" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round"></path></g><g class="couv"><rect x="36" y="64" width="128" height="24" rx="12" fill="#FFC62E" stroke="#2A1A4A" stroke-width="5"></rect><circle cx="100" cy="56" r="11" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></circle></g></svg>';
+  const tel=document.getElementById('tel'),cadre=document.getElementById('cadre'),doigt=document.getElementById('doigt'),guide=document.getElementById('guide');
+  const G={};document.querySelectorAll('.e').forEach(s=>G[s.id]=s.innerHTML);
+  let jeton=0,ici=null;
+  const page=document.querySelector('.page'),ordiCadre=document.getElementById('ordi-cadre');
+  const $=s=>(page.classList.contains('pc')?document.getElementById('ordi'):tel).querySelector(s),$$=s=>tel.querySelectorAll(s);
+  const dors=ms=>new Promise((ok,non)=>{const j=jeton;setTimeout(()=>j===jeton?ok():non('arret'),ms)});
+  function echelle(){const etroit=innerWidth<=820,h=innerHeight-(etroit?70:36),w=etroit?innerWidth-20:1e4;cadre.style.setProperty('--k',Math.max(.35,Math.min(1,h/844,w/390)).toFixed(4));
+    ordiCadre.style.setProperty('--kp',Math.max(.2,Math.min(1,h/740,(etroit?innerWidth-24:innerWidth-420)/1180)).toFixed(4))}
+  addEventListener('resize',echelle);echelle();
+  // La marmite et ses humeurs
+  const m=(sel)=>typeof sel==='string'?$('#'+ici+' '+(sel||'[data-m]')):sel;
+  const yeux=(el,mode)=>{gsap.set(el.querySelector('.yeux'),{opacity:mode==='ouverts'?1:0});gsap.set(el.querySelector('.dodo'),{opacity:mode==='dodo'?1:0});gsap.set(el.querySelector('.joie'),{opacity:mode==='joie'?1:0})};
+  const cligne=el=>gsap.to(el.querySelector('.yeux'),{scaleY:.1,transformOrigin:'50% 60%',duration:.08,yoyo:true,repeat:1,repeatDelay:.05});
+  const saute=(el,h=34)=>{gsap.to(el,{y:'-='+h,duration:.27,ease:'power2.out',yoyo:true,repeat:1});gsap.to(el.querySelector('.couv'),{y:-16,rotation:-8,transformOrigin:'50% 100%',duration:.26,yoyo:true,repeat:1});gsap.fromTo(el.querySelector('.vap'),{opacity:1,y:0},{opacity:0,y:-18,duration:.8})};
+  const parle=(el,n=7)=>gsap.to(el.querySelector('.bouche'),{scaleY:2.2,transformOrigin:'50% 0%',duration:.11,yoyo:true,repeat:n*2-1});
+  const triste=el=>gsap.set(el.querySelector('.bouche'),{scaleY:-1,transformOrigin:'50% 50%',y:6});
+  const confettis=(x,y,n=34)=>{const sec=$('#'+ici),cs=['#FF5A47','#FFC62E','#2FD6A3','#4D8DFF','#FF8FC7'];for(let i=0;i<n;i++){const e=document.createElement('i');e.className='conf';e.style.background=cs[i%5];sec.appendChild(e);const a=-Math.PI/2+(Math.random()-.5)*2.2,d=110+Math.random()*190;
+    gsap.fromTo(e,{x,y,rotation:0},{x:x+Math.cos(a)*d,y:y+Math.sin(a)*d+260,rotation:(Math.random()-.5)*900,duration:1.5+Math.random()*.7,ease:'power1.out',onComplete:()=>e.remove()});gsap.to(e,{opacity:0,duration:.4,delay:1.2})}};
+  const appui=el=>gsap.to(el,{y:6,boxShadow:'0 1px 0 #2A1A4A',duration:.09,yoyo:true,repeat:1});
+  async function touche(sel){const el=typeof sel==='string'?$(sel):sel,k=parseFloat(getComputedStyle(cadre).getPropertyValue('--k'))||1,r=el.getBoundingClientRect(),t=tel.getBoundingClientRect();
+    gsap.killTweensOf(doigt);gsap.set(doigt,{x:(r.left+r.width/2-t.left)/k,y:(r.top+r.height/2-t.top)/k,scale:1.5,opacity:0});gsap.to(doigt,{scale:1,opacity:1,duration:.22});await dors(320);
+    gsap.to(doigt,{scale:.8,duration:.1,yoyo:true,repeat:1});appui(el);await dors(200);gsap.to(doigt,{opacity:0,duration:.3,delay:.1})}
+  async function maintiens(sel,apres){const el=$(sel),k=parseFloat(getComputedStyle(cadre).getPropertyValue('--k'))||1,r=el.getBoundingClientRect(),t=tel.getBoundingClientRect();
+    gsap.killTweensOf(doigt);gsap.set(doigt,{x:(r.left+r.width/2-t.left)/k,y:(r.top+r.height/2-t.top)/k,scale:1.5,opacity:0});gsap.to(doigt,{scale:.85,opacity:1,duration:.25});
+    gsap.to(el,{y:6,boxShadow:'0 1px 0 #2A1A4A',duration:.1});gsap.to(el.querySelector('s'),{width:'100%',duration:2,ease:'none'});await dors(2100);
+    gsap.to(el,{y:0,boxShadow:'0 7px 0 #2A1A4A',duration:.1});gsap.to(doigt,{opacity:0,duration:.3});el.querySelector('span').textContent=apres}
+  const prouve=async(sel)=>{await touche(sel);const b=$(sel);b.querySelector('span').textContent='C\'est bien toi';gsap.to(b,{background:'#A9F0D8',duration:.2})};
+  async function tape(sel,texte){const el=$(sel);el.value='';for(const c of texte){el.value+=c;await dors(38)}}
+  // Passer d'un écran à l'autre : le nouveau monte, ses éléments rebondissent en place.
+  function va(id){page.classList.toggle('pc',id.startsWith('pc'));const de=ici?document.getElementById(ici):null,a=document.getElementById(id);gsap.killTweensOf('*');gsap.set(doigt,{opacity:0});a.innerHTML=G[id];a.querySelectorAll('[data-m]').forEach(x=>x.innerHTML=POT);
+    document.querySelectorAll('.e').forEach(s=>{s.classList.toggle('on',s===a||s===de);s.style.zIndex=s===a?2:1;gsap.set(s,{clearProps:'transform,opacity'})});
+    if(de&&de!==a){gsap.fromTo(a,{yPercent:100},{yPercent:0,duration:.5,ease:'power3.out'});gsap.to(de,{scale:.94,opacity:.6,duration:.5,onComplete:()=>{de.classList.remove('on');gsap.set(de,{clearProps:'transform,opacity'})}})}
+    ici=id;gsap.from(a.querySelectorAll('[data-in]'),{y:36,opacity:0,scale:.92,duration:.55,stagger:.07,ease:'back.out(1.8)',delay:de?.25:.05});
+    a.querySelectorAll('[data-m]').forEach(x=>gsap.from(x,{scale:.4,y:40,duration:.7,ease:'back.out(2)',delay:de?.2:0}))}
+
+  // ——— Budget : les aides propres à ce monde ———
+  const PERSO=[];
+  const q=s=>document.querySelector('#'+ici+' '+s);
+  const el=(tag,cls,html)=>{const e=document.createElement(tag);e.className=cls;e.innerHTML=html;return e};
+  const fr=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}).replace(/[\u202f\u00a0]/g,'\u00a0');
+  const M=()=>q('[data-m]');
+  let feuille=false;
+  function vas(id){feuille=false;document.querySelectorAll('.e').forEach(s=>{if(s.id!==ici&&s.id!==id)s.innerHTML=''});va(id);document.querySelectorAll('#'+id+' [data-p]').forEach(x=>x.innerHTML=POT)}
+  const bulle=html=>{const b=q('#bulle');b.innerHTML=html;gsap.fromTo(b,{scale:.85},{scale:1,duration:.35,ease:'back.out(2.5)'})};
+  const compte=(e,de,a)=>{const o={v:de};gsap.to(o,{v:a,duration:.9,ease:'power2.out',onUpdate:()=>{e.textContent=fr(Math.round(o.v))},onComplete:()=>{e.textContent=fr(a)}})};
+  const pop=e=>gsap.fromTo(e,{scale:.6},{scale:1,duration:.45,ease:'back.out(3)'});
+  const joie=(x,y,n)=>{confettis(x,y,n);yeux(M(),'joie');saute(M(),22);setTimeout(()=>{const m=M();if(m)yeux(m,'ouverts')},1900)};
+  async function cherche(ms){bulle('<span class="pts"><i></i><i></i><i></i></span>');const c=M().querySelector('.couv');gsap.to(q('#bulle .pts').children,{y:-6,duration:.3,stagger:.12,yoyo:true,repeat:-1});
+    gsap.to(c,{rotation:-10,y:-6,transformOrigin:'50% 100%',duration:.3});await dors(ms);gsap.to(c,{rotation:0,y:0,duration:.2})}
+  // L'écran Budget
+  const P=[500,200,100,80];
+  function postes(v,anime){v.forEach((x,i)=>{const p=q('#po'+i),n=p.querySelector('.n'),b=p.querySelector('i'),pc=Math.min(100,x*100/P[i])+'%';b.classList.toggle('trop',x>P[i]);
+    if(anime&&+n.dataset.v!==x){compte(n,+n.dataset.v,x);gsap.to(b,{width:pc,duration:.9,ease:'power2.out'})}else{n.textContent=fr(x);gsap.set(b,{width:pc})}n.dataset.v=x})}
+  const vire=(qui,signe,cls,petit)=>{const v=q('#v-'+qui),f=v.querySelector('.fx');f.textContent=signe;f.className='fx '+cls;if(petit)v.querySelector('small').textContent=petit;pop(f)};
+  const hero=(l,n,s)=>{q('#h-l').textContent=l;q('#h-n').textContent=n;q('#h-s').innerHTML=s};
+  const fixes=t=>{const f=q('#fx-t');f.textContent=t;pop(f)};
+  const jour=t=>{const m=q('#mois');m.textContent=t;pop(m.parentNode)};
+  const RANGE='Soit 16 € par jour. Sur le compte : 379,30 €, dont 80 € gardés pour la copropriété.';
+  const range=()=>{postes([325,118,85,53]);q('#fx-t').textContent='3 passées sur 3';q('#bulle').innerHTML='<span class="tt">Tout est rangé.</span><br>299 € pour finir novembre.'};
+  function debut(elle){q('#mois').textContent=elle?'Mardi 3 nov.':'Lundi 2 nov.';postes([0,0,0,0]);q('#fx-t').textContent='0 passée sur 3';q('#h-lu').textContent='Lu à 6 h';
+    hero('Sur le compte joint',elle?'691':'0',elle?'Sam a versé sa part. Il manque la tienne.':'Il attend vos deux virements de novembre.');
+    const a=(k,p)=>{const v=q('#v-'+k),f=v.querySelector('.fx');f.textContent='!';f.className='fx change';v.querySelector('small').textContent=p};
+    if(elle){a('t','À verser');q('#v-k small').textContent='Reçu le 2'}else{a('k','À verser');a('t','Léa')}}
+  const avance=html=>{const a=q('#avance');a.hidden=false;q('#av-t').innerHTML=html;gsap.from(a,{height:0,opacity:0,scale:.9,duration:.45,ease:'back.out(2)'})};
+  // La discussion (feuille du bas)
+  async function ouvre(titre,sous,puces){feuille=true;q('#a-titre').textContent=titre;q('#a-sous').textContent=sous;q('#fil').innerHTML='';q('#puces').innerHTML=puces.map(p=>'<button type="button" class="btn b pt">'+p+'</button>').join('');
+    gsap.to(q('.voile'),{opacity:1,duration:.3});gsap.to(q('.aide'),{y:0,duration:.55,ease:'back.out(1.2)'});await dors(800)}
+  const ferme=()=>{feuille=false;gsap.to(q('.aide'),{y:'105%',duration:.4,ease:'power3.in'});gsap.to(q('.voile'),{opacity:0,duration:.4})};
+  const ajoute=(cls,html)=>{const e=el('div',cls+' bloc',html);q('#fil').appendChild(e);gsap.from(e,{y:16,opacity:0,scale:.9,duration:.4,ease:'back.out(2)'});return e};
+  async function pense(ms){const e=ajoute('rep','<span class="pts"><i></i><i></i><i></i></span>'),c=q('#a-m .couv');gsap.to(e.querySelectorAll('i'),{y:-6,duration:.3,stagger:.12,yoyo:true,repeat:-1});
+    gsap.to(c,{rotation:-10,y:-6,transformOrigin:'50% 100%',duration:.3});await dors(ms);gsap.to(c,{rotation:0,y:0,duration:.2});e.remove()}
+  async function ecris(texte){const c=q('#a-champ');c.value='';if(!q('#fil').children.length&&q('.aide'))gsap.to(q('#puces'),{height:0,opacity:0,marginTop:-10,duration:.3,delay:.6});for(const x of texte){c.value+=x;await dors(30)}await dors(350);c.value='';ajoute('dit',texte);await dors(250)}
+  const PUCES=['J’ai avancé une charge','Une dépense en liquide','Combien au resto ?'];
+  const lg=(nom,somme)=>'<div class="rang"><span class="fx reste">✓</span><div>'+nom+'</div><b class="m">'+somme+'</b></div>';
+  // La mise en place : je parle dans la barre, le ticket se remplit
+  async function dis(t){const p=q('.parle .ph'),d=q('#moi');gsap.to(d,{opacity:0,duration:.2});p.classList.add('tape');p.textContent='';for(const x of t){p.textContent+=x;await dors(28)}await dors(350);
+    p.classList.remove('tape');p.textContent='Parle-moi, ou écris';d.textContent=t;gsap.fromTo(d,{y:30,opacity:0,scale:.9},{y:0,opacity:1,scale:1,duration:.4,ease:'back.out(2)'});await dors(300)}
+  const TH=[['Logement',['Loyer ou crédit','Électricité','Gaz','Eau','Internet','Assurance habitation','Copropriété','Taxe foncière']],
+    ['Crédits',['Crédit du logement','Crédit auto','Prêt étudiant','Prêt personnel','Crédit conso','Assurance des crédits']],
+    ['Voiture et transports',['Crédit auto','Assurance auto','Essence','Entretien','Péages, parking','Transports en commun']],
+    ['Manger',['Courses','Restaurants','Fast-food à emporter','Déjeuners au travail','Cantine','Boulangerie, café']],
+    ['Abonnements',['Forfait mobile','Salle de sport','Vidéo à la demande','Musique','Stockage en ligne','Presse']],
+    ['Santé et loisirs',['Mutuelle','Médecin, pharmacie','Coiffeur, beauté','Shopping','Sorties et culture','Vacances']],
+    ['Enfants et animaux',['Garde','École, cantine','Activités','Pension','Vétérinaire','Croquettes']]];
+  const MEME={'Crédit du logement':'Loyer ou crédit'},COMMUN=[['Courses',500],['Restaurants',200],['Sorties et culture',100],['Fast-food à emporter',80],['Copropriété',80,'240 € par trimestre'],['Électricité',60],['Internet',30],['Assurance habitation',12.4]];
+  let D={},tDuo=0,tMoi=0,tAut=0;
+  const badge=qui=>'<i class="qq">'+(qui==='a'?'':'<u>S</u>')+(qui==='m'?'':'<u class="t">L</u>')+'</i>';
+  const puce=n=>[...q('#pas').children].find(x=>x.dataset.n===n);
+  const plein=(e,lib,v,qui)=>{e.className='pa on';e.innerHTML='<span>✓ '+lib+'</span><b>'+fr(v)+' €</b>'+badge(qui)};
+  function rails(){q('#rev').hidden=true;for(const i of ['#rail','#theme','#cumul']){q(i).hidden=false}gsap.from([q('#rail'),q('#theme'),q('#cumul')],{y:24,opacity:0,duration:.4,stagger:.08,ease:'back.out(1.8)'})}
+  function theme(i,titre,noms,fin){const r=[...q('#rail').children];r.forEach((x,j)=>{x.className=j<i?'ok':j===i?'ici':''});if(r[i])pop(r[i]);noms=noms||TH[i][1];
+    q('#th-n').textContent=titre||TH[i][0];q('#th-fin').textContent=fin||'Rien ici';q('#pas').innerHTML=noms.map(n=>'<button type="button" class="pa" data-n="'+n+'">'+n+'</button>').join('');
+    noms.forEach(n=>{const d=D[MEME[n]||n];if(d){const e=puce(n);plein(e,MEME[n]?n:d[0],d[1],d[2]);e.classList.add('deja');if(!fin)q('#th-fin').textContent='Rien d’autre'}});
+    gsap.from(q('#pas').children,{y:12,opacity:0,scale:.85,duration:.3,stagger:.035,ease:'back.out(2.2)'})}
+  function coche(n,v,qui,lib){const e=puce(n);D[n]=[lib||n,v,qui];plein(e,lib||n,v,qui);pop(e);const a=Math.round(((qui==='d'?tDuo:qui==='m'?tMoi:tAut)+v)*100)/100;
+    if(qui==='d'){compte(q('#cu-d'),tDuo,a);tDuo=a}else if(qui==='m'){compte(q('#cu-m'),tMoi,a);tMoi=a}else{tAut=a}q('#th-fin').textContent='C’est tout'}
+  async function edite(n,v){const e=q('#edit');e.hidden=false;q('#ed-n').textContent=n;q('#ed-v').textContent='';gsap.from(e,{height:0,opacity:0,duration:.3});await dors(600);for(const x of v){q('#ed-v').textContent+=x;await dors(160)}q('#ed-v').textContent+=' €';await dors(500)}
+  async function suite(){gsap.to(q('#moi'),{opacity:0,duration:.2});await touche(q('#th-fin'));await dors(150)}
+  function recap(){q('#rail').hidden=true;q('#cumul').hidden=true;const c=q('#theme');c.className='bloc ticket';c.style.position='relative';
+    c.innerHTML='<div class="tk-h"><b class="tt">À deux</b><b class="tt">'+fr(tDuo)+' € <small>par mois</small></b></div>'+COMMUN.map(([n,v,note])=>'<div class="tk"><span>'+n+(note?'<small>'+note+'</small>':'')+'</span><b>'+fr(v)+' €</b></div>').join('')
+      +'<div class="tk-h" style="border-bottom:0;border-top:3px dashed var(--encre);padding:7px 0 0;margin-top:5px"><b class="tt">À toi</b><b class="tt">'+fr(tMoi)+' € <small>'+Object.values(D).filter(d=>d[2]==='m').length+' charges</small></b></div>'
+      +(tAut?'<div class="tk-h" style="border-bottom:0;padding:3px 0 0"><b class="tt">À Léa</b><b class="tt">'+fr(tAut)+' € <small>'+(n=>n+(n>1?' charges':' charge'))(Object.values(D).filter(d=>d[2]==='a').length)+'</small></b></div>':'');
+    gsap.from(c.children,{x:-20,opacity:0,duration:.3,stagger:.05,ease:'back.out(2)'})}
+  const gagne=(k,t)=>{const b=q('#r-'+k+' b');b.textContent=t;pop(b)};
+  const pas=n=>{const s=q('.etapes').children;s[n].className='ok';if(s[n+1])s[n+1].className='ici';pop(s[n])};
+  // Brancher la banque : la zone change d'étape
+  const zone=html=>{const z=q('#zone');z.innerHTML=html;gsap.from(z.children,{y:26,opacity:0,scale:.94,duration:.45,stagger:.07,ease:'back.out(1.8)'})};
+  const banque=(sigle,nom,petit)=>'<button type="button" class="rang rg-b"><span class="fx">'+sigle+'</span><div>'+nom+(petit?'<small>'+petit+'</small>':'')+'</div></button>';
+  const promesse=t=>'<div class="rang"><span class="fx reste">✓</span><div>'+t+'</div></div>';
+  const Z={banque:'<div class="champ" data-z><input id="b-champ" type="text" placeholder="Cherche ta banque" aria-label="Ta banque"></div><div class="bloc" id="b-l" style="padding:2px 14px">'
+      +banque('CM','Crédit Mutuel')+banque('BP','Banque Populaire')+banque('CE','Caisse d’Épargne')+banque('LB','La Banque Postale')+banque('…','Toutes les banques')+'</div>',
+    caisse:'<p class="p" style="font-size:15.5px">La Caisse d’Épargne a 15 caisses. Je retiens la tienne : tu ne la choisis qu’une fois.</p><div class="champ"><input id="b-champ" type="text" placeholder="Ta région, ta ville" aria-label="Ta caisse"></div>'
+      +'<div class="bloc" id="b-l" style="padding:2px 14px"><div class="tk-v" style="padding:14px 0">Tape quelques lettres.</div></div>',
+    avant:'<div class="bloc" style="padding:2px 14px">'+promesse('<b>Je lis, c’est tout.</b> Je ne peux rien payer, rien virer.')+promesse('<b>Matin et soir.</b> Et quand tu touches « Actualiser ». Jamais plus de 4 fois par jour sans toi.')
+      +promesse('<b>Date, montant, libellé,</b> et le solde du compte. Rien d’autre.')+promesse('<b>Tous les 180 jours</b>, ta banque te redemande ton accord.')+'</div><button type="button" class="btn" id="z-va">Aller chez ma banque</button>',
+    comptes:'<div class="bloc" style="padding:2px 14px"><div class="rang"><span class="coche" id="c-1"></span><div><b>Compte joint</b><small>Finit par 4821. Vu par vous deux.</small></div></div>'
+      +'<div class="rang"><span class="coche" id="c-2"></span><div><b>Ton compte perso</b><small>Finit par 0937. Si tu le branches : vu par toi seul.</small></div></div></div><button type="button" class="btn attend" id="z-ok">Brancher le compte joint</button>',
+    lis:'<div class="bloc" style="padding:14px"><b class="tt" style="font-size:19px;display:block;margin-bottom:9px" id="z-t">Je lis vos 90 derniers jours…</b><div class="avance"><i id="z-b"></i></div></div>'};
+  // Les opérations du soir
+  const choix=(id,noms)=>{const o=q('#'+id),c=el('div','ch',noms.map(n=>'<button type="button" class="btn b pt">'+n+'</button>').join(''));o.appendChild(c);gsap.from(c.children,{y:10,opacity:0,scale:.8,duration:.3,stagger:.05,ease:'back.out(2.5)'})};
+  const classe=(id,nom)=>{const o=q('#'+id),e=o.querySelector('.et');o.querySelector('.ch').remove();e.textContent=nom;e.className='pion et';e.style.background='#FFE08A';pop(e);const s=o.querySelector('.es');if(s)s.remove()};
+  const S={
+    async pose(){vas('pose');D={};tDuo=0;tMoi=0;tAut=0;await dors(1500);parle(M(),7);await dors(2200);
+      await dis('2 600 pour moi, 1 400 pour Léa');await cherche(800);gagne('k','2 600 €');await dors(250);gagne('t','1 400 €');pas(0);
+      bulle('<span class="tt">Noté !</span><br>Les charges, maintenant : un thème à la fois.');parle(M(),6);await dors(2400);
+      rails();theme(0);bulle('<span class="tt">Le logement.</span><br>Touche ce que vous payez, ou dis-le-moi.');parle(M(),7);await dors(2300);
+      await touche(puce('Électricité'));await edite('Électricité','60');await touche(q('#ed-d'));q('#ed-d').className='on';await dors(400);q('#edit').hidden=true;coche('Électricité',60,'d');await dors(1000);
+      await dis('Internet 30, assurance 12,40, copro 240 par trimestre : à deux. Le crédit, 450 : à moi.');await cherche(900);
+      for(const a of [['Internet',30,'d'],['Assurance habitation',12.4,'d'],['Copropriété',80,'d'],['Loyer ou crédit',450,'m','Crédit']]){coche(...a);await dors(300)}
+      bulle('<span class="tt">5 de notées.</span><br>La copro : je compte 80 € par mois.');parle(M(),7);await dors(2800);await suite();
+      theme(1);bulle('<span class="tt">Les crédits.</span><br>Celui du logement, je l’ai déjà.');parle(M(),6);await dors(1700);
+      await dis('Crédit auto 250, prêt étudiant 150 : à moi. Le prêt personnel, 300 : à Léa.');await dors(300);coche('Crédit auto',250,'m');await dors(250);coche('Prêt étudiant',150,'m');await dors(250);coche('Prêt personnel',300,'a');await dors(1900);await suite();
+      for(const [i,a,b,d,cs] of [[2,'La voiture.','Le crédit auto, je l’ai déjà.','Assurance 60, essence 90 : à moi',[['Assurance auto',60,'m'],['Essence',90,'m']]],
+        [3,'Manger.','Courses, restos, à emporter…','Courses 500, restos 200, fast-food 80 : à deux',[['Courses',500,'d'],['Restaurants',200,'d'],['Fast-food à emporter',80,'d']]],
+        [4,'Les abonnements.','Téléphone, sport, écrans…','Mobile 15, sport 30, vidéo 14 : à moi',[['Forfait mobile',15,'m'],['Salle de sport',30,'m'],['Vidéo à la demande',14,'m']]],
+        [5,'Santé et loisirs.','Mutuelle, sorties, vacances…','Sorties 100 : à deux',[['Sorties et culture',100,'d']]]]){
+        theme(i);bulle('<span class="tt">'+a+'</span><br>'+b);parle(M(),5);await dors(1300);await dis(d);await dors(250);for(const c of cs){coche(...c);await dors(260)}await dors(800);await suite()}
+      theme(6);bulle('<span class="tt">Enfants, animaux ?</span><br>Rien chez vous : passe.');parle(M(),5);await dors(1900);await suite();
+      [...q('#rail').children].forEach(x=>{x.className='ok'});pop(q('#rail'));bulle('<span class="tt">7 thèmes passés.</span><br>Un dernier tour : les oublis.');parle(M(),6);await dors(2400)},
+    async oublis(){if(ici!=='pose'||tMoi!==1059||!q('#rail')||q('#rail').hidden){vas('pose');D={};tDuo=1062.4;tMoi=1059;tAut=300;D['Prêt personnel']=['Prêt personnel',300,'a'];['Loyer ou crédit','Crédit auto','Prêt étudiant','Assurance auto','Essence','Forfait mobile','Salle de sport','Vidéo à la demande'].forEach(n=>{D[n]=[n,0,'m']});
+        q('#r-k b').textContent='2 600 €';q('#r-t b').textContent='1 400 €';const s=q('.etapes').children;s[0].className='ok';s[1].className='ici';rails();q('#cu-d').textContent=fr(tDuo);q('#cu-m').textContent=fr(tMoi);await dors(1300)}
+      theme(7,'On oublie souvent',['Taxe foncière','Entretien de la voiture','Impôts','Eau','Vacances','Cadeaux'],'Rien de tout ça');
+      bulle('<span class="tt">Les oublis fréquents.</span><br>Surtout ce qui tombe une fois par an.');parle(M(),7);await dors(2800);
+      await dis('La taxe foncière, 900 par an : à moi');await cherche(800);coche('Taxe foncière',75,'m');
+      bulle('<span class="tt">75 € par mois</span><br>à prévoir pour elle. Autre chose ?');parle(M(),7);await dors(2800);await suite();
+      recap();bulle('<span class="tt">Voilà votre budget.</span><br>Tout est juste ?');parle(M(),8);gsap.fromTo(q('#duo'),{y:20,opacity:0},{y:0,opacity:1,duration:.4,ease:'back.out(2)'});
+      await dors(3200);await touche(q('#p-ok'));gsap.to(q('#duo'),{opacity:0,duration:.2});const s=el('div','sceau','Validé');q('#theme').appendChild(s);
+      gsap.fromTo(s,{scale:3,opacity:0,rotation:-30},{scale:1,opacity:1,rotation:-10,duration:.28,ease:'power3.in'});await dors(300);pas(1);joie(195,420,34);
+      bulle('<span class="tt">1 062,40 € par mois.</span><br>Reste à voir qui verse quoi.');await dors(2800)},
+    async partage(){vas('partage');await dors(1500);parle(M(),7);await dors(2400);
+      const regle=(id,k,t,pk,ek,et)=>{q('.seg .ici').className='';q(id).className='ici';gsap.to(q('#b-k'),{width:pk+'%',duration:.7,ease:'back.out(1.6)'});compte(q('#p-k'),+q('#p-k').textContent.replace(/\D/g,''),k);compte(q('#p-t'),+q('#p-t').textContent.replace(/\D/g,''),t);q('#e-k').textContent=ek;q('#e-t').textContent=et;pop(q('#e-t'))};
+      await touche(q('#s-moi'));regle('#s-moi',532,532,50,'20 % de son salaire','38 % de son salaire');bulle('<span class="tt">532 € chacun.</span><br>Léa y laisserait 38 % de son salaire, toi 20 %.');parle(M(),8);await dors(3400);
+      await touche(q('#s-rev'));regle('#s-rev',691,372,65,'27 % de son salaire','27 % de son salaire');bulle('<span class="tt">Le même effort.</span><br>Chacun verse 27 % de ce qu’il gagne.');parle(M(),7);await dors(2800);
+      await touche(q('#pa-ok'));pas(2);joie(195,560,34);bulle('<span class="tt">C’est réglé !</span><br>Chaque mois : toi 691 €, Léa 372 €.');await dors(3000)},
+    async brancher(){vas('brancher');zone(Z.banque);await dors(1600);parle(M(),6);await dors(1300);
+      const tape=async t=>{const c=q('#b-champ');for(const x of t){c.value+=x;await dors(110)}};
+      await touche(q('#b-champ'));await tape('cai');q('#b-l').innerHTML=banque('CE','Caisse d’Épargne');pop(q('#b-l'));await dors(800);await touche(q('#b-l button'));
+      zone(Z.caisse);bulle('<span class="tt">Et ta caisse ?</span><br>Celle de ta région.');parle(M(),5);await dors(2300);
+      await touche(q('#b-champ'));await tape('bret');q('#b-l').innerHTML=banque('CE','Bretagne Pays de Loire','Bretagne, Loire-Atlantique, Vendée, Maine-et-Loire');gsap.from(q('#b-l').children,{x:-20,opacity:0,duration:.3,stagger:.08});
+      await dors(1500);await touche(q('#b-l button'));
+      zone(Z.avant);bulle('Je t’envoie chez ta banque : c’est elle qui te demande ton accord.');parle(M(),7);await dors(3600);await touche(q('#z-va'));await dors(150);
+      vas('banq');await dors(2400);await touche(q('#bq-oui'));await dors(300);
+      vas('brancher');pas(3);q('.etapes').children[3].className='ici';zone(Z.comptes);q('#bulle').innerHTML='<span class="tt">Deux comptes !</span><br>Lequel je regarde ?';await dors(1300);parle(M(),6);await dors(1500);await touche(q('#c-1'));q('#c-1').className='coche on';q('#c-1').textContent='✓';pop(q('#c-1'));q('#z-ok').className='btn';await dors(600);await touche(q('#z-ok'));
+      zone(Z.lis);bulle('<span class="tt">C’est branché !</span><br>Je lis ce que ta banque me donne.');gsap.to(q('#z-b'),{width:'100%',duration:2.2,ease:'power1.inOut'});await dors(2400);
+      q('#z-t').textContent='212 opérations lues';q('#zone').appendChild(el('button','btn','Voir mon budget'));pop(q('#zone').lastChild);pas(3);joie(195,330,40);bulle('<span class="tt">212 opérations.</span><br>Je les range ce soir, et tu valides.');await dors(3200)},
+    async virement(){vas('bud');debut();q('#bulle').innerHTML='Nouveau mois : verse <b>691 €</b> sur le compte joint.<button type="button" class="btn j pt" id="fait">C’est fait</button>';await dors(1500);parle(M(),7);await dors(2400);
+      await touche(q('#fait'));vire('k','…','','Annoncé');bulle('<span class="tt">Merci !</span><br>Je regarde ce soir s’il est arrivé.');parle(M(),6);await dors(2600);
+      jour('Lundi 2, 21 h');q('#h-lu').textContent='Lu à 21 h';await dors(700);compte(q('#h-n'),0,691);q('#h-s').textContent='Il manque le virement de Léa.';vire('k','✓','reste','Reçu le 2');joie(110,400,22);
+      bulle('<b>691 € bien reçus.</b> Léa n’a pas encore versé.<button type="button" class="btn b pt" id="rappel">Lui rappeler</button>');await dors(2800);
+      await touche(q('#rappel'));bulle('<span class="tt">Rappel parti.</span><br>Sur son téléphone, sans aucun montant.');parle(M(),6);await dors(3000)},
+    async elle(){vas('budt');debut(true);q('#bulle').innerHTML='<span class="tt">Bonjour Léa !</span><br>À toi : <b>372 €</b> à verser.<button type="button" class="btn j pt" id="fait">C’est fait</button>';await dors(1500);parle(M(),7);await dors(2400);
+      await touche(q('#fait'));vire('t','…','','Annoncé');bulle('<span class="tt">Merci !</span><br>Je regarde ce soir s’il est arrivé.');await dors(2400);
+      jour('Mardi 3, 21 h');q('#h-lu').textContent='Lu à 21 h';await dors(700);compte(q('#h-n'),691,1063);hero('Pour tout novembre','691','Vos 8 charges sont couvertes.');vire('t','✓','reste','Reçu le 3');joie(110,400,36);
+      bulle('<span class="tt">Le mois est payé !</span><br>1 063 € sur le compte, à vous deux.');await dors(3200)},
+    async soir(){vas('bud');await dors(1500);parle(M(),6);await dors(2000);await touche(q('#voir'));await dors(150);vas('ops');await dors(1500);parle(M(),7);await dors(2200);
+      await touche(q('#o2 .et'));choix('o2',['Fast-food','Courses','Sorties','Autre']);await dors(1200);await touche(q('#o2 .ch button'));classe('o2','Fast-food');
+      bulle('<span class="tt">Compris.</span><br>Burger Express, c’est fast-food : je m’en souviens.');parle(M(),7);await dors(2800);
+      await touche(q('#o4 .et'));choix('o4',['Sorties','Restaurants','Courses','Autre']);bulle('Un virement à M. Martin : je ne devine pas. C’était pour quoi ?');parle(M(),7);await dors(2200);await touche(q('#o4 .ch button'));classe('o4','Sorties');
+      const v=q('#valide');v.className='btn';v.textContent='Tout valider';pop(v);q('#reste').textContent='4';bulle('<span class="tt">Tout a son étiquette.</span><br>Tu valides ?');await dors(1900);
+      await touche(v);const o=document.querySelectorAll('#ops .op');o.forEach((x,i)=>setTimeout(()=>{x.classList.add('ok');x.querySelector('.et').style.background='';pop(x.querySelector('.et'))},i*140));q('#reste').textContent='0';joie(195,470,36);await dors(1500);
+      vas('bud');q('#bulle').innerHTML='<span class="tt">Tout est rangé !</span><br>299 € pour finir novembre.';await dors(1100);postes([325,118,85,53],true);fixes('3 passées sur 3');await dors(3200)},
+    async liquide(){vas('bud');range();await dors(1500);await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',PUCES);
+      await ecris('J’ai payé 20 € en liquide au marché ce matin');await pense(1200);parle(q('#a-m'),6);
+      ajoute('rep large','<b>Si j’ai bien compris :</b>'+lg('Courses, au marché','20 €')+lg('En liquide, payé par toi','ce matin')+'<div class="total"><span>Le compte joint te doit</span><b>20 €</b></div>'
+        +'<div class="actes"><button type="button" class="btn pt" id="oui">Valider</button><button type="button" class="btn b pt">Modifier</button></div>');
+      await dors(3200);await touche(q('#oui'));await dors(150);ferme();await dors(500);postes([345,118,85,53],true);avance('<b>Le compte joint te doit 20 €.</b> Retirés de ton virement de décembre.');
+      bulle('<span class="tt">C’est noté.</span><br>Courses : 345 € sur 500.');parle(M(),6);await dors(3200)},
+    async avance(){vas('bud');range();await dors(1500);await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',PUCES);
+      await ecris('Ce mois-ci j’ai payé l’électricité, internet et l’assurance de mon compte');await pense(1400);parle(q('#a-m'),7);
+      ajoute('rep large','<b>Trois charges à deux, payées par toi :</b>'+lg('Électricité','60 €')+lg('Internet','30 €')+lg('Assurance habitation','12,40 €')+'<div class="total"><span>Le compte joint te doit</span><b>102,40 €</b></div>'
+        +'<div style="font-size:15px;margin-top:8px">Je les retire de ton virement de décembre : <b>588,60 €</b> au lieu de 691 €.</div><div class="actes"><button type="button" class="btn pt" id="oui">Valider</button><button type="button" class="btn b pt">Me rembourser plutôt</button></div>');
+      await dors(4200);await touche(q('#oui'));await pense(700);parle(q('#a-m'),7);
+      ajoute('rep','Tant que ces prélèvements partent de ton compte, <b>je le refais chaque mois ?</b><div class="actes"><button type="button" class="btn pt" id="mois2">Oui, chaque mois</button><button type="button" class="btn b pt">Juste cette fois</button></div>');
+      await dors(2800);await touche(q('#mois2'));ajoute('rep','D’accord. Préviens-moi quand ils partiront du compte joint.');yeux(q('#a-m'),'joie');await dors(2400);ferme();await dors(500);
+      avance('<b>Tu as avancé 102,40 €.</b> Décembre : 588,60 € à verser.');fixes('3 payées par toi');bulle('<span class="tt">C’est compté.</span><br>En décembre, tu verses 588,60 €.');parle(M(),6);await dors(3400)},
+    async fin(){vas('point');await dors(1500);parle(M(),7);await dors(2600);
+      const dec=(id,k,t)=>{q('.trois .ici')&&(q('.trois .ici').className='btn b pt');q(id).className='btn b pt ici';const a=q('#dec #v-k b'),b=q('#dec #v-t b');a.textContent=k;b.textContent=t;pop(a);pop(b);const o=q('#pt-ok');o.className='btn';o.textContent='Valider décembre'};
+      await touche(q('#t-vir'));dec('#t-vir','652 €','351 €');bulle('<span class="tt">Verser moins.</span><br>39 € de moins pour toi, 21 € de moins pour elle.');parle(M(),8);await dors(3400);
+      await touche(q('#t-cou'));dec('#t-cou','691 €','372 €');bulle('<span class="tt">Un coussin.</span><br>Ils restent sur le compte, pour un mois plus cher.');parle(M(),8);await dors(3200);
+      await touche(q('#pt-ok'));joie(195,640,40);bulle('<span class="tt">Décembre est prêt !</span><br>Je vous fais signe le 1er.');await dors(3200)},
+    async renouveler(){vas('bud');range();q('#mois').textContent='Mercredi 5 mai';hero('Pour finir mai','299','Soit 11 € par jour. Sur le compte : 379,30 €, dont 80 € gardés pour la copropriété.');
+      q('#bulle').innerHTML='Mon accès à ta banque s’arrête <b>dans 7 jours</b>.<button type="button" class="btn j pt" id="renou">Renouveler</button>';await dors(1500);parle(M(),7);await dors(2600);
+      await touche(q('#renou'));await dors(150);vas('banq');q('#bq-t').textContent='Prolonger l’accès de Popote ?';await dors(2400);await touche(q('#bq-oui'));await dors(300);
+      vas('bud');range();q('#mois').textContent='Mercredi 5 mai';hero('Pour finir mai','299','Soit 11 € par jour. Sur le compte : 379,30 €, dont 80 € gardés pour la copropriété.');
+      q('#bulle').innerHTML='<span class="tt">C’est reparti !</span><br>Jusqu’au 1er novembre 2027.';await dors(900);joie(195,300,30);await dors(3000)},
+    async panne(){vas('bud');range();await dors(1500);await touche(q('#actu'));const f=q('#actu svg');gsap.to(f,{rotation:720,transformOrigin:'50% 50%',duration:1.6,ease:'power1.inOut'});await dors(1800);
+      const l=q('#actu');l.classList.add('vieux');q('#h-lu').textContent='Lu hier, 21 h';gsap.fromTo(l,{x:-6},{x:6,duration:.06,yoyo:true,repeat:5,onComplete:()=>gsap.set(l,{x:0})});triste(M());
+      bulle('<span class="tt">Ta banque ne répond pas.</span><br>Tes chiffres datent d’hier soir. Je réessaie cette nuit.');await dors(3600)},
+    async reglages(){vas('bud');range();await dors(1400);await touche(q('#regl'));await dors(150);vas('regl2');await dors(1500);parle(M(),7);await dors(3000)},
+    async pcbud(){vas('pcbud');q('#puces').innerHTML=PUCES.map(p=>'<button type="button" class="btn b pt">'+p+'</button>').join('');gsap.from(q('#puces').children,{y:14,opacity:0,duration:.35,stagger:.07,delay:.5});await dors(1700);parle(M(),6);await dors(900);
+      await ecris('On a dépensé combien au resto ce mois-ci ?');await pense(1000);parle(q('#a-m'),6);
+      ajoute('rep','<b>118 € sur 200 €</b>, en 4 fois. Le plus gros : 41 €, samedi 7.<div class="actes"><button type="button" class="btn b pt">Voir les 4 opérations</button></div>');await dors(3600)}
+  };
+  const CH=[
+    ['La mise en place, une seule fois',[['pose','Le budget se pose, thème par thème','Logement, crédits, voiture, manger… Tu touches ou tu dis : « à deux », « à moi » ou « à Léa ».'],['oublis','Les oublis, puis tu valides','Popote rappelle ce qu’on oublie souvent, récapitule, et tu valides.'],['partage','Qui verse combien','Selon vos revenus : 691 € et 372 €. Un appui pour comparer avec moitié-moitié.'],['brancher','Brancher le compte joint','Ta banque, ta caisse, ton accord chez elle. Lecture seule.']]],
+    ['Chaque début de mois',[['virement','Ton virement','Popote dit combien, voit qu’il est arrivé, relance Léa sans montant.'],['elle','Léa verse sa part','Son écran, le lendemain.']]],
+    ['Chaque soir',[['soir','Les opérations du jour','Popote a classé, tu corriges une étiquette, tu valides tout.'],['liquide','Une dépense en liquide','Une phrase. Elle compte dans les courses et dans ce qu’on te doit.']]],
+    ['Avancer une charge',[['avance','« J’ai payé de mon compte »','Popote récapitule, baisse ton prochain virement, et propose de le refaire chaque mois.']]],
+    ['La fin du mois',[['fin','Le point de novembre','Prévu contre dépensé, puis que faire de ce qui reste.']]],
+    ['Et si…',[['renouveler','L’accès à la banque expire','Tous les 180 jours : un bouton, ton accord, c’est reparti.'],['panne','La banque ne répond pas','On dit de quand datent les chiffres. Rien n’est perdu.']]],
+    ['Réglages et PC',[['reglages','Les réglages du budget','La banque choisie une fois, le partage, les charges.'],['pcbud','Le budget en large','Les opérations en tableau, Popote ouverte à droite.']]]];
+  const chap=document.getElementById('chap');
+  chap.innerHTML=CH.map(([t,xs])=>'<h2>'+t+'</h2>'+xs.map(([id,n,d])=>'<button type="button" data-s="'+id+'">'+n+'<small>'+d+'</small></button>').join('')).join('');
+  const marque=id=>chap.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.s===id)));
+  async function joue(ids,boucle){const j=++jeton;try{do{for(const id of ids){if(j!==jeton)return;marque(id);await S[id]()}if(boucle)await dors(1800)}while(boucle&&j===jeton)}catch(e){if(e!=='arret')console.error(e)}}
+  const FILM=['pose','oublis','partage','brancher','virement','soir','avance','fin'];
+  window.lance=id=>id==='film'?joue(FILM,true):joue([id],false);
+  chap.addEventListener('click',e=>{const b=e.target.closest('button');if(b){guide.classList.remove('ouvert');window.lance(b.dataset.s)}});
+  document.getElementById('film').addEventListener('click',()=>window.lance('film'));
+  document.getElementById('ouvre').addEventListener('click',()=>guide.classList.toggle('ouvert'));
+  const voulu=(location.hash||'').slice(1);window.lance(S[voulu]?voulu:'film');
+})();
+</script>
