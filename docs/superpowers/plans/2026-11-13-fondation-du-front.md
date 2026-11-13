@@ -1475,6 +1475,32 @@ La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F
   Le seuil de linéarisation sRGB est `0,04045` (WCAG 2.2) ; sans effet sur des couleurs hexadécimales de 8 bits.
 - **Les textes d'une règle de mouvement réduit** (14 sélecteurs) sont comparés au système par l'équivalence, non par une liste courte.
 
+### Constats de F8a (la première moitié de F8, 13/11/2026) : ils priment sur le texte de F8
+
+F8 est coupée comme le plan le prévoit. **F8a** (cette PR) : le banc, sa garde, axe, les cibles et le clavier, le job `banc`, et les preuves confiées par les constats de F6 et F7.
+**F8b** (à faire) : `comparaison.spec.ts`, l'appariement par légende, l'index et l'artefact. Pour F8b, `Section` accepte une section **sans pendant** dans `reference.html`
+(`titre` au lieu de `reference` : « Lien d'évitement », « Anneaux de focus », « Paires texte et fond ») : la comparaison les signale sans échouer. Les cas de Couleurs et de
+Typographie portent une `cle`, sans `reference`.
+
+- **Preuves de F6 et F7, toutes en Chromium** : le lien d'évitement focalisé au clavier est au-dessus d'un `.soleil` de 700 px (`elementFromPoint` au centre et au milieu de chaque
+  bord : les coins sont arrondis, un point à 4 px du coin tombe hors du contour et rend le soleil) ; l'anneau de chaque composant (bouton, champ, lien, cases du code, avatar, place
+  libre) est mesuré tel que Chromium le dessine (contour d'encre de 4 px, halo jaune de 11 px) ; axe mesure les paires texte/fond des classes du système sur une section « Paires texte et fond »
+  (classes de `composants.css` en HTML brut : les sections des composants, F9 à F13, montrent les vrais ; celle-ci reste la sonde des classes). Mutations jouées, chacune casse son test :
+  `z-index` du lien retiré, anneau des cases retiré, halo de l'avatar retiré, `--color-gris` éclairci, bouton de 30 px, `tabIndex` positif, `CSP_MODE` en `report-only`, violations non relevées.
+- **`securitypolicyviolation` part aussi en `report-only`** : la garde y verrait la violation. Ce qui prouve `enforce`, c'est l'**effet** : le style injecté n'est pas appliqué, l'appel vers un hôte tiers échoue,
+  la violation porte `(enforce)`, et la réponse n'a pas `Content-Security-Policy-Report-Only`.
+- **Un `box-shadow` d'un bouton est en transition (90 ms)** : mesuré aussitôt après `Tab`, il rendait un halo de 7 px à moitié écrit. Les mesures attendent `document.getAnimations()` (les transitions finies y sont) ; F9 et la suite
+  qui mesurent un style le font aussi (`attendLeRepos`).
+- **Axe laisse « incomplet » (ni réussi ni violé) un texte de la couleur de son fond (1:1)** : le test de garde de la garde emploie une paire pâle sur menthe. Quelques titres sortent « incomplets » parce que le
+  décor les recouvre (soleil de la section « Lien d'évitement ») : ce ne sont pas des violations.
+- **`tsc -b` compile maintenant `playwright.config.ts` et `e2e/` (avec `DOM` dans `lib`)**, et `build:banc` lance `tsc -b` : une faute de type dans un e2e fait échouer le démarrage du serveur des tests (« Process from config.webServer was not
+  able to start »), non le test.
+- **`banc.html` sert à `/banc`** (`/banc.html?fige` répond `307` vers `/banc?fige`) ; le build du banc passe `verifie-build.mjs --banc` dans la CI.
+- **Les cases du code** : le champ réel est un `<input class="sr-seul">` dans `.cases` (la sonde de F8a). Le seul contrôle sous 44 px admis est ce champ caché (exception écrite dans `banc.cibles.spec.ts`) ;
+  F11 en fait un conteneur touchable (`.cases-champ`) et retire l'exception.
+- **WebKit n'a pas tourné en local** (bibliothèques système absentes, `sudo` demandé) : le projet `iphone` n'a été joué qu'en CI. Voir la PR pour son résultat.
+- Le job `banc` de la CI est une condition du déploiement de l'essai (`deploie-essai` en dépend), pas encore un `resultat` agrégé : ce job n'existe pas dans ce dépôt.
+
 ---
 
 ## Sources (vérifiées en ligne ou par essai le 13/11/2026)
