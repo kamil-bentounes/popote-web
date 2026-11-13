@@ -1455,6 +1455,26 @@ La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F
 - **À faire par F22** : le précache de `sw.js` exclut les woff2 (le motif par défaut de Workbox) : ajouter `woff2` aux `globPatterns` et tester les quatre fichiers.
 - `@tailwindcss/node` 4.3.4 est déclaré (le test de F6 l'importe).
 
+### Constats de F7 (revues adverses de la PR de F7, 13/11/2026) : ils priment sur le texte de F7
+
+- **Écarts au système, tous gardés par un test** (`css.test.ts` aplatit le système et le portage, compare règle à règle dans l'ordre, et fait échouer un écart non
+  nommé ou périmé) : `@font-face` retirés (dans `polices.css`) ; `.jeu` devient la règle `html` de `base.css` (police, graisse, taille, interligne, fond, encre) ;
+  `.jeu *` retiré (doublon du preflight) ; l'anneau de focus (encre de 4 px cerné de jaune) ajouté à `.cases:focus-within`, `.avatar:focus-visible` et
+  `.avatar--libre:focus-visible` ; **`@keyframes pulse` renommé `pulse-ondes`** (voir plus bas) ; `transition: none` du mouvement réduit en `!important`
+  (un utilitaire `transition-all`, d'une couche supérieure, la rendait). **À renvoyer à la session de design en F25** : ces écarts, à reprendre dans `.design/systeme/`.
+- **Collision de nom avec Tailwind** : Tailwind a ses propres `@keyframes pulse`, `spin`, `ping` et `bounce` ; au build, `pulse` écrasait celui de la marmite (l'état
+  « écoute » battait de `1` à `.5` au lieu de `.45` à `1`). Le test compile `index.css` et exige des `@keyframes` uniques, ceux de `composants.css`, sans l'un de ces quatre noms.
+- **Les anneaux de focus des cases et de l'avatar sont dans la couche des composants, non dans celle de base** (le plan disait `base.css`) : la couche de base ne battrait
+  pas le `box-shadow` de `.avatar`, qui est dans les composants.
+- **`[hidden]` n'est plus redéclaré** : le preflight de Tailwind pose déjà `[hidden]:where(:not([hidden="until-found"])) { display: none !important }`, qui gagne contre le
+  `display` des composants (rejoué en Chromium) et respecte `hidden="until-found"` ; un test lit le CSS compilé.
+- **Le lien d'évitement a `z-index: 100`** : sans lui, tout élément positionné qui le suit le recouvre (un `.soleil` de 700 px couvre le coin haut-gauche : le lien, bien focalisé,
+  serait invisible au clavier, WCAG 2.4.7 et 2.4.11). **F8 y ajoute une preuve en Chromium** : `elementFromPoint` sur le lien focalisé rend le lien, sur une page qui monte un `.soleil`.
+- **Contraste** : les paires sont **lues dans `composants.css`**, règle par règle (`color` et `background` d'une même règle ; texte hérité = encre ; règle sans fond = sur crème
+  et papier ; une surcouche telle que `voile` n'a pas de rapport). Une règle qui sépare texte et fond en deux règles n'est pas vue : le banc la mesure dans Chromium avec axe (F8).
+  Le seuil de linéarisation sRGB est `0,04045` (WCAG 2.2) ; sans effet sur des couleurs hexadécimales de 8 bits.
+- **Les textes d'une règle de mouvement réduit** (14 sélecteurs) sont comparés au système par l'équivalence, non par une liste courte.
+
 ---
 
 ## Sources (vérifiées en ligne ou par essai le 13/11/2026)
