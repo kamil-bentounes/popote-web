@@ -61,7 +61,7 @@ migrations jusqu'à 0146).
 | C15 | **Un garde-fou de rôle de la base est en `security invoker`**, pas `definer` : en `definer`, `current_user` vaut le propriétaire et la garde ne refuse jamais. La convention du dépôt : `if current_user <> 'authenticated' then return null` (verrou) ou refus de `authenticated` et `anon`. | `0095_budget_verrou.sql:30-48` (commentaire et `tg_verrou_instruction`), `0099`, `0101` |
 
 | C16 | **La demande de code de S5 est déjà fusionnée et teste le profil à la main** (`exists (… user_profile …)`, deux fois) : le plan ne peut pas dire « aucune fonction n'écrit `exists (… user_profile …)` » sans la redéfinir. | `0147_codes_de_connexion.sql:288` et `:300` ; A1 de 0.4bis |
-| C17 | **`public.compte_pour_acceptation(adresse text)` existe déjà** (colonnes `id`, `a_un_profil`) et sert l'appli en prod ; S13 la présentait comme un nom neuf. | `0089_le_lien_suffit.sql:57-69` ; `supabase/functions/accept-invite/index.ts:80`, `supabase/functions/invite/index.ts:42` ; A5 de 0.4bis |
+| C17 | **`public.compte_pour_invitation(adresse text)` existe déjà** (colonnes `id`, `a_un_profil`) et sert l'appli en prod ; S13 la présentait comme un nom neuf. | `0089_le_lien_suffit.sql:57-69` ; `supabase/functions/accept-invite/index.ts:80`, `supabase/functions/invite/index.ts:42` ; A5 de 0.4bis |
 | C18 | **L'Edge Function `accept-invite` insère le profil directement** (clé de service), sans passer par une fonction qui prenne un verrou : tout invariant « un profil créé efface la ligne de départ » doit vivre dans un déclencheur de `user_profile`, pas dans `accepte_invitation`. Elle disparaît à J+2 (spec du socle § 11). | `supabase/functions/accept-invite/index.ts:150-165` |
 | C19 | **Un mois ouvert garde ses lignes confirmées** : `refige_pour` ne supprime et ne repartage que `regle_le is null and confirme_le is null` ; la part d'une personne partie sur une ligne confirmée reste attachée à son identifiant (`depense_part` n'a pas de clé étrangère, C4). | `0100_budget_mois_gele.sql:167-199` |
 | C20 | **Les mises à jour du catalogue de recettes ne sont pas que sur `recipe`** : `recipe_update`, `recipe_ingredient_update`, `recipe_step_update`, `recipe_nutrition_update` testent `owner_household_id IS NULL OR …` (quatre politiques de `pg_policies` portent ce motif, relu en base). | relu en base (`pg_policies`) ; `0038_convive_frontiere.sql:103-111` |
@@ -82,10 +82,10 @@ migration ; revue adverse de chaque tâche F2 à F9 ; preuve sur l'essai (F11).
 
 ### Décisions déjà prises (13/11/2026, par le propriétaire, non rediscutées)
 
-- **Retirer l'autre membre** : réservé à la personne qui a créé le foyer. L'autre peut seulement partir d'elle-même.
+- **Retirer l'autre membre** : réservé au **responsable actuel** du foyer (`owner`, rôle transmis quand le responsable part). L'autre peut seulement partir d'elle-même.
 - **Quitter le foyer** : le compte est gardé **30 jours** (télécharger ses données, rejoindre un foyer par une nouvelle
   invitation), puis effacé ; rappel par mail à **J − 7**.
-- **Supprimer son compte** : immédiat. Si la personne qui a créé le foyer part et qu'il reste quelqu'un, celle-ci garde
+- **Supprimer son compte** : immédiat. Si le responsable du foyer part et qu'il reste quelqu'un, celle-ci garde
   le foyer et en devient responsable (mail « départ de l'autre »).
 - **Lien d'invitation** : 7 jours. Invitation envoyée par mail (prénom + e-mail), prénom modifiable par l'invité.
 - **Expéditeur** `Popote <bonjour@notre-popote.fr>` (Scaleway TEM). Le contrat de l'API peut encore rompre (la nouvelle
@@ -96,7 +96,7 @@ migration ; revue adverse de chaque tâche F2 à F9 ; preuve sur l'essai (F11).
 
 | Valeur | Choix | Pourquoi |
 |---|---|---|
-| Qui est `owner` | la personne qui a créé le foyer ; migration : **le plus ancien membre** (`created_at`, puis `id`) ; ensuite, **le premier profil d'un foyer est `owner`**, les suivants `member` (déclencheur, donc l'appli actuelle et ses Edge Functions continuent de marcher) | C1 ; la prod n'a qu'un foyer : à relire sur la copie de prod de la répétition (spec du socle § 11) |
+| Qui est `owner` (le **responsable** : celui du foyer à créer, puis celui à qui le rôle est transmis) | au départ : la personne qui a créé le foyer ; migration : **le plus ancien membre** (`created_at`, puis `id`) ; ensuite, **le premier profil d'un foyer est `owner`**, les suivants `member` (déclencheur, donc l'appli actuelle et ses Edge Functions continuent de marcher) | C1 ; la prod n'a qu'un foyer : à relire sur la copie de prod de la répétition (spec du socle § 11) |
 | Transfert du rôle | **par la base** (déclencheur après suppression d'un profil `owner` : le plus ancien membre restant devient `owner`), pas par le code Python | « le foyer n'a jamais zéro responsable » est un invariant, pas une étape que chaque route doit penser à faire |
 | Où va une personne qui part | **son profil est supprimé** ; `account_departure` garde son prénom, la date, la date d'effacement, l'identifiant de l'autre membre (son prénom se lit à la volée, il n'est jamais copié) et la copie de ses données | C2, C4 |
 | Délai avant effacement | **30 jours** = `left_at + interval '720 hours'` (pas `'30 days'` : `timestamptz + '30 days'` dépend du fuseau de la session et fausserait de une heure le CHECK au changement d'heure), rappel quand il reste 7 jours ou moins | décision du propriétaire |
@@ -105,7 +105,7 @@ migration ; revue adverse de chaque tâche F2 à F9 ; preuve sur l'essai (F11).
 | Prolongation d'un lien échu | **7 jours de grâce** après l'échéance (l'e-mail de l'invité est gardé jusque-là), pendant lesquels l'hôte peut « Renvoyer » ; un renvoi donne 7 jours de plus depuis l'envoi | sans l'e-mail, l'hôte ne peut plus renvoyer un lien échu ; question 4 |
 | Demande de nouveau lien (R1) | limites : **10 par IP et 3 par lien et par 15 min** ; **au plus un mail à l'hôte mis en file par 24 h et par invitation** (livré au moins une fois) ; pas de mail pour un lien annulé, accepté ou inconnu | décision (sécurité du point 4) ; un lien annulé par l'hôte est un refus de l'hôte |
 | Tâche quotidienne (R7) | une passe par jour à 04:11 UTC ; 20 comptes au plus par passe et par appel ; rappel à `scheduled_deletion_at − 7 jours` ; effacement à `scheduled_deletion_at` | C8 ; un foyer de deux personnes n'a jamais plus de quelques lignes |
-| File d'envoi (F1b) | table `mail_outbox` ; 5 tentatives, attente 1, 5, 30 min puis 6 h ; purge **7 jours après l'envoi** (30 jours au plus quoi qu'il arrive) ; **au moins une fois** | décision 2 du 13/11 |
+| File d'envoi (F1b) | table `mail_outbox` ; reprise à 1, 5, 30 min puis toutes les 6 h **jusqu'à l'échéance utile de chaque mail** (rappel : l'effacement ; avis : 7 jours ; demande de lien : 24 h), puis `abandoned` avec alerte et commande de remise en file ; purge **7 jours après l'envoi** (30 jours au plus quoi qu'il arrive) ; **au moins une fois** | décision 2 du 13/11 |
 | Drapeau d'effacement (F8) | `instance_setting.efface_les_departs`, **faux** par défaut, passé à vrai à J+2 quand les Edge Functions `accept-invite` et `invite` sont supprimées (spec du socle § 11) ; avant, la tâche rappelle mais n'efface pas | décision 4 du 13/11 |
 | Preuve récente | 300 s, pour R3, R4, `DELETE /me` (S11) ; pas pour l'export ni R1 | spec § 5 |
 
@@ -127,7 +127,7 @@ migration ; revue adverse de chaque tâche F2 à F9 ; preuve sur l'essai (F11).
 5. **Export (F10) complet au sens du droit d'accès** : données, sessions, événements de sécurité, photos, mails envoyés. Plus d'« export partiel »
    présenté comme droit d'accès.
 6. **Idempotence** : les réponses gardées d'une personne sont supprimées à tout départ ou retrait, sous le même verrou.
-7. **`compte_pour_acceptation` existe déjà** (0089, appelée par les Edge Functions) : la fonction de S13 a un nom neuf, `compte_pour_acceptation`.
+7. **`compte_pour_invitation` existe déjà** (0089, appelée par les Edge Functions) : la fonction de S13 a un nom neuf, `compte_pour_acceptation`.
 8. **Catalogue** : l'écriture est fermée pour une personne sans foyer sur `recipe` **et** ses sous-tables ; le test parcourt **toutes les
    politiques réelles de la base**, pas une liste écrite à la main.
 9. **Mails « Jeu »** : la marmite est **autorisée**, en image statique servie par `notre-popote.fr`, même adresse pour tous, sans paramètre,
@@ -257,12 +257,12 @@ flowchart LR
 | **T** Foyer sans responsable (suppression directe d'un profil, `auth.users` effacé à la main) | L6 | déclencheur `AFTER DELETE` qui promeut le plus ancien membre restant ; requête de contrôle dans les tests (chaque foyer non vide a exactement un `owner`) | F2 |
 | **T** Une session de la personne retirée survit à son retrait (leçon 1 de T15b) | L3, L6 | un seul appel SQL : verrou du foyer, verrou de personne (même clé que `cree_session`), fermeture de **toutes** les sessions, des codes en attente et des sessions GoTrue ; course déterministe (B = connexion par code ou par clé attend le verrou ; A valide ; la session que B ouvre ensuite n'a aucun accès au foyer) | F5 |
 | **I** Une personne sans foyer lit ou écrit le foyer | L3 | trois couches : (1) RLS (pas de profil, `current_household()` nul) ; (2) dépendance `PersonneDuFoyer` (`403 aucun_foyer`) sur toute route de foyer ; (3) tests de base sur les 51 tables, lecture et écriture, avec une session ouverte **avant** le départ ; la matrice d'autorisation gagne l'acteur « sans foyer » | F2, F3, F11 |
-| **I** La copie des données (revenus, objectifs) d'une personne partie fuit | L6 | table à RLS forcée sans droit ; lue seulement par la route d'export de la **même** personne ; 4 Mio au plus ; effacée à l'acceptation d'une invitation, à la suppression, à l'effacement ; jamais journalisée ; sauvegardes : 30 jours de plus, dit | F3, F10 |
+| **I** La copie des données (revenus, objectifs) d'une personne partie fuit | L6 | table à RLS forcée sans droit ; lue seulement par la route d'export de la **même** personne ; sans limite de taille, **construite en moins de 5 s sur trois ans de données** (prouvé en F3) ; effacée à l'acceptation d'une invitation, à la suppression, à l'effacement ; jamais journalisée ; sauvegardes : 30 jours de plus, dit | F3, F10 |
 | **S/I** Énumération des liens par R1 (existence, état, hôte) | L4 | `202` constant ; **un seul** appel SQL au même nombre d'écritures pour lien connu et inconnu ; limites calculées sur la valeur envoyée (HMAC du jeton), pas sur l'existence ; `429` pour tous ; test de médianes | F9 |
-| **D** Inondation de l'hôte (ou du quota TEM) par R1 | L4, L12 | un mail par 24 h et par invitation (colonne `renewal_mail_sent_at`, réservée avant l'envoi, libérée si l'envoi échoue) ; 10 par IP et 3 par lien par 15 min ; coupe-circuit global de S5 à l'envoi réel ; un lien annulé, accepté ou inconnu n'envoie rien | F9 |
+| **D** Inondation de l'hôte (ou du quota TEM) par R1 | L4, L12 | une mise en file par fenêtre de 24 h et par invitation (clé de dédoublonnage `invitation:fenêtre`, F9) ; 10 par IP et 3 par lien par 15 min ; coupe-circuit global de S5 à l'envoi réel ; un lien annulé, accepté ou inconnu n'envoie rien | F9 |
 | **I** Jeton en clair (base, journal, idempotence, mail du retrait) | L4 | R1 n'a pas d'`Idempotency-Key` (route publique, exemptée par écrit) ; le jeton n'est jamais stocké (empreinte) ; balayage de `caplog` ; **le HTML du mail d'invitation porte le lien comme le texte** : même exposition (TEM garde le contenu 36 h au plus) | F1, F9 |
 | **T** Course entre l'effacement quotidien et l'acceptation d'une invitation | L8 | la fonction d'effacement relit, **sous le verrou de personne**, « pas de profil, ligne présente, échéance passée » ; l'acceptation efface la ligne par un déclencheur sur `user_profile` (donc par tout chemin qui crée un profil) ; course déterministe | F3, F7, F8 |
-| **D** Le compte à effacer ne l'est pas (la tâche ne passe pas : pause de la base, `pg_cron` absent) ou n'est vidé qu'à moitié (coupure entre la base et Auth) | L8 | workflow GitHub Actions **en doublon** qui échoue si le statut n'est pas `200` ou si `overdue` > 0 ; script manuel `ops/traite_les_departs.py` ; **la tâche vide aussi `compte_a_supprimer`** ; rejouable : la route est idempotente par construction | F8 |
+| **D** Le compte à effacer ne l'est pas (la tâche ne passe pas : pause de la base, `pg_cron` absent) ou n'est vidé qu'à moitié (coupure entre la base et Auth) | L8 | workflow GitHub Actions **en doublon** qui échoue si le statut n'est pas `200` ou si `due` > 0 ou `abandoned` > 0 ; script manuel `ops/traite_les_departs.py` ; **la tâche vide aussi `compte_a_supprimer`** ; rejouable : la route est idempotente par construction | F8 |
 | **T** Rejeu d'un appel signé de la tâche (300 s de fenêtre) | L8 | route sans effet de plus la seconde fois (état relu en base) ; `base.service()` ajouté à la liste fermée de `tests/unit/test_architecture.py` avec sa raison | F8 |
 | **T/R** Pas de trace d'un retrait, d'un départ, d'un transfert | — | événements `foyer_quitte`, `membre_retire`, `role_transfere`, `depart_efface`, `renouvellement_demande` (identifiants et HMAC, jamais d'adresse ni de prénom) ; la liste `Evenement` Python égale le CHECK SQL | F3, F5, F8, F9 |
 | **I** Prénom piégé dans un mail HTML ou dans un objet (script, attribut, entité, hameçonnage) | L12 | `html.escape` sur toute valeur insérée, **testé sur le rendu seul** avec des valeurs hostiles, en plus du filtre `prenom_affichable` (durci en S3b) ; le prénom de l'hôte est le **seul** prénom admis dans un objet (invitation, retrait), filtré, coupé à 30 caractères, objet de repli sinon ; liens construits côté serveur, schéma `https` vérifié | F1 |
@@ -286,6 +286,9 @@ flowchart LR
 - **R-D. Jusqu'à la fermeture de la base (J+2, 0.7), une session Supabase peut appeler directement les fonctions de départ** et contourner la
   preuve récente (appliquée par l'API) ; elle ne reçoit aucune adresse (C14). Même limite que `delete_my_account`.
 - **R-E. Les mails de la file sont livrés « au moins une fois »** : un doublon est possible si le processus meurt entre l'acceptation par TEM et l'écriture « envoyé » (l'identifiant rendu par TEM est gardé pour le retrouver dans la console) ; aucun mail n'est perdu tant que la base est là.
+- **R-F. Un lien d'invitation transféré par mail révèle à qui le tient si l'adresse de l'invité a déjà un compte** (`409 compte_existant`, rendu sans autre
+  preuve que le jeton quand le lien vient du mail ; le risque 9 de 0.4bis ne couvrait que le lien de secours, qui exige un code). **Accepté** ; **l'erreur
+  de code reste uniforme** (`401 code_incorrect` : faux, expiré, épuisé).
 
 ## Données personnelles de 0.4ter
 
@@ -304,7 +307,7 @@ données sensibles au sens de l'art. 9, pas de profilage, pas d'évaluation de p
 | Événements `foyer_quitte`, `membre_retire`, `role_transfere`, `depart_efface`, `renouvellement_demande` | preuve, détection | `security_event` | 1 an ; aucune adresse, aucun prénom |
 | Clés de limite de R1 (HMAC de l'IP et du jeton) | limiter | `login_throttle` | 24 h après la dernière activité (purge de 0138) |
 | Objet et destinataire des mails | livraison | Scaleway TEM | tant que le domaine d'envoi est actif ; **l'objet ne porte aucun code ; le prénom de l'hôte (tiers, filtré, 30 caractères au plus) n'y figure que dans deux objets (invitation, retrait du foyer)** : TEM le garde autant que le destinataire ; contenu effacé à la remise, au premier rebond dur ou après 36 h (sources de 0.4bis) |
-| File d'envoi `mail_outbox` (genre, personne destinataire, prénoms nécessaires au texte, état, tentatives, identifiant TEM) | ne perdre aucun mail qui compte | table à RLS forcée, aucun droit | **7 jours après l'envoi, 30 jours au plus** ; **aucune adresse** (lue à l'envoi par `contact_de`) ; effacée avec le compte (`efface_le_compte`) |
+| File d'envoi `mail_outbox` (genre, personne destinataire, prénoms nécessaires au texte, état, tentatives, identifiant TEM) | ne perdre aucun mail qui compte | table à RLS forcée, aucun droit | **7 jours après l'envoi, 30 jours au plus** ; **aucune adresse** (lue à l'envoi par `prend_les_mails`) ; `params` effacés dès la remise ; les comptes cités sont notés (`concerned_persons`) ; effacée avec le compte (`efface_le_compte`) |
 
 ## Règles d'exécution (valables pour chaque tâche)
 
@@ -349,7 +352,7 @@ modifiées une fois fusionnées ; « expand seulement » ; `verrouille_la_person
 | Route | Qui | Réponses |
 |---|---|---|
 | `GET /api/v1/household` (**R2**) | session, foyer | `200 {id, name, seats, members: [{id, first_name, role, is_me}]}` (`ETag`, `no-store`) ; `403 aucun_foyer` |
-| `GET /api/v1/me` (**R5**, ajouts compatibles) | session | `200 {…, household, role, scheduled_deletion_at, left_household_at, former_host_first_name}` : `role` (`owner`, `member` ou `null`), les trois autres `null` tant qu'on est dans un foyer |
+| `GET /api/v1/me` (**R5**, ajouts compatibles) | session | `200 {…, household, role, scheduled_deletion_at, left_household_at, left_reason, other_member_first_name}` : `role` (`owner`, `member` ou `null`), les trois autres `null` tant qu'on est dans un foyer |
 | `POST /api/v1/me/household-departure` (**R3**) | session, foyer, preuve récente | `200 {left_at, scheduled_deletion_at}` ; `403 aucun_foyer`, `403 reauthentification_requise` ; `409 seule_dans_le_foyer` ; `503`. **Sans `Idempotency-Key`** (exemption écrite : C6) |
 | `DELETE /api/v1/household/members/{member_id}` (**R4**) | session, `owner`, preuve récente | `204` ; `403 reserve_au_createur` (avant la preuve) ; `403 reauthentification_requise` ; `404 membre_introuvable` (inconnu **ou** d'un autre foyer) ; `409 retrait_de_soi` ; `403 aucun_foyer` ; `503` |
 | `DELETE /api/v1/me` (**R6**, comportement) | session, preuve récente | `204` ; **inchangée côté contrat** ; transfert du rôle et mail « départ de l'autre » ; `503 suppression_incomplete` comme avant |
@@ -360,8 +363,8 @@ modifiées une fois fusionnées ; « expand seulement » ; `verrouille_la_person
 | **R9** `GET /api/v1/welcome` | — | **étape 0.5** |
 
 Types d'erreur nouveaux (`https://notre-popote.fr/problemes/<code>`) : `aucun_foyer` (403), `seule_dans_le_foyer` (409),
-`reserve_au_createur` (403), `membre_introuvable` (404), `retrait_de_soi` (409), `foyer_complet` (409, posé par S12 et
-S13 amendés). Réutilisés : `reauthentification_requise`, `trop_de_requetes`, `invitation_deja_en_attente`,
+`reserve_au_createur` (403 ; le nom du type est celui de la spec, le droit appartient au **responsable actuel**), `membre_introuvable` (404), `retrait_de_soi` (409), `foyer_complet` (409), `deja_dans_un_foyer` (409, personne dont la session a déjà un foyer, posés par S12 et S13 amendés),
+`invitation_expiree` (410, avec `host_first_name`, A4). Réutilisés : `reauthentification_requise`, `trop_de_requetes`, `invitation_deja_en_attente`,
 `quota_invitations`, `suppression_incomplete`. Un seul statut par `type` : `aucun_foyer` est `403` partout (c'est
 aussi la valeur de S12) ; le plan front d'« Entrer » (E1) qui écrivait `404` sans foyer lit le `type`, pas le statut.
 
@@ -371,14 +374,14 @@ aussi la valeur de S12) ; le plan front d'« Entrer » (E1) qui écrivait `404` 
 |---|---|---|---|---|
 | 0158 | F1b | `mail_outbox` (RLS forcée, aucun droit) ; `private.met_en_file`, `public.prend_les_mails`, `confirme_l_envoi`, `echec_d_envoi` ; purge `pg_cron` | table et fonctions neuves | `cron.unschedule`, `drop function`, `drop table` (vider la file d'abord) |
 | 0159 | F2 | `user_profile.role` (défaut `member`, CHECK), remplissage par le plus ancien membre, index unique partiel (un `owner` par foyer), déclencheurs : rôle à l'insertion (`definer`), garde de la modification (**`invoker`**), transfert à la suppression (`definer`) | colonne avec défaut ; `create_household` et les Edge Functions insèrent sans `role` et obtiennent `owner` puis `member` ; `delete_my_account` (qui appelle `efface_mes_donnees`) transfère par le déclencheur ; prouvé par `tests/db` (`invitation`, `isolation`, `budget-depart`) | `drop trigger` ×3, `drop index`, `drop column role` |
-| 0160 | F3 | `account_departure` (RLS forcée, aucun droit) et ses lectures `ma_sortie()`, `mon_export()` ; les quatre politiques de mise à jour du catalogue de recettes (`current_household() is not null`) ; déclencheur de retour ; `efface_le_compte` redéfinie ; `idempotency_key.person_id` : clé étrangère vers `auth.users` au lieu de `user_profile` ; `private.personne_peut_entrer` redéfinie ; `private.export_de_la_personne` ; `public.quitte_le_foyer()` ; déclencheur « un profil créé efface la ligne de départ » ; `private.efface_le_compte` redéfinie (efface aussi la ligne) ; types d'événement et colonnes d'événement | tables et fonctions neuves ; **seul objet existant touché : la clé étrangère de `idempotency_key`**, relâchée (`not valid`, validation, retrait de l'ancienne) : l'appli en ligne n'écrit pas dans cette table (0135 date de 0.3) | rétablir la clé étrangère vers `user_profile` (après `delete from idempotency_key where person_id not in (select id from user_profile)`), `drop` des objets, CHECK d'avant |
+| 0160 | F3 | `account_departure` (RLS forcée, aucun droit) et ses lectures `ma_sortie()`, `mon_export()` ; les quatre politiques de mise à jour du catalogue de recettes (`current_household() is not null`) ; déclencheur de retour ; `efface_le_compte` redéfinie ; `idempotency_key.person_id` : clé étrangère vers `auth.users` au lieu de `user_profile` ; `private.personne_peut_entrer` redéfinie ; `private.export_de_la_personne` ; `public.quitte_le_foyer()` ; déclencheur « un profil créé efface la ligne de départ » ; `private.efface_le_compte` redéfinie (efface aussi la ligne) ; types d'événement et colonnes d'événement | tables et fonctions neuves ; **seul objet existant touché : la clé étrangère de `idempotency_key`**, relâchée (`not valid`, validation, retrait de l'ancienne) : l'appli en ligne n'écrit pas dans cette table (0135 date de 0.3) | retour en deux temps : d'abord le code, puis `drop function` et déclencheur ; `account_departure` n'est supprimée qu'après export manuel de ses copies ; la clé étrangère d'idempotence **ne revient pas** vers `user_profile` tant qu'il existe des lignes pour des personnes sans profil (la nouvelle est inoffensive) ; politiques du catalogue et CHECK d'avant |
 | 0161 | F5 | `public.retire_un_membre(p_membre)` ; `private.ferme_toutes_les_sessions_de(p_person)` ; type `membre_retire` | fonctions neuves | `drop function` ×2, CHECK d'avant |
 | 0162 | F6 | `public.efface_mes_donnees_avec_bilan()` (nouveau nom : `efface_mes_donnees()` garde sa signature, qui est celle d'`delete_my_account`) | fonction neuve ; `efface_mes_donnees()` l'appelle et jette le bilan | `drop function`, `efface_mes_donnees` d'avant |
 | 0163 | F8 | `public.departs_a_traiter`, `public.met_en_file_le_rappel_de_depart`, `public.efface_un_compte_expire`, `public.comptes_a_vider` (service seul) ; table `depart_passe` ; réglage `efface_les_departs` ; `public.appelle_les_departs()` et sa planification `pg_cron` (tolérante) ; types `depart_efface`, `rappel_depart_envoye` | fonctions neuves ; la planification est posée seulement si `pg_cron` existe, et ne fait rien tant que les secrets du coffre manquent | `cron.unschedule('departs-quotidiens')`, `drop function` |
 | 0164 | F9 | `public.demande_un_renouvellement` (publique, `popote_api` seul) ; scopes `renouvellement_ip` et `renouvellement_lien` ajoutés au CHECK de `login_throttle` ; type `renouvellement_demande` | objets neufs ; un CHECK élargi | `drop function`, CHECK d'avant |
 | 0165 | F10a | `public.mes_traces()` (sessions, événements, clés, mails de la personne ; cadrée sur `auth.uid()`, sans adresse ni empreinte) | fonction neuve | `drop function` |
 
-(Les colonnes `renewal_requested_at` et `renewal_mail_sent_at`, l'e-mail gardé 7 jours de plus, la prolongation par
+(Les colonnes `renewal_requested_at` et `renewal_mail_queued_at`, l'e-mail gardé 7 jours de plus, la prolongation par
 renvoi et le relâchement de `invite_link_check` sont dans la migration 0154 de S12, amendée : A4.)
 
 ## Ordre et voies
@@ -475,42 +478,61 @@ marmite du système « Jeu » par la session de design, 2 Ko à 20 Ko), servi pa
 ### F1b : La file d'envoi persistante des mails (migration 0158)
 
 **Pourquoi :** décision 2 du 13/11 ; revue de #42 : un mail « après la réponse » se perd si le processus meurt, et « un seul mail » est
-impossible à garantir (TEM accepte, le processus meurt avant d'écrire « envoyé »). **Dépend de :** S3, S4, F1. Tous les effets qui
-préviennent quelqu'un (F3, F5, F6, F8, F9) écrivent dans cette file.
+impossible à garantir (TEM accepte, le processus meurt avant d'écrire « envoyé »). **Dépend de :** S3, S4, F1. **Quatre mails seulement**
+passent par la file : le rappel J − 7, l'avis de départ (« départ de l'autre »), l'avis de retrait, la demande de nouveau lien. **Le
+code de connexion, l'invitation et les avis de S10b restent « au mieux »** (envoyés après la réponse, sans file : un code se redemande, le
+renvoi d'une invitation est visible à l'écran et son statut `failed` aussi).
 
 **Fichiers :** `supabase/migrations/0158_file_d_envoi.sql`, `src/popote_api/infra/file_d_envoi.py`, `infra/mails.py`
-(`EnvoiMail` rend `str | None` : l'identifiant de TEM), `infra/mail_scaleway.py`, `tests/integration/test_file_d_envoi.py`,
-`tests/unit/test_file_d_envoi.py`, `tests/integration/test_surface.py`, `docs/schema.md`, `docs/securite.md`, `docs/exploitation.md`.
+(`EnvoiMail` rend `str | None` : l'identifiant de TEM), `infra/mail_scaleway.py`, `ops/remet_en_file.py`,
+`tests/integration/test_file_d_envoi.py`, `tests/unit/test_file_d_envoi.py`, `tests/integration/test_surface.py`, `docs/schema.md`,
+`docs/securite.md`, `docs/exploitation.md`.
 
 - [ ] **`mail_outbox`** : `id uuid primary key`, `kind text` (CHECK : `rappel_effacement`, `demande_de_lien`, `retrait_du_foyer`,
   `depart_de_l_autre`), `person_id uuid not null references auth.users (id) on delete cascade` (le destinataire ; **aucune adresse
-  n'est stockée** : elle est lue à l'envoi), `params jsonb not null` (les prénoms et dates que le texte exige, 2 Kio au plus, forme
-  vérifiée par genre), `dedupe_key text` (index unique partiel `(kind, dedupe_key)` : **un seul mail mis en file par événement**), `state`
+  n'est stockée** : elle est lue à l'envoi), **`concerned_persons uuid[] not null`** (les **autres** comptes dont les données figurent
+  dans `params` ; index GIN : `efface_le_compte(p)` supprime les lignes où `p` est destinataire **ou** figure dans cette liste),
+  `params jsonb not null` (les prénoms et dates que le texte exige, 2 Kio au plus, forme vérifiée par genre), `dedupe_key text` (index unique
+  `(kind, dedupe_key)` : **un seul mail mis en file par événement**), `deadline_at timestamptz not null` (l'**échéance utile** du mail :
+  rappel J − 7 → l'effacement du compte ; avis de départ ou de retrait → 7 jours après la mise en file ; demande de lien → 24 h), `state`
   (`queued`, `sending`, `sent`, `abandoned`), `attempts smallint`, `next_attempt_at`, `claimed_until`, `provider_id text`, `created_at`,
   `sent_at`. **RLS activée et forcée, aucun droit.**
-- [ ] **`private.met_en_file(p_kind, p_person, p_params, p_dedupe_key)`** (appelée par les fonctions d'effet, **dans leur transaction** :
-  si l'effet est annulé la ligne l'est aussi ; `on conflict (kind, dedupe_key) do nothing`) ; **`public.prend_les_mails(p_ids uuid[],
-  p_limite int)`** (`popote_api` seul : prend les lignes à envoyer (`queued` échues, ou `sending` dont `claimed_until` est passé) par
+- [ ] **`private.met_en_file(p_kind, p_person, p_concerned, p_params, p_dedupe_key, p_echeance)`** (appelée par les fonctions d'effet,
+  **dans leur transaction** : si l'effet est annulé la ligne l'est aussi ; `on conflict (kind, dedupe_key) do nothing`) ; **`public.prend_les_mails(p_ids
+  uuid[], p_limite int)`** (`popote_api` seul : prend les lignes à envoyer (`queued` échues, ou `sending` dont `claimed_until` est passé) par
   `for update skip locked`, pose `claimed_until = now() + 2 minutes`, `attempts + 1`, et rend adresse, prénom et paramètres : **seule
-  fonction qui rend une adresse**, ne tourne que sous `popote_api`) ; **`public.confirme_l_envoi(p_id, p_provider_id)`** (état `sent`,
-  `sent_at`, identifiant TEM) ; **`public.echec_d_envoi(p_id)`** (prochaine tentative après 1, 5, 30 minutes puis 6 heures ; **abandon à la
-  cinquième**, événement de journal par type seul) ; **`private.purge_mail_outbox`** (`pg_cron` nocturne : 7 jours après `sent_at`, 30 jours
-  au plus après `created_at`).
+  fonction qui rend une adresse**) ; **`public.confirme_l_envoi(p_id, p_provider_id)`** (état `sent`, `sent_at`, identifiant TEM, **et
+  `params` remis à `{}` : les paramètres sont effacés dès la remise**) ; **`public.echec_d_envoi(p_id)`** : la reprise se fait avec un
+  **délai croissant** (1, 5, 30 minutes, puis toutes les 6 heures) **jusqu'à `deadline_at`** ; **passé `deadline_at`, la ligne devient
+  `abandoned`**, un événement de journal (type `mail_abandonne`, par genre, sans adresse) s'écrit et **une erreur est journalisée** : c'est
+  l'alerte (Sentry viendra plus tard) ; la réponse de la tâche quotidienne (F8) compte `abandoned` et le workflow de F8 échoue s'il est
+  positif ; **`public.remet_en_file(p_id uuid)`** (service seul : repasse `abandoned` en `queued`, `attempts` à 0, **nouvelle
+  échéance** de la même durée) appelée par **`ops/remet_en_file.py`** (une ligne, ou `--tous-les-abandonnes`, dit dans
+  `docs/exploitation.md`) ; **`private.purge_mail_outbox`** (`pg_cron` nocturne : 7 jours après `sent_at`, 30 jours au plus après
+  `created_at`, abandons compris : un abandon se remet en file dans les 30 jours ou se perd).
 - [ ] **`infra/file_d_envoi.py`** : `vide_la_file(ids)` appelée **après la réponse** par chaque route qui vient d'écrire des lignes
   (`BackgroundTasks`, `envoie_sans_remonter`) et par la tâche quotidienne de F8 (reprises) ; elle rend le texte par `rendu` (F1), envoie,
   puis `confirme_l_envoi` avec l'identifiant de TEM ; un échec appelle `echec_d_envoi` ; l'annulation propage. **Sémantique « au moins
-  une fois » écrite dans `docs/securite.md`** : un doublon est possible si le processus meurt entre l'acceptation par TEM et
-  `confirme_l_envoi` (l'identifiant TEM, gardé, retrouve les deux dans la console) ; aucun mail n'est perdu tant que la base est là.
+  une fois », écrite dans `docs/securite.md`** : un doublon est possible si le processus meurt entre l'acceptation par TEM et
+  `confirme_l_envoi` ; **dans ce cas l'identifiant TEM du premier envoi est inconnu (il n'a jamais été écrit)** : le doublon se repère dans la
+  console TEM (même destinataire, même objet, même heure), pas par identifiant ; **un mail n'est perdu que s'il est abandonné après son
+  échéance utile, et cela se voit** (journal, réponse de F8, workflow).
+- [ ] **Les mails de départ et de retrait citent la personne partie** : ils sont écrits **après** `efface_le_compte` de cette personne
+  (suppression de compte) et ne la listent donc pas dans `concerned_persons` : son prénom y reste **jusqu'à la remise**, puis `params` est
+  effacé (30 jours au plus dans tous les cas) : c'est la finalité du message (prévenir l'autre).
 - Cas de test : la ligne est écrite **dans la transaction de l'effet** (annulation de l'effet : aucune ligne) ; deux travailleurs en
   parallèle prennent des lignes différentes (`skip locked`), jamais la même ; **processus tué après la prise** (`claimed_until` passé) →
   reprise ; **tué après l'acceptation par TEM et avant `confirme_l_envoi` → renvoi (doublon) : le test écrit que c'est le comportement
-  voulu** ; échecs successifs : délais 1, 5, 30 minutes, 6 heures, abandon à la cinquième ; clé de dédoublonnage : un second événement
-  de même clé ne met rien en file ; aucune adresse dans la table ni dans `caplog` ; `params` borné ; la personne supprimée : ses lignes
-  partent (`efface_le_compte`) ; purge (7 jours après l'envoi, 30 au plus) ; surface : `anon`, `authenticated` sans droit,
-  `prend_les_mails` à `popote_api` seul ; test d'architecture : `base.connexion()` pour `prend_les_mails` ajouté à la liste fermée avec sa
-  raison.
+  voulu et que l'identifiant du premier envoi est absent** ; échecs successifs : délais 1, 5, 30 minutes puis 6 heures **jusqu'à
+  l'échéance**, un rappel J − 7 est repris **jusqu'à l'effacement**, un avis 7 jours, une demande de lien 24 h ; **passé l'échéance :
+  `abandoned`, erreur journalisée, événement, compté dans la réponse de F8** ; `remet_en_file` et `ops/remet_en_file.py` (une ligne,
+  tous) remettent à `queued` avec une nouvelle échéance, **testés** ; clé de dédoublonnage : un second événement de même clé ne met rien en
+  file ; **`params` vide après la remise** ; **`efface_le_compte(Sam)` supprime la ligne destinée à Léa qui cite Sam dans `concerned_persons`**
+  et celles dont Sam est destinataire ; aucune adresse dans la table ni dans `caplog` ; `params` borné ; purge (7 jours après l'envoi,
+  30 au plus) ; surface : `anon`, `authenticated` sans droit, `prend_les_mails` et `remet_en_file` hors de `authenticated` ; test
+  d'architecture : `base.connexion()` pour `prend_les_mails` ajouté à la liste fermée avec sa raison.
 - Mutations : marquer « envoyé » avant l'envoi ; prendre sans `skip locked` ; stocker l'adresse ; ignorer la clé de dédoublonnage ;
-  oublier la purge.
+  abandonner avant l'échéance utile ; garder `params` après la remise ; oublier `concerned_persons` dans `efface_le_compte` ; oublier la purge.
 - **Retour arrière :** `cron.unschedule`, `drop function`, `drop table mail_outbox` (les mails en attente sont perdus : à vider d'abord par
   `ops/traite_les_departs.py`).
 
@@ -542,7 +564,7 @@ préviennent quelqu'un (F3, F5, F6, F8, F9) écrivent dans cette file.
   `LIT_MOI`), `{id, name, seats: 2, members: [{id, first_name, role, is_me}]}` triés (`owner` d'abord) ; `first_name` vaut
   `null` si le prénom est vide ; `ETag` et `no-store`, comme `GET /me`.
 - [ ] `GET /api/v1/me` : `role` (`owner`, `member`, `null`) ; `scheduled_deletion_at`, `left_household_at`,
-  `former_host_first_name` (`null` tant qu'on est dans un foyer ; remplis par F3). Ajouts compatibles.
+  `left_reason` et `other_member_first_name` (`null` tant qu'on est dans un foyer ; remplis par F3). Ajouts compatibles.
 - Cas de test : foyer d'une personne, de deux ; `is_me` vrai pour une seule ligne ; `first_name` vide → `null` ; une
   personne d'un autre foyer ne lit rien (`GET` ne prend aucun identifiant) ; sans profil → `403 aucun_foyer` ; sans
   session → `401` ; **`member` qui exécute `update user_profile set role = 'owner'` sous `authenticated` → refusé avec le code `42501` (pas `23505` : le test épingle le code, sinon seul l'index unique parlerait), rien changé ; l'`owner` ne peut pas se rétrograder, ni le membre se promouvoir ensuite ; le déclencheur de promotion passe malgré la garde** ; deux `owner` refusés par l'index ; l'insertion d'un premier profil donne `owner`, du second `member`,
@@ -570,9 +592,11 @@ personne), S11, S12 amendé (liens), S14 amendé (A6 : `private.sort_du_foyer`, 
 
 - [ ] **`account_departure`** : `person_id uuid primary key references auth.users (id) on delete cascade`, `first_name
   text`, `left_at timestamptz not null`, `scheduled_deletion_at timestamptz not null` (CHECK : `= left_at + interval '720 hours'`,
-  pas `'30 days'` : dépendant du fuseau de la session, un `UPDATE` quelconque réévaluerait la contrainte), `former_host_id uuid
-  references public.user_profile (id) on delete set null` (indexé ; le prénom de l'autre se lit à la volée, jamais copié),
-  `removed_by uuid references public.user_profile (id) on delete set null` (nul : elle est partie d'elle-même), `reminder_queued_at`
+  pas `'30 days'` : dépendant du fuseau de la session, un `UPDATE` quelconque réévaluerait la contrainte), `other_member_id uuid
+  references public.user_profile (id) on delete set null` (**la personne restée dans le foyer**, ou `null` ; indexé ; son prénom se lit à la volée, jamais
+  copié),
+  `left_reason text not null check (left_reason in ('left', 'removed'))` (partie d'elle-même, ou retirée par le responsable),
+  `removed_by uuid references public.user_profile (id) on delete set null` (nul quand `left_reason = 'left'`), `reminder_queued_at`
   (le rappel est mis en file une fois, F8), `archive jsonb not null` (**aucune limite de taille, aucune troncature** : voir la copie
   ci-dessous). **RLS activée et forcée, aucun droit** pour
   personne ; on n'y accède que par des fonctions.
@@ -588,13 +612,16 @@ personne), S11, S12 amendé (liens), S14 amendé (A6 : `private.sort_du_foyer`, 
 - [ ] **`private.export_de_la_personne(p_person) returns jsonb`** : **ses seules données** : profil (`display_name`,
   `entre_le`, `created_at`), `nutrition_target`, `revenu`, comptes `perso`, charges où elle est la seule participante,
   `depense_part` et `saisie` (`saisi_par`) qui sont à elle, `meal_slot`, `rappel_reglage`, `rappel_envoye`,
-  `aide_signalement`, `versement_epargne` et `cloture_choix` à son identifiant. **Garde-fou** : un test d'introspection
+  `aide_signalement`, `versement_epargne` et `cloture_choix` à son identifiant, **les recettes dont elle est l'auteure (`recipe.created_by` : identifiant, titre, date : l'identifiant d'auteur est une donnée relative à la personne ; la recette reste au foyer, sa fiche n'est pas copiée)**. **Garde-fou** : un test d'introspection
   (comme `tables_de_foyer()` et `rgpd.test.ts` pour `export_my_data`) échoue quand une colonne qui désigne une personne
   (`user_profile_id`, `titulaire_id`, `saisi_par`, `for_user_id`, `user_id`, `assignee_id`, `paye_par`, `modifie_par`,
   `cloture_par`, `by_user_id`, `person_id`, `created_by`, `accepted_by`) n'est ni dans l'export ni dans une **liste
-  d'exceptions écrite avec sa raison** (par exemple `recipe.created_by` : la recette est au foyer ; `portion.for_user_id` :
-  la barquette est au foyer). Pas d'adresse e-mail dans la copie (elle est dans Auth) ; l'export HTTP (F10) l'ajoute. **Taille** : **aucune limite, aucune troncature** (un droit d'accès ne se
-  tronque pas ; la taille d'une copie sur un foyer de deux ans est mesurée en F11 et écrite dans `docs/preuves-0.2.md`).
+  d'exceptions écrite avec sa raison** (par exemple `portion.for_user_id` : la barquette est au foyer, sans lien avec une personne une fois le profil parti ; **`recipe.created_by` n'est plus une exception**). Pas d'adresse e-mail dans la copie (elle est dans Auth) ; l'export HTTP (F10) l'ajoute. **Taille et durée** : **aucune limite de taille, aucune troncature** (un droit d'accès ne se tronque pas) ;
+  **la durée est bornée et prouvée** : `quitte_le_foyer` et `retire_un_membre` portent leur propre `set statement_timeout = '20s'` (sous les 25 s de la
+  route, `limites.Delai`, et au-dessus des 8 s des transactions de personne, `infra/db.py:52`) ; **test : un foyer semé sur trois ans de données
+  réalistes (charges, lignes de budget, repas, saisies) est copié en moins de 5 s, le départ entier en moins de 15 s** ; si la mesure dépasse, la
+  copie se construit **hors de la transaction de la route** (route en deux temps : `POST …/household-departure-preparations` fige la copie dans une
+  table tampon, puis le départ la reprend sous les verrous) : le choix se fait sur la mesure, écrite dans `docs/preuves-0.2.md`.
   Les lignes de `depense_part`, `cloture_choix` et `versement_epargne` qui portent son identifiant et **restent** au foyer (C4) sont dans la
   copie.
 - [ ] **Deux lectures pour l'API** (`security definer`, `execute` à `authenticated` seul, cadrées sur `auth.uid()`, car
@@ -611,8 +638,8 @@ personne), S11, S12 amendé (liens), S14 amendé (A6 : `private.sort_du_foyer`, 
   son compte) ; (5) copie ses données (`export_de_la_personne`) ; (6) **`private.revoque_les_liens_de(auth.uid())`** (fonction commune de S14, A6 : révoque ses liens en attente et efface
   prénom et e-mail de l'invité **avant** de supprimer le profil, C11 : `created_by` passerait à `null`) ; (7)
   **`private.sort_du_foyer(auth.uid())`** (les effets sur le budget : C4, jamais réécrits ici) ; (8) supprime ses lignes
-  d'idempotence ; (9) insère `account_departure` (`scheduled_deletion_at = left_at + interval '720 hours'`, `former_host_id` = le
-  membre restant, le propriétaire s'il y en a plusieurs) ; (10) **met en file le mail « départ de l'autre »** pour le membre restant (`private.met_en_file`, F1b : clé = l'identifiant de la
+  d'idempotence ; (9) insère `account_departure` (`scheduled_deletion_at = left_at + interval '720 hours'`, `other_member_id` = le
+  membre restant, le responsable s'il y en a plusieurs ; `left_reason = 'left'`) ; (10) **met en file le mail « départ de l'autre »** pour le membre restant (`private.met_en_file`, F1b : clé = l'identifiant de la
   personne partie et `left_at`, paramètre = son prénom) ; (11) écrit `foyer_quitte` (et `role_transfere` si elle était `owner`). **Elle ne touche ni aux sessions, ni aux codes, ni aux clés d'accès de la personne** : elle reste connectée.
 - [ ] **Déclencheur sur `user_profile`** (**avant** insertion pour le refus, **après** pour l'effacement) : il **prend le verrou de la
   personne** (`private.verrouille_la_personne(new.id)`, comme l'effacement de F8) ; **refuse** (`raise`, erreur traduite en `503`
@@ -627,7 +654,7 @@ personne), S11, S12 amendé (liens), S14 amendé (A6 : `private.sort_du_foyer`, 
   confirmées du mois ouvert et les mois suivants passent à 100 % pour la personne qui reste ; les mois clôturés gardent leur `reste_cents`.
 - Cas de test : membre qui part ; `owner` qui part avec un membre (le rôle passe, `role_transfere`) ; personne seule →
   `seule_dans_le_foyer`, **rien n'est changé** ; sans profil → `aucun_foyer` ; la ligne : `scheduled_deletion_at` exactement
-  à 720 heures de `left_at`, **y compris pour une session en `Europe/Paris` au changement d'heure** (un `UPDATE` de `reminder_reserved_at` ne casse pas le CHECK), `former_host_id` bon, copie non vide ; **ses sessions, codes et clés sont intacts** ; ses liens
+  à 720 heures de `left_at`, **y compris pour une session en `Europe/Paris` au changement d'heure** (un `UPDATE` de `reminder_queued_at` ne casse pas le CHECK), `other_member_id` et `left_reason` bons, copie non vide ; **ses sessions, codes et clés sont intacts** ; ses liens
   en attente sont révoqués, prénom et e-mail de l'invité effacés ; **parité des départs** (`test_parite_des_departs.py` :
   deux foyers semés à l'identique, le même scénario que `tests/db/budget-depart.test.ts` (charge perso avec et sans
   histoire, saisies dans un mois clôturé, versement, revenu du seul membre qui en avait un, comptes perso actifs et
@@ -682,7 +709,7 @@ personne), S11, S12 amendé (liens), S14 amendé (A6 : `private.sort_du_foyer`, 
 - [ ] **Le mail « départ de l'autre »** est **déjà dans la file d'envoi** (écrit par `quitte_le_foyer`, dans la même transaction, F3) :
   après la réponse la route appelle `vide_la_file` (F1b) ; échec d'envoi : type d'erreur seul au journal, réponse inchangée, la tâche
   quotidienne reprend ; livré **au moins une fois** ; **aucune adresse ni prénom dans la réponse HTTP**.
-- [ ] `GET /api/v1/me` rend `scheduled_deletion_at`, `left_household_at` et `former_host_first_name` (prénom lu à la
+- [ ] `GET /api/v1/me` rend `scheduled_deletion_at`, `left_household_at`, `left_reason` (`left` ou `removed`) et `other_member_first_name` (le prénom de **la personne restée**, lu à la
   volée par une fonction `security definer`, `null` si l'autre a supprimé son compte entre-temps).
 - Cas de test : succès (`member`, puis `owner`) ; **le cookie reste valable**, `GET /me` montre `household: null` et la date,
   `GET /household` → `403 aucun_foyer` ; la même session sur un deuxième appareil aussi ; personne seule → `409` ; sans preuve
@@ -696,7 +723,7 @@ personne), S11, S12 amendé (liens), S14 amendé (A6 : `private.sort_du_foyer`, 
 
 ### F5 (R4) : Retirer l'autre personne (migration 0161)
 
-**Pourquoi :** décision du 13/11 (réservé à la personne qui a créé le foyer) ; spec § 4.10 « Retirer », § 9 R4 ;
+**Pourquoi :** décision du 13/11 (réservé au responsable actuel du foyer, `owner`) ; spec § 4.10 « Retirer », § 9 R4 ;
 leçon 1 de T15b (une connexion en vol ne survit pas). **Dépend de :** F3 (`sort_du_foyer`, `account_departure`), F1 et F1b (mail et file d'envoi).
 
 **Fichiers :** `supabase/migrations/0161_retirer_un_membre.sql`, `src/popote_api/api/foyer.py` (`DELETE
@@ -716,7 +743,7 @@ leçon 1 de T15b (une connexion en vol ne survit pas). **Dépend de :** F3 (`sor
   `retrait_de_soi` ; (5) `p_membre` n'est pas dans **ce** foyer → `membre_introuvable` (même issue pour un identifiant
   inconnu et pour celui d'un autre foyer) ; (6) copie ses données ; (7) `private.revoque_les_liens_de(p_membre)` (fonction commune de S14) **et suppression de ses lignes d'`idempotency_key`** (A3 : une personne retirée qui se reconnecte ne rejoue rien) ; (8)
   `private.ferme_toutes_les_sessions_de(p_membre)` ; (9) `private.sort_du_foyer(p_membre)` ; (10) insère
-  `account_departure` (`removed_by` = l'appelant, `former_host_id` = l'appelant, `scheduled_deletion_at` = + 30 jours) ;
+  `account_departure` (`left_reason = 'removed'`, `removed_by` = l'appelant, `other_member_id` = l'appelant, `scheduled_deletion_at` = + 30 jours) ;
   (11) `membre_retire`. Tout dans **la même transaction** que la fermeture des sessions : c'est ce qui rend « une
   connexion en vol ne survit pas ».
 - [ ] **Risque de réutilisation (C4, C5)** : `sort_du_foyer` a été écrit pour tourner sous l'identité de la personne qui
@@ -790,6 +817,9 @@ la ligne de départ tombe par le déclencheur de F3 ; reste à **prouver** le pa
   l'ancien foyer ou par un autre) : reprise (S13, étape 7), profil créé **dans le foyer du lien**, rôle `member`, la ligne
   `account_departure` et sa copie **ont disparu**, `scheduled_deletion_at` n'existe plus, la tâche quotidienne ne la
   touche pas.
+- [ ] Prouver que **l'acceptation prend `first_name`** (prénom corrigé par l'invitée, filtré par `prenom_valide`, `422` s'il est refusé, celui de
+  l'invitation s'il est absent) et que **l'inspection publique ne rend jamais l'adresse** ; prouver **`409 deja_dans_un_foyer`** quand la session présentée a déjà un
+  foyer, `409 compte_existant` quand le compte a un profil sans session correspondante.
 - [ ] Prouver `409 foyer_complet` (deux membres déjà) **avant** la consommation du lien, avec le code d'invitation de
   secours aussi ; `409 compte_existant` pour une personne qui **a** un profil (le front choisit « Tu fais déjà partie
   d'un foyer » en lisant `GET /me`).
@@ -839,11 +869,12 @@ F1 et F1b (mail du rappel, file d'envoi).
   **toutes** les personnes de `compte_a_supprimer`, celles qu'une passe coupée a laissées comprises — `auth_admin.supprime_compte` (un `404` d'Auth
   vaut succès ; la ligne de `compte_a_supprimer` disparaît après Auth) ; si Auth échoue, la ligne reste et la passe continue (la route de S14 fait la
   même chose à la main). **Une coupure entre la base et Auth ne laisse donc jamais un compte oublié.** Réponse `200 {reminders_sent,
-  accounts_erased, remaining, overdue}` (des nombres, **aucun** identifiant ni adresse). **Idempotente par construction** (état relu
+  accounts_erased, remaining, abandoned, armed, due}` (des nombres, **aucun** identifiant ni adresse). **Idempotente par construction** (état relu
   en base ; un second appel ne fait rien de plus), comme le demande `internes.py:1-30`. Limites : délai interne plus court
   que 25 s ; **la passe vide la file d'envoi avant de répondre** (rappels, reprises ; le conteneur peut s'endormir juste après la réponse ; le délai de
   `pg_net` est de 60 s) avec un budget de 15 s, le reste attendant la passe suivante ; la réponse porte aussi `armed` (le drapeau
-  ci-dessous) et `overdue` (nombre de comptes dont l'échéance date de plus de 2 jours, **compté seulement quand le drapeau est armé**).
+  ci-dessous) et `due` (**nombre de comptes dont l'échéance est passée et qui existent encore après la passe, compté indépendamment du drapeau**) ; `abandoned`
+  compte les mails abandonnés (F1b).
 - [ ] **Drapeau d'effacement (décision 4)** : `instance_setting.efface_les_departs`, **faux** à la migration. Tant qu'il est faux, la
   passe **rappelle, vide la file et vide `compte_a_supprimer`, mais n'efface aucun compte** : l'ancien chemin d'acceptation, **l'Edge Function
   `accept-invite` qui insère directement le profil** (`index.ts:165`, C18), pourrait encore recréer un profil pendant l'effacement. **Où et quand
@@ -864,12 +895,12 @@ F1 et F1b (mail du rappel, file d'envoi).
   propriétaire, hors PR) : la signature calculée par la base est acceptée par l'API avec **le corps exact que `pg_net` envoie**
   (réserve de `docs/exploitation.md:365-375`). **En doublon, toujours** : un workflow GitHub Actions planifié dans `popote-api`
   (`departs.yml`, 05:07 UTC, `ops/signe_interne.py`, secret d'environnement `POPOTE_INTERNAL_SECRET`) appelle la même route
-  (idempotente : un second appel ne fait rien de plus) et **fait échouer le run** si le statut n'est pas `200` ou si `overdue`
-  dépasse 0 (GitHub prévient par mail) : un `404`, un conteneur endormi ou une base en pause ne restent plus silencieux, et
+  (idempotente : un second appel ne fait rien de plus) et **fait échouer le run** si le statut n'est pas `200`, **si `due` > 0 (drapeau armé ou non : un drapeau resté désarmé alors que des
+  comptes sont échus est l'alerte voulue)** ou si `abandoned` > 0 (GitHub prévient par mail) : un `404`, un conteneur endormi ou une base en pause ne restent plus silencieux, et
   si `pg_net` ne tient pas la preuve, ce workflow devient la planification. **Tant que ni l'un ni l'autre n'est posé**,
   `ops/traite_les_departs.py` lance la passe à la main et `docs/exploitation.md` dit à qui et quand (au plus tard à chaque
   répétition de la bascule).
-- [ ] **Contrôle des lignes en retard** : quotidien (`overdue` de la réponse, vu par le workflow ci-dessus) ; la requête
+- [ ] **Contrôle des lignes en retard** : quotidien (`due` et `abandoned` de la réponse, vus par le workflow ci-dessus) ; la requête
   (`scheduled_deletion_at < now() - interval '2 days'`) est aussi écrite dans `docs/exploitation.md` pour la restauration
   mensuelle.
 - Cas de test : à J − 8 (rien), J − 7 (un rappel mis en file), J − 7 puis le lendemain (**pas de second rappel mis en file**), J
@@ -879,7 +910,7 @@ F1 et F1b (mail du rappel, file d'envoi).
   file vidés ; drapeau vrai : effacement** ; **course avec l'Edge Function `accept-invite`** (insertion directe du profil) pendant
   l'effacement : le déclencheur de F3 attend le verrou, puis refuse (compte en cours de suppression) ou efface la ligne de départ si elle est
   encore là ; **`efface_le_compte` est appelée avec ses deux arguments** (test d'appel réel, pas de simulacre) ;
-  **signature calculée en SQL sur le corps `{}` acceptée** ; `overdue` juste ; **compte revenu
+  **signature calculée en SQL sur le corps `{}` acceptée** ; `due` juste **avec le drapeau armé et désarmé** (désarmé, des comptes échus font échouer le workflow) ; **compte revenu
   dans un foyer entre-temps** (la ligne est tombée par le déclencheur) → ni rappel ni effacement ; après l'effacement : plus
   aucune ligne de `account_departure`, `login_*`, `webauthn_*`, `idempotency_key` de la personne, compte Auth supprimé
   (espion) ; Auth en panne → ligne `compte_a_supprimer`, la route de S14 la termine ; plus de 20 comptes → `remaining`
@@ -909,8 +940,10 @@ l'éprouve de bout en bout.
   prend les créneaux `renouvellement_ip` (10 par 15 min) puis `renouvellement_lien` (3 par 15 min) — **les clés viennent de
   la valeur envoyée** (HMAC de l'IP, HMAC du jeton), jamais de l'existence du lien ; un refus rend l'attente ; (2) cherche
   le lien par l'empreinte du jeton ; (3) **éligible** = connu, ni accepté, ni annulé, hôte toujours là (`created_by` non
-  nul), **échéance + 7 jours > maintenant** (la grâce de A4 : au-delà, l'e-mail est effacé et l'hôte ne voit plus l'invitation) ; (4) si éligible : pose `renewal_requested_at = now()` ; **met le mail en file** (F1b : `private.met_en_file('demande_de_lien', hôte, …)` **dans la même transaction**) si
-  `renewal_mail_queued_at` est nul ou vieux de plus de 24 h (pose `renewal_mail_queued_at`, écrit `renouvellement_demande`) et rend l'hôte (adresse, prénom) et le
+  nul), **échéance + 7 jours > maintenant** (la grâce de A4 : au-delà, l'e-mail est effacé et l'hôte ne voit plus l'invitation) ; (4) si éligible : pose `renewal_requested_at = now()` ; **met le mail en file** (F1b : `private.met_en_file('demande_de_lien', hôte, …)` **dans la même transaction**) **avec la clé de dédoublonnage `<id de l'invitation>:<fenêtre de 24 h>`**
+  (fenêtre = `floor(extract(epoch from now()) / 86400)`, stable pour toutes les demandes d'une même fenêtre : **l'index unique `(kind, dedupe_key)` fait
+  l'unicité de façon atomique**, deux demandes concurrentes ne mettent qu'une ligne en file, la fenêtre suivante en autorise une autre ; `ON CONFLICT DO
+  NOTHING` ; `renewal_mail_queued_at` est posée seulement quand une ligne a été écrite ; échéance utile : 24 h ; écrit `renouvellement_demande`) et rend l'hôte (adresse, prénom) et le
   prénom de l'invité ; (5) **pour un lien inconnu ou non éligible, une écriture factice de même forme** sur la ligne de
   limite (pas un `where false` : un vrai `update`), aucun événement (une IP ne remplit pas le journal : leçon de S5) ;
   rend toujours une ligne de même forme. Il n'y a **plus** de réservation ni de confirmation propres à R1 : l'envoi, ses reprises et son identifiant TEM sont ceux de la file ;
@@ -934,7 +967,7 @@ l'éprouve de bout en bout.
   aucun mail ; **l'hôte reçoit le bon mail** (texte exact, prénom filtré, objet « Une demande de nouveau lien », lien vers `/foyer`) **au moins une fois** ; le jeton
   n'est dans aucune colonne, aucun `caplog`, aucune table d'idempotence ; `Origin` étranger → `403` sans créneau ; surface :
   `anon`, `authenticated` sans droit ; exemption d'idempotence écrite.
-- Cas de test ajoutés : **lien échu depuis plus de 7 jours** (e-mail effacé) → `202`, aucun mail, aucun événement ;
+- Cas de test ajoutés : **10 demandes concurrentes (threads) du même lien → une seule ligne de file** ; fenêtre suivante (horloge) → une deuxième ; **lien échu depuis plus de 7 jours** (e-mail effacé) → `202`, aucun mail, aucun événement ;
   processus tué après la validation de la demande → le mail est **encore en file** et part à la passe quotidienne ; le `410` de l'inspection d'un lien
   **échu pendant la grâce** porte `host_first_name` (A4), l'inspection d'un lien inconnu reste `404` **sans** prénom.
 - Mutations : mettre le mail en file hors de la transaction ; ignorer la grâce ; écrire un événement et envoyer pour un lien inconnu ; compter les créneaux seulement pour un lien connu ;
@@ -950,35 +983,40 @@ décision 5 du 13/11 : **complet au sens du droit d'accès**, plus aucun « expo
 
 **Fichiers :** `src/popote_api/api/export.py`, `schemas/export.py`, `infra/stockage.py` (liens des photos, F10b), `main.py`
 (`public.mon_export()` est dans la migration 0160, F3 ; F10a ajoute `public.mes_traces()` : sessions, événements, file d'envoi, par une
-nouvelle migration **0165** si F3 ne les porte pas), tests `tests/integration/test_export_http.py`, `tests/integration/test_export_complet.py`,
+migration **0165**, F10a), tests `tests/integration/test_export_http.py`, `tests/integration/test_export_complet.py`,
 `tests/authz/test_matrice.py`, `docs/normes-api.md`, `docs/securite.md`.
 
-- [ ] **F10a : `GET /api/v1/me/export`** rend, **pour la personne seule** : (1) **ses données** : avec foyer,
-  `private.export_de_la_personne(auth.uid())` ; **sans foyer, la copie faite au départ** (`account_departure.archive`, F3) ; (2) **ses
-  sessions** (appareil, navigateur, système, dates de création et de dernière activité, comment elle est née : `opened_with`,
-  **jamais** l'empreinte du jeton ni l'adresse IP) ; (3) **ses événements de sécurité** (`security_event` où `person_id` est elle : type,
-  date ; **jamais** les clés HMAC) ; (4) **ses clés d'accès** (nom, dates, type d'appareil ; **jamais** la clé publique ni l'identifiant) ;
-  (5) **les mails qu'on lui a envoyés** : les lignes de `mail_outbox` qui la concernent (genre, date, état, identifiant TEM) et les
-  événements `code_demande` ; **le contenu d'un code n'est jamais gardé** (il n'existe plus) ; (6) l'adresse de connexion, `exported_at`,
-  la version du format. `Content-Type: application/json`, `Content-Disposition: attachment; filename="popote-mes-donnees.json"`,
-  `Cache-Control: no-store`. **Aucune limite de taille, aucune troncature** ; événement **aucun** (une lecture ne s'écrit pas : spec § 3.6) ;
-  limite de débit de lecture existante. **Le contrat ne dit plus « personnelles seulement »** : il dit « complet pour la personne ; les données
-  du foyer (recettes, frigo, budget commun) n'y sont pas : elles ne sont pas les siennes ».
-- [ ] **F10b : les photos** : `storage.objects` porte `owner_id` (relu en base : colonne présente, 80 objets, tous avec `owner_id`, seau
-  `photos-des-plats`, public) ; l'export ajoute **les objets dont `owner_id` est la personne**, chacun avec son **lien** (adresse publique
-  du seau, ou **lien signé de courte durée** (1 heure) pour un seau privé, fabriqué par `infra/stockage.py` avec la clé secrète, le seul
-  module qui la lit) ; si la personne demande les fichiers eux-mêmes, `GET /me/export/photos/{nom}` les rend. **À vérifier avant F10b** :
-  que `owner_id` identifie bien l'auteur pour tous les seaux (photos de saisie de 0.5 comprises) ; sinon le rattachement est écrit en
-  migration.
+- [ ] **F10a : `GET /api/v1/me/export`** rend, **pour la personne seule**, un document JSON **assemblé par sections, chacune lue dans sa propre
+  transaction courte et paginée par curseur** (500 lignes par page ; **chaque appel borné et mesuré : moins de 5 s sur trois ans de données d'un foyer
+  réaliste**, sous le `statement_timeout` de 8 s ; rien n'est agrégé en mémoire : la réponse est **streamée** section par section) ; chaque section est
+  aussi lisible seule par `GET /me/export?section=<nom>&cursor=…` (`{items, next_cursor}`) pour un client qui préfère paginer. Les sections :
+  (1) **ses données** : avec foyer, `private.export_de_la_personne(auth.uid())` ; **sans foyer, la copie faite au départ**
+  (`account_departure.archive`, F3) ; (2) **ce que la base garde d'elle dans `account_departure`** (dates, `left_reason`, `removed_by`, rappel
+  mis en file, personne restée : identifiant seulement) ; (3) **ses sessions** (appareil, navigateur, système, dates de création et de dernière
+  activité, comment elle est née : `opened_with`, **jamais** l'empreinte du jeton ni l'adresse IP) ; (4) **ses événements de sécurité**
+  (`security_event` où `person_id` est elle : type, date ; **jamais** les clés HMAC) ; (5) **ses clés d'accès** (nom, dates, type d'appareil ;
+  **jamais** la clé publique ni l'identifiant) ; (6) **les mails qu'on lui a envoyés** : les lignes de `mail_outbox` qui la concernent (genre, date,
+  état, identifiant TEM ; `params` est déjà effacé après la remise) et les événements `code_demande` ; **le contenu d'un code n'est jamais gardé** ;
+  (7) l'adresse de connexion, `exported_at`, la version du format. `Content-Type: application/json`, `Content-Disposition: attachment;
+  filename="popote-mes-donnees.json"`, `Cache-Control: no-store`. **Aucune limite de taille, aucune troncature** ; événement **aucun** (une lecture
+  ne s'écrit pas : spec § 3.6) ; limite de débit de lecture existante. **Le contrat ne dit plus « personnelles seulement »** : il dit « complet pour
+  la personne ; les données du foyer (recettes, frigo, budget commun) n'y sont pas : elles ne sont pas les siennes ».
+- [ ] **F10b : les photos, une par une, en flux** : `storage.objects` porte `owner_id` (relu en base : colonne présente, 80 objets, tous avec
+  `owner_id`, seau `photos-des-plats`, public) ; l'export liste **les objets dont `owner_id` est la personne** (nom, seau, taille, date), chacun avec
+  son **lien** (adresse publique du seau, ou **lien signé d'une heure** pour un seau privé, fabriqué par `infra/stockage.py`, le seul module qui lit
+  la clé secrète). **`GET /api/v1/me/export/photos/{nom}`** lit l'objet par **une seule requête qui sélectionne ensemble `bucket_id`, `name` et
+  `owner_id = la personne`** : le nom d'une photo d'une autre personne rend **`404`, sans rien lire du stockage** ; réponse **streamée** (morceaux de
+  64 Kio, jamais le fichier en mémoire), `Cache-Control: no-store`, type de contenu relu de l'objet. **À vérifier avant F10b** : que `owner_id`
+  identifie bien l'auteur pour tous les seaux (photos de saisie de 0.5 comprises) ; sinon le rattachement est écrit en migration.
 - Cas de test : une personne avec foyer reçoit **ses** données, sessions, événements, clés, mails et photos, **ni celles de l'autre, ni son
   prénom, ni son adresse** ; sans foyer : la copie du départ **plus** les traces vivantes ; deux personnes d'un même foyer : chacune reçoit la
   sienne ; une personne **partie puis revenue** reçoit l'export vivant ; **complétude** (test d'introspection, comme `rgpd.test.ts`) : toute
   colonne qui désigne la personne (`person_id`, `user_profile_id`, `owner_id`, `saisi_par`…) d'une table du schéma est dans l'export ou dans une
   liste d'exceptions écrite avec sa raison ; **aucun secret** (empreinte de jeton, clé HMAC, clé publique, IP) dans le document ; une
-  copie de plusieurs Mio n'est ni refusée ni tronquée ; en-têtes exacts ; sans session → `401` ; `caplog` sans contenu ; matrice
+  copie de plusieurs Mio n'est ni refusée ni tronquée, **chaque section rendue en moins de 5 s sur un foyer de trois ans** (mesure écrite) ; `account_departure` et `recipe.created_by` sont dans l'export ; en-têtes exacts ; sans session → `401` ; `caplog` sans contenu ; matrice
   (`moi`, `un autre foyer` ne reçoit rien de moi, `sans foyer`, `sans session`) ; F10b : les liens d'un autre foyer ne sont jamais rendus,
-  lien signé périmé après 1 heure.
-- Mutations : renvoyer l'export du foyer entier ; lire la copie d'une autre personne ; omettre `no-store` ; mettre l'empreinte d'un
+  lien signé périmé après 1 heure ; **`GET …/photos/{nom}` avec le nom de la photo d'une autre personne → `404`, aucune lecture du stockage (espion)** ; avec le nom d'une photo à soi → flux par morceaux, jamais plus de 64 Kio en mémoire ; photo d'un autre seau au même nom → `404`.
+- Mutations : lire la photo par `name` seul (sans `owner_id`) ; agréger tout le JSON en mémoire ; oublier `account_departure` ou `recipe.created_by` ; renvoyer l'export du foyer entier ; lire la copie d'une autre personne ; omettre `no-store` ; mettre l'empreinte d'un
   jeton ou une IP dans l'export ; plafonner la taille.
 - **Retour arrière :** retirer la route (et `mes_traces` si elle a sa migration).
 
@@ -1010,7 +1048,7 @@ nouvelle migration **0165** si F3 ne les porte pas), tests `tests/integration/te
   code dans un objet de mail.
 - [ ] Contrat : `openapi.json` régénéré, **additions seulement** ; Schemathesis vert sur les nouvelles routes ;
   exemptions d'`Idempotency-Key` (R1, R3) écrites dans `docs/normes-api.md`.
-- [ ] Docs de `popote-api` : `docs/securite.md` (le départ, la copie de données et sa durée, les risques R-A à R-E, la
+- [ ] Docs de `popote-api` : `docs/securite.md` (le départ, la copie de données et sa durée, les risques R-A à R-F, la
   tâche quotidienne), `docs/normes-api.md` (routes, erreurs), `docs/exploitation.md` (tâche quotidienne, requête de
   contrôle, redirection des réponses, console TEM sans suivi), `docs/schema.md`, `docs/inventaire-surface.md`,
   `docs/ETAT.md` (court).
@@ -1028,8 +1066,9 @@ nouvelle migration **0165** si F3 ne les porte pas), tests `tests/integration/te
 ## Écarts à la spec d'« Entrer », à relayer à la session de conception
 
 1. **R5** : la spec demande `household`, `role`, `scheduled_deletion_at` ; l'écran « sans foyer » a besoin aussi de
-   « depuis le {date} » et du prénom de l'autre (« le foyer de {Hôte} ») : `GET /me` rend en plus `left_household_at` et
-   `former_host_first_name`.
+   « depuis le {date} » et du prénom de l'autre (« le foyer de {Hôte} ») : `GET /me` rend en plus `left_household_at`, `left_reason` (`left` ou
+   `removed`) et `other_member_first_name` (la **personne restée**, ou `null` ; pas « l'hôte » : un responsable parti lui-même lirait sinon
+   « Tu n'es plus dans le foyer de {lui-même} »).
 2. **Objets des mails** (spec § 4.6 et § 7) : le code n'est jamais dans l'objet (« Ton code Popote » : Scaleway garde l'objet tant que le
    domaine est actif, S4 de 0.4bis) ; le prénom de l'hôte n'entre que dans l'objet de l'invitation et du retrait, filtré, avec un objet de
    repli ; les autres objets sont constants. La liste des neuf objets est dans F1.
@@ -1063,6 +1102,12 @@ nouvelle migration **0165** si F3 ne les porte pas), tests `tests/integration/te
     doivent suivre) : une ligne déjà confirmée garde son partage (décision 1 du 13/11).
 16. **Photos** : un départ ne traite pas les photos en stockage au-delà de l'export (0.5, quand les photos de saisie passent par l'API) ; la
     ligne « tout ce qui est à toi disparaît » de la spec § 4.10 vaut pour le compte et ses données de base.
+17. **L'acceptation d'une invitation prend `first_name`** (le prénom corrigé par l'invitée, filtré par `prenom_valide`, `422` sinon) ; l'inspection
+    publique ne rend **jamais** l'adresse ; **`409 deja_dans_un_foyer`** (la session présentée a déjà un foyer) s'ajoute à `409 compte_existant`,
+    `410 invitation_expiree` et `409 foyer_complet` (A5).
+18. **Le droit de retirer appartient au responsable actuel** (`owner`, transmis au départ), pas à « celui qui a créé le foyer » ; le type d'erreur garde
+    le nom `reserve_au_createur` de la spec R4.
+19. **Codes de connexion et invitations restent « au mieux »** (après la réponse, renvoi visible à l'écran) : ils ne passent pas par la file d'envoi.
 
 ## Sources vérifiées
 
