@@ -1,10 +1,13 @@
 import { defineConfig } from 'vitest/config'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
+    // La doc exige le plugin du routeur AVANT `react()`. Le test voisin des routes n'est pas une route (le motif vise son nom exact : une vraie route `x.test.tsx` resterait une route).
+    tanstackRouter({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '^routes\\.test\\.tsx$' }),
     react(),
     tailwindcss(),
     VitePWA({
