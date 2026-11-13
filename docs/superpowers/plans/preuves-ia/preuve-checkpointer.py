@@ -8,6 +8,7 @@ Ce que le script prouve, un processus Python neuf par phase :
   rejeu             une seconde reprise après la fin ne fait rien ;
   course            (à lancer après `run`, à la place de `reprise`) deux reprises simultanées : l'écriture a lieu deux
                     fois (d'où le verrou de reprise du plan) ;
+  elague            `aprune(keep_latest)` ramène le fil à un seul point de contrôle (à lancer après `run` ou `reprise`) ;
   efface            `adelete_thread` vide les trois tables.
 
 Rejeu, depuis un dossier de travail neuf (jamais dans un dépôt : l'interpréteur lit son dossier courant) :
@@ -106,8 +107,7 @@ async def main(phase: str, thread: str) -> None:
             await c.execute("drop table if exists checkpoint_migrations, checkpoints, checkpoint_blobs, checkpoint_writes, effets")
             for i, m in enumerate(AsyncPostgresSaver.MIGRATIONS):
                 await c.execute(m.replace("CONCURRENTLY ", ""))  # comme le ferait notre migration
-                if i > 0:
-                    await c.execute("insert into checkpoint_migrations(v) values (%s)", (i - 1,))
+                await c.execute("insert into checkpoint_migrations(v) values (%s)", (i,))  # versions 0 à 9, comme setup()
         print("init ok :", len(AsyncPostgresSaver.MIGRATIONS), "migrations du saver")
         await p.close()
         return
@@ -117,12 +117,18 @@ async def main(phase: str, thread: str) -> None:
         out = [c async for c in g.astream({"phrase": "pâtes au pesto"}, cfg, durability="sync")]
         print("RUN", json.dumps(out, default=str)[:200])
     elif phase == "mauvaise_reprise":
+        async with p.connection() as c:
+            avant = (await (await c.execute("select count(*) n from checkpoints where thread_id=%s", (thread,))).fetchone())["n"]
         try:
             async for _ in g.astream(Command(resume={"repas": "x", "kcal": 99999, "confirme": True}), cfg, durability="sync"):
                 pass
         except Exception as e:  # noqa: BLE001 - on veut le type, rien d'autre
             print("MAUVAISE REPRISE ->", type(e).__name__)
-        print("encore en attente :", (await g.aget_state(cfg)).next)
+        async with p.connection() as c:
+            apres = (await (await c.execute("select count(*) n from checkpoints where thread_id=%s", (thread,))).fetchone())["n"]
+        print("encore en attente :", (await g.aget_state(cfg)).next, "| points de contrôle avant/après :", avant, apres)
+        assert avant == apres, "une reprise invalide a écrit un point de contrôle"
+        # (l'état du graphe est inchangé ; le nœud interrompu s'est rejoué, d'où `avant_interrupt`)
     elif phase == "reprise":
         out = [c async for c in g.astream(Command(resume=BONNE), cfg, durability="sync")]
         print("REPRISE", json.dumps(out, default=str)[:200])
@@ -138,6 +144,14 @@ async def main(phase: str, thread: str) -> None:
 
         res = await asyncio.gather(une(), une(), return_exceptions=True)
         print("COURSE", [type(r).__name__ if isinstance(r, Exception) else len(r) for r in res])
+    elif phase == "elague":
+        async with p.connection() as c:
+            avant = (await (await c.execute("select count(*) n from checkpoints where thread_id=%s", (thread,))).fetchone())["n"]
+        await saver.aprune([thread], strategy="keep_latest")
+        async with p.connection() as c:
+            apres = (await (await c.execute("select count(*) n from checkpoints where thread_id=%s", (thread,))).fetchone())["n"]
+        print("élagage : points de contrôle", avant, "->", apres, "| état relu :", (await g.aget_state(cfg)).next)
+        assert apres == 1
     elif phase == "efface":
         await saver.adelete_thread(thread)
         async with p.connection() as c:
