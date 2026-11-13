@@ -1,6 +1,6 @@
 import './attente.css'
 import { registerSW } from 'virtual:pwa-register'
-import { nettoieAncienFront } from './ancien-front'
+import { nettoieAncienFrontDe } from './ancien-front'
 
-nettoieAncienFront(window.localStorage)
+nettoieAncienFrontDe(window)
 registerSW({ immediate: true })

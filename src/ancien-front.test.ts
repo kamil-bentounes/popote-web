@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nettoieAncienFront } from './ancien-front'
+import { nettoieAncienFront, nettoieAncienFrontDe } from './ancien-front'
 
 /** Un stockage en mémoire qui a la forme minimale que la fonction exige. */
 function stockage(valeurs: Record<string, string>) {
@@ -75,5 +75,22 @@ describe('nettoieAncienFront', () => {
     }
     nettoieAncienFront(s)
     expect([...s.donnees.keys()]).toEqual(['sb-a-auth-token'])
+  })
+})
+
+describe('nettoieAncienFrontDe', () => {
+  it('efface les jetons du localStorage de la fenêtre', () => {
+    const s = stockage({ 'sb-abcd-auth-token': 'x', autre: '1' })
+    nettoieAncienFrontDe({ localStorage: s })
+    expect([...s.donnees.keys()]).toEqual(['autre'])
+  })
+
+  it('ne lève pas quand l’accès même à localStorage est refusé', () => {
+    const fenetre = {
+      get localStorage(): never {
+        throw new DOMException('refusé', 'SecurityError')
+      },
+    }
+    expect(() => nettoieAncienFrontDe(fenetre)).not.toThrow()
   })
 })

@@ -32,3 +32,14 @@ export function nettoieAncienFront(stockage: StockageNettoyable): void {
     }
   }
 }
+
+/** Comme `nettoieAncienFront`, mais l'accès même à `localStorage` peut lever (stockage bloqué). */
+export function nettoieAncienFrontDe(fenetre: { readonly localStorage: StockageNettoyable }): void {
+  let stockage: StockageNettoyable
+  try {
+    stockage = fenetre.localStorage
+  } catch {
+    return
+  }
+  nettoieAncienFront(stockage)
+}
