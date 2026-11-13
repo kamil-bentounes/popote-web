@@ -7,7 +7,7 @@
 // page de référence marche sans Tailwind (revue de la PR #38, point 14).
 //
 // Usage : node scripts/verifie-jetons.mjs   (rend 1 au moindre écart)
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -68,6 +68,20 @@ function ouvreUnBloc(texte) {
   return false
 }
 
+/** Les noms des propriétés personnalisées déclarées dans un texte CSS (hors commentaires), où que ce soit. */
+function proprietesPersonnalisees(css) {
+  return [...sansCommentaires(css).matchAll(/(?:^|[;{}\s])(--[\p{L}\p{N}-]+)\s*:/gu)].map(([, nom]) => nom)
+}
+
+/** Tous les `.css` d'un dossier, récursivement. */
+function fichiersCss(dossier) {
+  if (!existsSync(dossier)) return []
+  return readdirSync(dossier).flatMap((nom) => {
+    const chemin = join(dossier, nom)
+    return statSync(chemin).isDirectory() ? fichiersCss(chemin) : nom.endsWith('.css') ? [chemin] : []
+  })
+}
+
 /** Les règles de niveau 0 : `{ prelude, corps }`. */
 function blocs(css) {
   const resultat = []
@@ -114,8 +128,13 @@ export function analyse(css, { racine = false } = {}) {
   const jetons = new Map()
   const remises = new Set()
   const erreurs = []
+  const horsBloc = new Set()
   for (const { prelude, corps } of blocs(sansCommentaires(css))) {
-    if (!/^@theme\b/.test(prelude) && !(racine && prelude === ':root')) continue
+    if (!/^@theme\b/.test(prelude) && !(racine && prelude === ':root')) {
+      // Un jeton redéfini ailleurs (`:root { --color-encre: #000 }` après le @theme) gagnerait dans la cascade.
+      for (const nom of proprietesPersonnalisees(corps)) horsBloc.add(nom)
+      continue
+    }
     for (const instruction of decoupe(corps, ';')) {
       const texte = instruction.trim()
       if (texte === '') continue
@@ -137,7 +156,7 @@ export function analyse(css, { racine = false } = {}) {
       else jetons.set(nom, valeur)
     }
   }
-  return { jetons, remises, erreurs }
+  return { jetons, remises, erreurs, horsBloc }
 }
 
 /** Écarts de `notre` par rapport à `systeme`. */
@@ -196,6 +215,19 @@ function verifiePolices(racine) {
   return problemes
 }
 
+/** Aucun autre CSS de `src/` ne redéfinit un jeton du système (une propriété locale qui n'en est pas un reste libre). */
+function verifieRedefinitions(racine, jetonsDuSysteme) {
+  const problemes = []
+  for (const chemin of fichiersCss(join(racine, 'src'))) {
+    const relatif = chemin.slice(racine.length + 1).split('\\').join('/')
+    if (relatif === 'src/styles/jetons.css') continue
+    for (const nom of new Set(proprietesPersonnalisees(readFileSync(chemin, 'utf8')))) {
+      if (jetonsDuSysteme.has(nom)) problemes.push(`${relatif} : redéfinit le jeton ${nom} (il ne se change que dans .design/systeme/jetons.css)`)
+    }
+  }
+  return problemes
+}
+
 /** Rend la liste des problèmes (vide : tout est conforme). */
 export function verifie({ racine = process.cwd() } = {}) {
   const systeme = lis(racine, '.design/systeme/jetons.css')
@@ -207,6 +239,8 @@ export function verifie({ racine = process.cwd() } = {}) {
   problemes.push(
     ...notre.erreurs.map((erreur) => `src/styles/jetons.css : ${erreur}`),
     ...systeme.erreurs.map((erreur) => `.design/systeme/jetons.css : ${erreur}`),
+    ...copie.erreurs.map((erreur) => `.design/systeme/jetons-racine.css : ${erreur}`),
+    ...[...notre.horsBloc].map((nom) => `src/styles/jetons.css : ${nom} est déclaré hors d'un bloc @theme (il redéfinirait un jeton dans la cascade)`),
     ...REMISES_ATTENDUES.filter((nom) => !notre.remises.has(nom)).map((nom) => `src/styles/jetons.css : la remise à zéro « ${nom}: initial » manque (un défaut de Tailwind contournerait le système)`),
   )
   const ecarts = compareJetons(systeme.jetons, notre.jetons)
@@ -221,6 +255,7 @@ export function verifie({ racine = process.cwd() } = {}) {
       (nom) => `.design/systeme/jetons-racine.css s'écarte de jetons.css (${nom}) : « sed 's/^@theme {/:root {/' jetons.css > jetons-racine.css »`,
     ),
     ...verifiePolices(racine),
+    ...verifieRedefinitions(racine, systeme.jetons),
   )
   return problemes
 }

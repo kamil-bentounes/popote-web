@@ -142,6 +142,26 @@ describe('verifie (les fichiers)', () => {
     expect(verifie({ racine }).join('\n')).toMatch(/font-size/)
   })
 
+  it('échoue sur une redéfinition de jeton hors de @theme, ajoutée après (la cascade lui donnerait raison)', () => {
+    ecris('src/styles/jetons.css', NOTRE + ':root { --color-encre: #000; }\n')
+    expect(verifie({ racine }).join('\n')).toMatch(/--color-encre.*hors d'un bloc @theme/)
+  })
+
+  it('échoue sur un jeton du système redéfini dans un autre fichier CSS de src/', () => {
+    ecris('src/styles/index.css', '@import "tailwindcss";\n.x { --color-menthe: #000; }\n')
+    expect(verifie({ racine }).join('\n')).toMatch(/src\/styles\/index\.css.*--color-menthe/)
+  })
+
+  it('accepte une propriété personnalisée locale qui n’est pas un jeton du système', () => {
+    ecris('src/styles/index.css', '.jauge { --part: 40%; width: var(--part); }\n')
+    expect(verifie({ racine })).toEqual([])
+  })
+
+  it('remonte les erreurs de jetons-racine.css (déclaration inattendue, doublon)', () => {
+    ecris('.design/systeme/jetons-racine.css', RACINE.replace('--trait: 3.5px;', '--trait: 3.5px;\n  font-size: 99px;'))
+    expect(verifie({ racine }).join('\n')).toMatch(/jetons-racine.*font-size/)
+  })
+
   it('signale la dérive de jetons-racine.css, copie faite à la main', () => {
     ecris('.design/systeme/jetons-racine.css', RACINE.replace('#2FD6A3', '#000000'))
     expect(verifie({ racine }).join('\n')).toMatch(/jetons-racine.*--color-menthe/)
