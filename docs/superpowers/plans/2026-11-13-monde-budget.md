@@ -70,8 +70,10 @@ demande de fusion, 400 lignes visées ; les coupes prévues sont écrites.
 - [ ] Les routes du § 3 ; `/budget` redirige vers `/budget/poser` tant que le budget n'est pas posé.
 - [ ] L'en-tête, la bulle, ses neuf situations et ses deux cas à part (budget en pause, proposition à accepter), le bloc « Pour finir le mois » (dont le cas négatif), les deux
   virements et leurs états en lecture, les postes et la ligne des charges fixes, les formes vides ; le premier mois
-  (aucun virement) ; le budget sans banque ; « Le budget est en pause. » (spec § 11.5) ; les montants « prévus ».
-- [ ] La tuile Budget de l'accueil rend les neuf états du § 13, sans mise en avant.
+  (aucun virement) ; le budget sans banque ; « Le budget est en pause. » (spec § 11.5) ; « Le budget commence le 1er décembre » ; les
+  montants « prévus ».
+- [ ] La tuile Budget de l'accueil rend les dix états du § 13, sans mise en avant : G1 fournit ces états à la
+  tuile d'« Aujourd'hui » (H2), qui ne garde plus sa phrase provisoire.
 - Tests : chaque ligne des tableaux § 6 et § 13 ; un poste dépassé (texte « dépassé de », pas seulement la
   couleur) ; un montant avec et sans centimes ; la vue de l'autre membre (son virement d'abord, les mêmes
   postes et le même solde) ; sans banque : pas de « Lu à », pas d'« Actualiser », le bloc dit « Pour
@@ -94,7 +96,8 @@ ailleurs et la reprise du brouillon (G2c).
   grand, lettres) ; une périodicité par trimestre et par an (le montant par mois affiché est celui de l'API) ; sans
   choix « à deux », « à moi » ou « à Léa » : rien n'est coché ; une charge « à Léa » porte son initiale et ne
   compte pas dans « À toi, par mois » ; revenir à un thème passé ; un nom de charge contenant du HTML
-  s'affiche tel quel ; le nom accessible d'une pastille cochée ; rien dans le stockage du navigateur ; à deux
+  s'affiche tel quel ; le nom accessible d'une pastille cochée ; la cible d'une pastille fait au moins 44 px ; deux
+  « Assurance auto » de montants différents restent deux charges ; rien dans le stockage du navigateur ; à deux
   navigateurs, la même charge ajoutée des deux côtés n'en fait qu'une, et l'écran périmé se recharge.
 
 ### G3 : Poser le budget en parlant
@@ -138,7 +141,9 @@ lecture (G5b).
   `https`.
 - Tests : une banque sans caisse (l'étape 2 est sautée) ; la recherche sans résultat ; le retour réussi ; le retour
   rejoué, sans jeton, avec le jeton d'une autre personne, jeton expiré : rien n'est branché ; session expirée ou
-  retour dans un autre navigateur : après connexion, la demande reprend et le compte se choisit ; recharger la
+  retour dans un autre navigateur : après connexion, la demande reprend et le compte se choisit ; avec un serveur
+  simulé, l'échange du jeton passe sans session, les routes suivantes répondent `401` sans elle, et le retour après
+  connexion pointe sur l'adresse déjà nettoyée ; recharger la
   page du retour reprend au même endroit ; la personne a quitté le foyer entre-temps : rien n'est branché ; aucun
   compte n'est coché d'avance et le bouton est en pause sans choix ; une adresse de
   départ qui n'est pas en `https` est refusée ; le
@@ -190,10 +195,10 @@ lecture (G5b).
 **Pourquoi :** spec § 10. **Dépend de :** G1, G7 ; B10, plan du socle.
 
 - [ ] Les postes et leurs écarts, la ligne du coussin, le reste et ses trois choix, le manque et ses deux choix,
-  « Valider décembre » (une prévision jusqu'au 1er), la décision vue et changée par l'autre ; le point proposé à
+  « Valider décembre » (une prévision jusqu'au 1er), « Verser moins » et « Verser plus » proposés à l'autre, qui accepte ou refuse ; le point proposé à
   l'heure du serveur, avec ou sans banque, et « Chiffres lus le… ».
 - Tests : reste, manque, pile ; le défaut tant que le point n'est pas validé ; « Un projet » mène à « Bientôt » ; des opérations restent à ranger (renvoi) ; les
-  virements du mois suivant sont ceux de l'API ; l'autre change la décision ; il ne le peut plus après « C'est
+  virements du mois suivant sont ceux de l'API ; sans l'accord de l'autre aucun virement ne change (un manque est pris sur le coussin, sinon « Il manque » reste) ; il ne peut plus accepter après « C'est
   fait » ; sans banque, le point est proposé le dernier jour ; une opération du mois arrivée après le point compte
   dans le mois ouvert ; mouvement réduit.
 
