@@ -39,4 +39,19 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    // Trois projets qui héritent de la configuration racine (`extends` vaut `true` par défaut).
+    projects: [
+      {
+        test: {
+          name: 'web',
+          environment: 'happy-dom',
+          include: ['src/**/*.test.{ts,tsx}'],
+          setupFiles: ['src/test/setup.ts'],
+        },
+      },
+      { test: { name: 'relais', environment: 'node', include: ['relais/**/*.test.ts'] } },
+      { test: { name: 'scripts', environment: 'node', include: ['scripts/**/*.test.{ts,mjs}'] } },
+    ],
+  },
 })
