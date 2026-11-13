@@ -45,7 +45,9 @@ tient alors à la relecture.
   `npx tsc -b`.
 - **Dépendances** : les outils de test et de construction ajoutés par la fondation sont en versions exactes (`--save-exact`) ; une
   mise à jour est le travail de Dependabot, pas un effet de bord. Seules les licences MIT, Apache-2.0 et OFL-1.1 (polices)
-  entrent dans le build livré (les outils de test, comme `axe-core` en MPL-2.0, n'y entrent jamais) : relecture et `npm view`.
+  entrent dans le build livré : relecture et `npm view`. **MPL-2.0 admise le 13/11/2026 pour les outils de test non livrés,
+  non modifiés (`axe-core`, `@axe-core/playwright`) ; jamais dans `dist/`** : garde en place, l'étape « Garde du build » de la CI
+  refuse `axe-core` dans `dist/`.
 
 ---
 
