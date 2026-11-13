@@ -251,8 +251,11 @@ describe('verifie', () => {
       return base.fetch(url, init)
     }
     await verifie(options(fetch, { token: 'jeton-de-test' }))
-    expect(entetes.find(([url]) => url.includes('/compare/'))?.[1]).toBe('Bearer jeton-de-test')
-    expect(entetes.find(([url]) => url.includes('raw.githubusercontent.com'))?.[1]).toBeUndefined()
+    const dHote = (hote) => entetes.filter(([url]) => new URL(url).hostname === hote)
+    expect(dHote('api.github.com')).toHaveLength(1)
+    expect(dHote('api.github.com')[0][1]).toBe('Bearer jeton-de-test')
+    expect(dHote('raw.githubusercontent.com')).toHaveLength(1)
+    expect(dHote('raw.githubusercontent.com')[0][1]).toBeUndefined()
   })
 })
 
