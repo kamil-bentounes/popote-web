@@ -12,5 +12,7 @@
     "jsx-a11y/alt-text": "error",
     "jsx-a11y/label-has-associated-control": "error"
   },
+  // Un fichier de route exporte `Route` (un objet, pas un composant) : le routeur gère lui-même le rechargement à chaud.
+  "overrides": [{ "files": ["src/routes/**"], "rules": { "react/only-export-components": "off" } }],
   "ignorePatterns": ["src/routeTree.gen.ts", "src/api/schema.d.ts", "dist", ".wrangler"]
 }
