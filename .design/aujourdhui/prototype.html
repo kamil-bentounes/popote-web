@@ -174,12 +174,12 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
 .saisie{display:flex;gap:10px;align-items:center;flex:none}.saisie input{height:54px}
 .micro{width:58px;height:58px;flex:none;border-radius:50%;background:var(--ciel);border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;padding:0}
 .micro svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.micro.gros{width:88px;height:88px;background:var(--tomate);box-shadow:0 7px 0 var(--encre)}.micro.gros svg{width:38px;height:38px}
+.micro.gros{width:76px;height:76px;background:var(--tomate);box-shadow:0 7px 0 var(--encre)}.micro.gros svg{width:38px;height:38px}
 .ondes i{position:absolute;left:195px;top:195px;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;border:4px solid #fff;opacity:0}
 .etat{position:absolute;left:0;right:0;top:296px;text-align:center;font-size:32px;color:#fff;-webkit-text-stroke:6px var(--encre);letter-spacing:.01em;paint-order:stroke fill}
-.vx{padding:12px 14px;font-size:17px;line-height:1.3;opacity:0;box-shadow:0 5px 0 var(--encre);border-radius:22px}
-.vx.moi{background:#FFE08A;min-height:70px}
-.vx.recu{padding:2px 14px}.vx.recu .rang{padding:7px 0;font-size:15px}.vx.recu .lien{font-size:15px;min-height:40px;padding:0}
+.vx{padding:9px 14px;font-size:16.5px;line-height:1.3;opacity:0;box-shadow:0 5px 0 var(--encre);border-radius:22px}
+.vx.moi{background:#FFE08A;min-height:62px}
+.vx.recu{padding:2px 14px}.vx.recu .rang{padding:4px 0;font-size:15px}.vx.recu .lien{font-size:15px;min-height:40px;padding:0}
 .jmini{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .mj-t{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin:0 2px 4px}
 .mj-t b{font-family:var(--titre);font-weight:600;font-size:15px;white-space:nowrap}
@@ -286,12 +286,12 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
   <div class="ondes"><i></i><i></i><i></i></div>
   <div class="masc" data-m style="left:100px;top:100px;width:190px;height:190px"></div>
   <h1 class="tt etat" id="vx-etat">Je t'écoute…</h1>
-  <div class="col" style="top:350px;gap:12px">
+  <div class="col" style="top:346px;gap:9px">
     <div class="bloc vx moi" id="vx-dit"></div>
     <div class="bloc vx" id="vx-rep"></div>
     <div class="bloc vx recu" id="vx-recu"></div>
   </div>
-  <div class="col centre" style="top:auto;bottom:30px"><button type="button" class="micro gros" id="vx-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div>
+  <div class="col centre" style="top:auto;bottom:20px"><button type="button" class="micro gros" id="vx-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div>
 </section>
 
     <div class="doigt" id="doigt"></div>
@@ -311,7 +311,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     </section>
   </div></div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (function(){
   const POT='<svg viewBox="0 0 200 200" role="img" aria-label="Popote, la petite marmite"><g class="vap" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0"><path d="M78 40q-10-12 0-24"></path><path d="M122 40q10-12 0-24"></path></g><g class="corps"><rect x="12" y="96" width="30" height="18" rx="9" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></rect><rect x="158" y="96" width="30" height="18" rx="9" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></rect><path d="M34 84h132v54a40 40 0 01-40 40H74a40 40 0 01-40-40z" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5" stroke-linejoin="round"></path><path d="M48 98v34" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".45"></path><circle cx="62" cy="142" r="9" fill="#FF8FC7" opacity=".85"></circle><circle cx="138" cy="142" r="9" fill="#FF8FC7" opacity=".85"></circle><g class="yeux"><ellipse cx="78" cy="122" rx="13" ry="15" fill="#fff" stroke="#2A1A4A" stroke-width="4"></ellipse><ellipse cx="122" cy="122" rx="13" ry="15" fill="#fff" stroke="#2A1A4A" stroke-width="4"></ellipse><circle cx="80" cy="124" r="6.500" fill="#2A1A4A"></circle><circle cx="124" cy="124" r="6.500" fill="#2A1A4A"></circle><circle cx="82" cy="121" r="2" fill="#fff"></circle><circle cx="126" cy="121" r="2" fill="#fff"></circle></g><g class="dodo" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round" opacity="0"><path d="M66 124q12 9 24 0"></path><path d="M110 124q12 9 24 0"></path></g><g class="joie" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0"><path d="M66 128l12-12 12 12"></path><path d="M110 128l12-12 12 12"></path></g><path class="bouche" d="M88 147q12 12 24 0" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round"></path></g><g class="couv"><rect x="36" y="64" width="128" height="24" rx="12" fill="#FFC62E" stroke="#2A1A4A" stroke-width="5"></rect><circle cx="100" cy="56" r="11" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></circle></g></svg>';
@@ -433,7 +433,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     async autre(){if(ici!=='auj'||feuille||fait||q('.tampon')||q('.est')){vas('auj');await dors(1300)}
       await touche(q('#autre'));await ouvre('Qu\'as-tu mangé ?','Un plat du frigo, ou dis-le-moi.',['Chili']);
       await ecris('Un kebab-frites au resto');await pense(1300);parle(q('#a-m'),6);
-      ajoute('rep','<b>Kebab-frites :</b> environ 950 kcal et 38 g de protéines. Je le note pour ce soir ?<div class="actes"><button type="button" class="btn pt" id="oui">C\'est noté</button><button type="button" class="btn b pt">Corriger</button></div>');
+      ajoute('rep','<b>Kebab-frites :</b> environ 950 kcal et 38 g de protéines. Je le note pour ce soir ?<div class="actes"><button type="button" class="btn pt" id="oui">Noter</button><button type="button" class="btn b pt">Corriger</button></div>');
       await dors(2200);await touche(q('#oui'));await dors(150);ferme();await dors(500);
       q('#g-e').classList.add('trop');monte(100,1240,2190,88,68,106);const im=el('span','vd est','≈');q('#plat img').replaceWith(im);gsap.from(im,{scale:.5,duration:.4,ease:'back.out(3)'});
       q('#plat small').innerHTML='<span>Estimé.</span><u>Annuler</u>';q('#plat b').textContent='Kebab-frites';const b=q('#mange');b.textContent='+ Dessert';b.className='btn j pt';
@@ -458,7 +458,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
       await dors(600);tw.kill();gsap.set(o,{opacity:0});etat('Je note…');gsap.to(q('.couv'),{y:-6,rotation:-10,duration:.3});await dors(1100);gsap.to(q('.couv'),{y:0,rotation:0,duration:.2});
       etat('Je te réponds');const r=q('#vx-rep');r.innerHTML='Lasagnes, yaourt, et les chips que j\'estime à <b>160 kcal</b>. Je valide ?';gsap.fromTo(r,{y:16,opacity:0},{y:0,opacity:1,duration:.4,ease:'back.out(2)'});parle(M(),12);
       const u=q('#vx-recu'),ligne=(s,x)=>'<div class="rang"><span class="fx '+(s?'reste':'change')+'">'+(s?'✓':'?')+'</span><div>'+x+'</div></div>',L=['Lasagnes : <b>480 kcal, 31 g prot.</b>','Yaourt : <b>100 kcal, 10 g prot.</b>','Chips, 30 g : <b>environ 160 kcal</b>, estimé'];
-      u.innerHTML=L.map((x,i)=>ligne(i<2,x)).join('');gsap.fromTo(u,{y:16,opacity:0},{y:0,opacity:1,duration:.4,ease:'back.out(2)',delay:.3});await dors(2600);
+      u.innerHTML=L.map((x,i)=>ligne(i<2,x)).join('')+'<div class="actes" style="margin:2px 0 9px"><button type="button" class="btn pt" id="vx-ok">Valider</button><button type="button" class="btn b pt">Corriger</button></div>';gsap.fromTo(u,{y:16,opacity:0},{y:0,opacity:1,duration:.4,ease:'back.out(2)',delay:.3});await dors(2600);
       etat('Je t\'écoute…');tw=onde();await dors(700);await dis('Oui, valide.');await dors(500);tw.kill();gsap.set(o,{opacity:0});
       u.innerHTML=L.map(x=>ligne(true,x)).join('');gsap.from(u.querySelectorAll('.fx'),{scale:0,duration:.4,stagger:.2,ease:'back.out(3)'});etat('C\'est noté !');r.innerHTML='Tu es à <b>1 980 kcal</b> et <b>111 g</b> de protéines.';yeux(M(),'joie');saute(M(),30);confettis(195,300,24);parle(M(),8);await dors(3000);yeux(M(),'ouverts')},
     async elle(){vas('elle');await dors(1400);parle(M(),6);await dors(1500);await touche(q('#mange'));await tamponne();confettis(300,330,30);yeux(M(),'joie');saute(M(),30);note();parts--;frigo();
@@ -466,7 +466,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     async quota(){vas('auj');await dors(1200);await touche(q('#n-pot'));await ouvre('Je me repose','De retour demain à 6 h.',[]);yeux(q('#a-m'),'dodo');
       ajoute('rep','J\'ai beaucoup parlé aujourd\'hui : je ne réponds plus jusqu\'à demain matin.<br><b>Tout le reste de l\'appli marche.</b>');const c=q('#a-champ');c.disabled=true;c.placeholder='De retour demain à 6 h';gsap.set([c,q('#a-micro')],{opacity:.45});await dors(3400)},
     async panne(){vas('auj');await dors(1200);await touche(q('#mange'));const b=q('#mange');b.textContent='…';await dors(1400);triste(M());gsap.fromTo(b,{x:-8},{x:8,duration:.06,yoyo:true,repeat:5,onComplete:()=>gsap.set(b,{x:0})});
-      b.textContent='Réessayer';b.className='btn j pt';b.style.cssText='font-size:15px;padding:0 10px';q('#plat small').innerHTML='<span>Pas noté.</span>';bulle('<span class="tt">Oups, pas noté.</span><br>Je n\'arrive pas à joindre la cuisine.');await dors(3400)},
+      b.textContent='Vérifier';b.className='btn j pt';b.style.cssText='font-size:15px;padding:0 10px';q('#plat small').innerHTML='<span>Pas sûr que ce soit noté.</span>';bulle('<span class="tt">Pas sûr que ce soit noté.</span><br>Je n\'arrive pas à joindre la cuisine.');await dors(3400)},
     async pcauj(){vas('pcauj');q('#puces').innerHTML=PUCES.map(p=>'<button type="button" class="btn b pt">'+p+'</button>').join('');gsap.from(q('#puces').children,{y:14,opacity:0,duration:.35,stagger:.07,delay:.5});await dors(1700);parle(M(),6);await dors(900);
       await ecris('On mange quoi demain ?');await pense(1000);parle(q('#a-m'),6);
       ajoute('rep','Demain midi : <b>chili</b>, sors-en 2 parts ce soir. Demain soir : <b>curry de pois chiches</b>.<div class="actes"><button type="button" class="btn b pt">Voir la semaine</button></div>');await dors(3400)}
@@ -477,7 +477,7 @@ body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-
     ['Un dessert, des chips, autre chose',[['dessert','Une habitude, dosée pour toi','Popote propose les quantités, tu ajustes, tu valides.'],['chips','Des chips, sans les valeurs','Elle demande la quantité, estime, et le dit.'],['habitude','Lui apprendre un produit','Elle dit ce qu\'elle a compris et demande ce qui lui manque.']]],
     ['Popote répond et agit',[['phrase','Tout dire en une phrase','Le plat, le yaourt, les chips : un récapitulatif, une validation.'],['voix','Le mode vocal','Le micro de la barre : elle récapitule, tu dis oui.'],['savoir','Une question','Sur ton frigo, puis sur l\'appli : elle t\'y emmène.']]],
     ['Léa',[['elle','Son accueil','Le même soir, vu par elle, sans objectifs réglés.']]],
-    ['Et si…',[['quota','Popote a trop parlé','L\'assistant se repose, l\'appli marche.'],['panne','Pas de réseau','Rien n\'est noté en douce : on le dit, on réessaie.']]],
+    ['Et si…',[['quota','Popote a trop parlé','L\'assistant se repose, l\'appli marche.'],['panne','Pas de réseau','On ne sait pas si c\'est noté : on le dit, puis on vérifie.']]],
     ['Sur PC',[['pcauj','Aujourd\'hui en large','Les mêmes tuiles, et Popote toujours ouverte à droite.']]]];
   const chap=document.getElementById('chap');
   chap.innerHTML=CH.map(([t,xs])=>'<h2>'+t+'</h2>'+xs.map(([id,n,d])=>'<button type="button" data-s="'+id+'">'+n+'<small>'+d+'</small></button>').join('')).join('');

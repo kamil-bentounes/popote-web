@@ -18,7 +18,7 @@ Le prototype animé du deuxième parcours (l'accueil, noter ce qu'on mange, Popo
 
 ## Ce que le prototype n'est pas
 
-- Son script est une démonstration. Il charge GSAP depuis cdnjs, ce que l'appli ne fera jamais : dans l'appli, le
+- Son script est une démonstration. Il charge GSAP depuis cdnjs, avec une empreinte d'intégrité (`integrity`), ce que l'appli ne fera jamais : dans l'appli, le
   mouvement passe par Motion, avec les durées et les courbes des jetons, et rien ne vient d'un autre domaine.
 - Il ne respecte pas le réglage « mouvement réduit », sauf pour la tuile mise en avant : l'appli, elle, le fera.
 - Les réponses de Popote y sont écrites d'avance : rien n'y appelle un assistant.
