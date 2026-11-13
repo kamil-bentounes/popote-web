@@ -1,0 +1,493 @@
+<title>Popote, parcours Aujourd'hui</title>
+<style>
+@font-face{font-family:"Fredoka";src:url("../systeme/polices/fredoka-latin.woff2") format("woff2");font-weight:300 700;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:"Fredoka";src:url("../systeme/polices/fredoka-latin-ext.woff2") format("woff2");font-weight:300 700;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+1E00-1E9F,U+20A0-20AB,U+20AD-20C0}
+@font-face{font-family:"Nunito";src:url("../systeme/polices/nunito-latin.woff2") format("woff2");font-weight:200 1000;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:"Nunito";src:url("../systeme/polices/nunito-latin-ext.woff2") format("woff2");font-weight:200 1000;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+1E00-1E9F,U+20A0-20AB,U+20AD-20C0}
+</style>
+<style>
+/* Un mur sombre, le téléphone au centre, les moments du parcours à gauche. Dans le téléphone : le style « Jeu » choisi. */
+:root{color-scheme:dark;--sol:#0B0A0C;--txt:#F4EFE8;--doux:#B1AAA2;--trait:#2B282D;--choix:#FFC62E;
+  --creme:#FFF3D9;--encre:#2A1A4A;--tomate:#FF5A47;--jaune:#FFC62E;--menthe:#2FD6A3;--ciel:#4D8DFF;--rose:#FF8FC7;--gris:#65568A;
+  --titre:'Fredoka','Nunito',system-ui,sans-serif;--texte:'Nunito',system-ui,sans-serif}
+html,body{height:100%}
+body{background:var(--sol);color:var(--txt);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
+*{box-sizing:border-box}
+.page{height:100%;display:grid;grid-template-columns:minmax(250px,340px) auto;gap:52px;align-items:center;justify-content:center;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.guide{display:flex;flex-direction:column;gap:14px;min-width:0;max-height:100%;overflow:auto;padding:4px}
+.guide h1{margin:0;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:-.03em}
+.guide p{margin:0;color:var(--doux);font-size:14px;line-height:1.45}
+.film{align-self:flex-start;height:44px;padding:0 18px;border-radius:999px;border:0;background:var(--choix);color:#1B1300;font:inherit;font-size:15px;font-weight:650;cursor:pointer}
+.chap h2{margin:8px 0 6px;font-size:12.5px;font-weight:600;color:var(--doux);letter-spacing:.02em}
+.chap button{display:block;width:100%;text-align:left;padding:8px 12px;margin:0 0 4px;border-radius:12px;border:1px solid var(--trait);background:transparent;color:var(--txt);font:inherit;font-size:14.5px;cursor:pointer}
+.chap button small{display:block;color:var(--doux);font-size:12.5px;margin-top:1px}
+.chap button[aria-current="true"]{border-color:var(--choix);background:rgba(255,198,46,.1)}
+@media (min-width:821px){.page.pc{grid-template-columns:minmax(230px,300px) auto;gap:36px}}
+.film:focus-visible,.chap button:focus-visible{outline:2px solid var(--choix);outline-offset:2px}
+.cadre{position:relative;width:calc(390px*var(--k,1));height:calc(844px*var(--k,1))}
+.tel{position:absolute;left:0;top:0;width:390px;height:844px;transform:scale(var(--k,1));transform-origin:0 0;border-radius:54px;overflow:hidden;background:var(--creme);box-shadow:0 0 0 9px #19181b,0 0 0 10px #3b383e,0 40px 90px rgba(0,0,0,.65)}
+.menu-etroit{display:none}
+@media (max-width:820px){
+  .page{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:8px;justify-items:center;align-items:start;padding-block:8px}
+  .guide{width:100%;gap:6px;overflow:visible}
+  .guide h1,.guide p,.chap{display:none}
+  .guide.ouvert .chap{display:block;position:fixed;z-index:60;left:0;right:0;bottom:0;max-height:70%;overflow:auto;background:#151317;border-top:1px solid var(--trait);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  .barre-etroite{display:flex;gap:8px;width:100%}
+  .film,.menu-etroit{display:block;flex:1 1 0;height:44px;border-radius:12px;font-size:14px}
+  .menu-etroit{border:1px solid var(--trait);background:transparent;color:var(--txt);font:inherit;cursor:pointer}
+  .tel{border-radius:40px;box-shadow:0 0 0 1px #3b383e}
+}
+/* ——— Le style Jeu ——— */
+.e{position:absolute;inset:0;display:none;background:var(--creme);color:var(--encre);font-family:var(--texte);font-weight:700;overflow:hidden}
+.e.on{display:block}
+.e button{font-family:inherit;cursor:pointer}
+.tt{font-family:var(--titre);font-weight:600;letter-spacing:-.01em;margin:0}
+.p{margin:0;font-size:16.5px;line-height:1.35;color:var(--gris)}
+.p b{color:var(--encre)}
+.bloc{background:#fff;border:3.5px solid var(--encre);border-radius:26px;box-shadow:0 7px 0 var(--encre)}
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:60px;border:3.5px solid var(--encre);border-radius:22px;font-family:var(--titre)!important;font-size:21px;font-weight:600;color:var(--encre);background:var(--menthe);box-shadow:0 7px 0 var(--encre),inset 0 4px 0 rgba(255,255,255,.45)}
+.btn.j{background:var(--jaune)}.btn.b{background:#fff}.btn.r{background:var(--tomate);color:#fff}.btn.c{background:var(--ciel);color:#fff}
+.btn.pt{width:auto;height:46px;padding:0 15px;border-radius:16px;font-size:16.5px;box-shadow:0 5px 0 var(--encre)}
+.btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lien{background:none;border:0;font-weight:800;font-size:16px;color:var(--encre);text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:0 6px}
+.champ label{display:block;font-size:14.5px;margin:0 0 6px 4px}
+.champ input{width:100%;height:58px;border:3.5px solid var(--encre);border-radius:18px;background:#fff;padding:0 16px;font-family:var(--texte);font-weight:800;font-size:18px;color:var(--encre);box-shadow:0 5px 0 var(--encre)}
+.champ input::placeholder{color:#9A8FB8}
+.champ input:focus-visible{outline:4px solid var(--jaune);outline-offset:2px}
+.retour{position:absolute;z-index:5;left:16px;top:46px;width:46px;height:46px;border-radius:16px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;padding:0}
+.retour svg{width:22px;height:22px;fill:none;stroke:var(--encre);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.soleil{position:absolute;left:-155px;top:-250px;width:700px;height:700px;border-radius:50%;background:repeating-conic-gradient(#FFD75E 0 12deg,#FFE48A 12deg 24deg);animation:tourne 40s linear infinite}
+.soleil.bleu{background:repeating-conic-gradient(#5E9BFF 0 12deg,#79ADFF 12deg 24deg)}
+.soleil.rose{background:repeating-conic-gradient(#FFA3D0 0 12deg,#FFBBDC 12deg 24deg)}
+@keyframes tourne{to{transform:rotate(360deg)}}
+.sol{position:absolute;left:-40px;right:-40px;top:300px;bottom:-40px;background:var(--creme);border-top:3.5px solid var(--encre);border-radius:50% 50% 0 0/38px 38px 0 0}
+.masc{position:absolute;width:176px;height:176px}
+.masc svg{width:100%;height:100%;overflow:visible}
+.bulle{position:absolute;padding:11px 14px;font-size:16.5px;line-height:1.25;border-radius:22px;box-shadow:0 5px 0 var(--encre)}
+.pion{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;padding:4px 10px;border-radius:999px;border:2.5px solid var(--encre);background:#FFE08A;white-space:nowrap}
+.pion.m{background:#A9F0D8}.pion.r{background:#FFC4E1}.pion.g{background:#EEE7FF}
+.conf{position:absolute;z-index:40;width:12px;height:16px;border:2.5px solid var(--encre);border-radius:4px;pointer-events:none}
+.doigt{position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(42,26,74,.25);border:2.5px solid rgba(42,26,74,.8);pointer-events:none;z-index:99;opacity:0}
+.col{position:absolute;left:18px;right:18px;display:flex;flex-direction:column;gap:14px}
+.centre{text-align:center;align-items:center}
+/* Le code */
+.cases{display:flex;justify-content:space-between}
+.cases i{width:52px;height:64px;border-radius:18px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;font-style:normal;font-family:var(--titre);font-size:32px}
+.cases.non i{background:#FFD3CC}.cases.oui i{background:#A9F0D8}
+.note{min-height:26px;font-size:15.5px;text-align:center}
+.note.err{color:#C22A17}
+.env{position:absolute;width:74px;height:56px;border-radius:14px;background:#fff;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);overflow:hidden}
+.env::before{content:"";position:absolute;left:-4px;right:-4px;top:-34px;height:60px;border:3.5px solid var(--encre);background:var(--rose);transform:rotate(45deg) scale(.86);border-radius:8px}
+/* L'empreinte */
+.emp{position:relative;width:170px;height:170px;border-radius:50%;display:grid;place-items:center;background:#fff;border:3.5px solid var(--encre);box-shadow:0 8px 0 var(--encre)}
+.emp svg.d{width:96px;height:96px;fill:none;stroke:var(--encre);stroke-width:2.6;stroke-linecap:round}
+.emp svg.a{position:absolute;inset:-16px;width:calc(100% + 32px);height:calc(100% + 32px);transform:rotate(-90deg)}
+.emp svg.a circle{fill:none;stroke:var(--menthe);stroke-width:9;stroke-linecap:round}
+/* Le foyer */
+.places{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.place{padding:18px 10px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-height:206px}
+.av{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;font-family:var(--titre);font-size:40px;border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);background:var(--jaune)}
+.av.t{background:var(--menthe)}.av.vide{background:#fff;border-style:dashed;box-shadow:none;color:#9A8FB8}
+.place b{font-family:var(--titre);font-size:22px;font-weight:600}
+.feuille{position:absolute;z-index:8;left:0;right:0;bottom:-8px;padding:22px 18px 30px;border-radius:34px 34px 0 0;display:flex;flex-direction:column;gap:13px;transform:translateY(105%)}
+.voile{position:absolute;inset:0;z-index:7;background:rgba(42,26,74,.45);opacity:0;pointer-events:none}
+.suivi{padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px}
+.piste3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.piste3 div{text-align:center;font-size:13.5px;color:var(--gris)}
+.piste3 u{display:block;height:14px;border-radius:999px;border:3px solid var(--encre);background:#fff;margin-bottom:5px;overflow:hidden;text-decoration:none}
+.piste3 u s{display:block;height:100%;width:0;background:var(--menthe)}
+.piste3 .fait{color:var(--encre)}
+/* Le mail */
+.boite{background:#ECE8F4}
+.mail-haut{position:absolute;left:0;right:0;top:0;padding:50px 18px 12px;background:#fff;border-bottom:2px solid #D9D2EA;font-size:14px;color:var(--gris)}
+.exp{display:flex;align-items:center;gap:10px;margin-top:10px}
+.exp .rond{width:42px;height:42px;border-radius:50%;background:var(--tomate);border:3px solid var(--encre);flex:none}
+.exp b{display:block;color:var(--encre);font-size:15.5px}
+.objet{margin:10px 0 0;font-family:var(--titre);font-size:19px;color:var(--encre)}
+.lettre{position:absolute;left:14px;right:14px;top:190px;padding:0;overflow:hidden}
+.lettre .tete{position:relative;height:150px;overflow:hidden;border-bottom:3.5px solid var(--encre);background:#FFD75E}
+.lettre .corps{padding:16px 16px 18px;display:flex;flex-direction:column;gap:12px}
+/* Accueil (arrivée) */
+.plat{position:absolute;left:16px;right:16px;top:326px;height:132px;display:flex;align-items:center;padding:0 14px 0 146px}
+.plat img{position:absolute;left:-6px;top:-14px;width:140px;height:140px;object-fit:cover;border-radius:34px;border:3.5px solid var(--encre);box-shadow:0 0 0 5px #fff,0 7px 0 5px var(--encre);transform:rotate(-5deg)}
+.jauge{display:grid;grid-template-columns:86px 1fr 92px;align-items:center;gap:10px;font-size:14.5px}
+.jauge b{font-family:var(--titre);font-weight:600;font-size:16px;text-align:right;white-space:nowrap}
+.rail{height:22px;border-radius:999px;border:3px solid var(--encre);background:#fff;overflow:hidden}
+.rail i{display:block;height:100%;border-right:3px solid var(--encre);background:repeating-linear-gradient(-55deg,var(--tomate) 0 10px,#FF7C6B 10px 20px)}
+.rail.pr i{background:repeating-linear-gradient(-55deg,var(--ciel) 0 10px,#77A8FF 10px 20px)}
+.carte-info{padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:16px;line-height:1.3}
+.carte-info .ic{width:46px;height:46px;border-radius:15px;border:3px solid var(--encre);display:grid;place-items:center;flex:none;font-family:var(--titre);font-size:21px;background:#A9F0D8}
+.rang{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:15.5px;line-height:1.25}
+.rang+.rang{border-top:2.5px solid #E9E2F5}
+.rang .ic,.fx{width:42px;height:42px;border-radius:14px;border:3px solid var(--encre);display:grid;place-items:center;flex:none;background:#EEE7FF}
+.rang .ic svg{width:22px;height:22px;fill:none;stroke:var(--encre);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rang div{flex:1 1 auto;min-width:0}
+.rang small{display:block;font-size:13.5px;color:var(--gris)}
+.fx{width:34px;height:34px;border-radius:12px;font-family:var(--titre);font-size:18px}
+.fx.perd{background:#FFC9C2}.fx.reste{background:#A9F0D8}.fx.change{background:#FFE08A}
+.choix{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:16px;width:100%;color:var(--encre)}
+.choix b{display:block;font-family:var(--titre);font-size:21px;font-weight:600}
+.choix span.d{display:block;font-size:14.5px;line-height:1.3;color:var(--gris);margin-top:3px;font-weight:700}
+.tenir{position:relative;overflow:hidden}
+.tenir s{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(42,26,74,.35)}
+.tenir span{position:relative}
+.ordi-cadre{display:none;position:relative;width:calc(1180px*var(--kp,1));height:calc(740px*var(--kp,1))}
+.ordi{position:absolute;left:0;top:0;width:1180px;height:740px;transform:scale(var(--kp,1));transform-origin:0 0;border-radius:24px;overflow:hidden;background:var(--creme);box-shadow:0 0 0 9px #19181b,0 0 0 10px #3b383e,0 40px 90px rgba(0,0,0,.65)}
+.page.pc .cadre{display:none}.page.pc .ordi-cadre{display:block}
+.nav-pc{position:absolute;left:0;top:0;bottom:0;width:230px;background:#fff;border-right:3.5px solid var(--encre);padding:26px 18px;display:flex;flex-direction:column;gap:10px}
+.nav-pc a{display:flex;align-items:center;height:50px;padding:0 16px;border-radius:16px;font-family:var(--titre);font-size:19px;color:var(--encre);text-decoration:none;border:3px solid transparent}
+.nav-pc a.ici{background:var(--jaune);border-color:var(--encre);box-shadow:0 5px 0 var(--encre)}
+@media (prefers-reduced-motion:reduce){.soleil{animation:none}}
+
+.haut{position:absolute;z-index:3;left:18px;right:18px;top:48px;display:flex;align-items:center;gap:8px}
+.haut .pion{height:44px;padding:0 13px;font-size:16px;background:#fff;box-shadow:0 5px 0 var(--encre);border-width:3.5px}
+.haut .pion svg{width:20px;height:20px;flex:none}
+.av.mini{width:46px;height:46px;border-radius:16px;font-size:21px;background:var(--ciel);color:#fff;flex:none}
+.av.mini.t{background:var(--menthe);color:var(--encre)}
+.duo{display:flex;gap:10px}
+.btn.fait{background:#A9F0D8;box-shadow:0 3px 0 var(--encre);transform:translateY(4px)}
+.jauge{grid-template-columns:78px 1fr 108px}
+.rail i.trop{background:repeating-linear-gradient(-55deg,#C22A17 0 10px,var(--tomate) 10px 20px)}
+.carte-info{padding:12px 14px;font-size:15.5px}
+.carte-info>span:nth-child(2){flex:1 1 auto;min-width:0}
+.carte-info .btn{flex:none;white-space:nowrap}
+.calme{padding:12px 14px;display:flex;align-items:center;gap:12px}
+.calme div{flex:1 1 auto;min-width:0}.calme b{display:block;font-size:20px;font-weight:600}.calme span{display:block;font-size:14.5px;line-height:1.3;color:var(--gris)}
+.tampon{position:absolute;z-index:4;left:0;top:44px;font-family:var(--titre);font-size:27px;color:#fff;background:var(--tomate);border:3.5px solid var(--encre);border-radius:14px;padding:0 13px;box-shadow:0 5px 0 var(--encre);transform:rotate(-12deg)}
+.aide{position:absolute;z-index:8;left:0;right:0;bottom:-8px;height:694px;padding:16px 16px 30px;border-radius:34px 34px 0 0;display:flex;flex-direction:column;gap:10px;transform:translateY(105%)}
+.aide-haut{display:flex;align-items:center;gap:10px;flex:none}
+.aide-haut h2{font-size:25px;line-height:1.05}.aide-haut .p{font-size:15px}
+.aide-haut .x{position:static;margin-left:auto;font-family:var(--titre);font-size:26px;line-height:1;color:var(--encre);flex:none}
+.fil{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;overflow:hidden;padding-bottom:5px}
+.dit,.rep{padding:10px 14px;font-size:16px;line-height:1.3;border-radius:20px;box-shadow:0 4px 0 var(--encre);max-width:90%;flex:none}
+.dit{align-self:flex-end;background:#FFE08A}.rep{align-self:flex-start}.rep b{font-weight:900}
+.actes{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rep.large{max-width:100%;align-self:stretch}
+.rep .rang{padding:8px 0;font-size:15px}.rep .rang .actes{margin-top:7px}.rep .rang .btn.pt{height:40px;font-size:15px;padding:0 11px}
+.dose{display:flex;align-items:center;gap:8px;padding:8px 0}.dose+.dose{border-top:2.5px solid #E9E2F5}
+.dose>div{flex:1 1 auto;min-width:0;font-size:15.5px;line-height:1.2}.dose small{display:block;font-size:13px;color:var(--gris)}
+.dose .q{font-family:var(--titre);font-size:18px;min-width:62px;text-align:center}.dose .btn.rond{width:40px;height:40px;font-size:24px}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-size:14.5px;padding-top:6px}.total b{font-family:var(--titre);font-weight:600;font-size:16.5px}
+.total:first-of-type{border-top:2.5px solid #E9E2F5;margin-top:2px;padding-top:9px}
+.pts{display:inline-flex;gap:5px;padding:5px 2px}.pts i{width:9px;height:9px;border-radius:50%;background:var(--encre)}
+.puces{display:flex;flex-wrap:wrap;gap:8px;flex:none;overflow:hidden}.puces .btn{font-size:15px;height:42px;padding:0 12px}
+.saisie{display:flex;gap:10px;align-items:center;flex:none}.saisie input{height:54px}
+.micro{width:58px;height:58px;flex:none;border-radius:50%;background:var(--ciel);border:3.5px solid var(--encre);box-shadow:0 5px 0 var(--encre);display:grid;place-items:center;padding:0}
+.micro svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.micro.gros{width:88px;height:88px;background:var(--tomate);box-shadow:0 7px 0 var(--encre)}.micro.gros svg{width:38px;height:38px}
+.ondes i{position:absolute;left:195px;top:195px;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;border:4px solid #fff;opacity:0}
+.etat{position:absolute;left:0;right:0;top:296px;text-align:center;font-size:32px;color:#fff;-webkit-text-stroke:6px var(--encre);letter-spacing:.01em;paint-order:stroke fill}
+.vx{padding:12px 14px;font-size:17px;line-height:1.3;opacity:0;box-shadow:0 5px 0 var(--encre);border-radius:22px}
+.vx.moi{background:#FFE08A;min-height:70px}
+.vx.recu{padding:2px 14px}.vx.recu .rang{padding:7px 0;font-size:15px}.vx.recu .lien{font-size:15px;min-height:40px;padding:0}
+.jmini{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mj-t{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin:0 2px 4px}
+.mj-t b{font-family:var(--titre);font-weight:600;font-size:15px;white-space:nowrap}
+.ceSoir{position:relative;display:flex;align-items:center;gap:12px;padding:8px 12px 8px 8px}
+.ceSoir img{width:58px;height:58px;border-radius:16px;border:3px solid var(--encre);object-fit:cover;flex:none}
+.ceSoir>div{flex:1 1 auto;min-width:0}.ceSoir small{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--gris);white-space:nowrap}
+.ceSoir small u{color:var(--encre);font-weight:800;text-underline-offset:2px}
+.ceSoir .btn{flex:none}
+.ceSoir .vd{width:58px;height:58px;border-radius:16px;border:3px dashed #B9AEDA;flex:none;display:grid;place-items:center;font-family:var(--titre);font-size:24px;color:#B9AEDA}
+.ceSoir .vd.est{border-style:solid;border-color:var(--encre);background:#FFE08A;color:var(--encre)}
+.ceSoir .tampon{left:3px;top:27px;font-size:13.5px;padding:0 6px;border-width:2.5px;border-radius:9px;box-shadow:0 3px 0 var(--encre)}
+.bz{position:absolute;z-index:3;left:168px;right:16px;top:104px;height:172px;display:flex;align-items:center}
+.bz .bulle{position:relative;width:100%}
+.bulle .btn.pt{width:100%;height:40px;margin-top:9px;font-size:15.5px;border-radius:14px;box-shadow:0 4px 0 var(--encre)}
+.monde.vif{background:#FF9CCB}.monde.vif i{background:var(--jaune);animation:vif 1.8s ease-in-out infinite}
+@keyframes vif{0%,60%,100%{transform:none}70%{transform:rotate(-9deg) scale(1.12)}85%{transform:rotate(7deg) scale(1.12)}}
+@media (prefers-reduced-motion:reduce){.monde.vif i{animation:none}}.ceSoir b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:18px;font-weight:600;line-height:1.1}
+.mondes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.monde{height:128px;border:3.5px solid var(--encre);border-radius:26px;background:var(--c);box-shadow:0 7px 0 var(--encre),inset 0 4px 0 rgba(255,255,255,.5);padding:12px 14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:2px;text-align:left;color:var(--encre);position:relative}
+.monde i{position:absolute;right:12px;top:12px;width:44px;height:44px;border-radius:15px;background:#fff;border:3px solid var(--encre);display:grid;place-items:center}
+.monde i svg{width:24px;height:24px;fill:none;stroke:var(--encre);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.monde b{font-size:25px;font-weight:600;line-height:1}
+.monde span{font-size:14px;line-height:1.2;font-weight:800}
+.parle{position:absolute;z-index:6;left:14px;right:14px;bottom:14px;height:66px;border-radius:24px;display:flex;align-items:center;gap:10px;padding:0 8px 0 6px}
+.parle .pp{width:54px;height:54px;flex:none}.parle .pp svg{width:100%;height:100%;overflow:visible}
+.parle .ph{flex:1 1 auto;font-size:17px;color:#9A8FB8}
+.parle .micro{width:50px;height:50px;box-shadow:0 4px 0 var(--encre)}
+.ligne{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;font-size:16px}.ligne+.ligne{border-top:2.5px solid #E9E2F5}.ligne b{font-family:var(--titre);font-weight:600;font-size:19px;white-space:nowrap}
+.jours{display:flex;gap:8px;margin-top:10px}
+.jour{flex:1 1 0;height:48px;border-radius:16px;border:3px solid var(--encre);background:#fff;font-family:var(--titre)!important;font-size:16.5px;color:var(--encre);box-shadow:0 4px 0 var(--encre);padding:0}
+.jour.ici{background:var(--jaune)}
+.btn.rond{width:46px;padding:0;font-size:27px;line-height:1}
+.panneau{position:absolute;right:0;top:0;bottom:0;width:360px;background:#fff;border-left:3.5px solid var(--encre);padding:22px 18px;display:flex;flex-direction:column;gap:12px}
+</style>
+<div class="page">
+  <aside class="guide" id="guide">
+    <h1>Aujourd'hui</h1>
+    <p>L'écran sur lequel on arrive, et Popote qui répond et agit. Lance le film, ou touche un moment pour le rejouer seul.</p>
+    <div class="barre-etroite"><button type="button" class="film" id="film">Lancer le film</button><button type="button" class="menu-etroit" id="ouvre">Les moments</button></div>
+    <div class="chap" id="chap"></div>
+    <p>Les prénoms, les plats, les chiffres et le budget sont des exemples.</p>
+  </aside>
+  <div class="cadre" id="cadre"><div class="tel" id="tel">
+
+<section class="e" id="vide">
+  <div class="soleil"></div><div class="sol" style="top:266px"></div>
+  <div class="haut" data-in><span class="pion"><span class="tt">Vendredi 13 nov.</span></span><i style="flex:1 1 auto"></i><span class="av mini">S</span></div>
+  <div class="masc" data-m style="left:22px;top:122px;width:140px;height:140px"></div>
+  <div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">Bonsoir Sam !</span><br>Rien au menu ce soir.</div></div>
+  <div class="col" style="top:286px;gap:12px"><div class="bloc ceSoir" id="plat" data-in><span class="vd">?</span><div id="autre"><small><span>Ce soir</span></small><b class="tt">Rien de prévu</b></div><button type="button" class="btn b pt" id="noter">Noter</button></div><div class="jmini" data-in><div><div class="mj-t"><span>Énergie</span><b><span id="n-e">0</span> / 2 000</b></div><div class="rail"><i id="g-e" style="width:0%"></i></div></div><div><div class="mj-t"><span>Protéines</span><b><span id="n-p">0</span> / 120 g</b></div><div class="rail pr"><i id="g-p" style="width:0%"></i></div></div></div><div class="mondes" data-in><button type="button" class="monde" id="m-semaine" style="--c:#CFE0FF"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14v14H5zM5 10h14M9 3v4M15 3v4"></path></svg></i><b class="tt">Semaine</b><span>Rien de prévu</span></button><button type="button" class="monde" id="m-frigo" style="--c:#A9F0D8"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 011 1v16a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zM6 10h12M9 6v2M9 13v3"></path></svg></i><b class="tt">Frigo</b><span>12 parts de chili, 1 à jeter</span></button><button type="button" class="monde" id="m-budget" style="--c:#FFE08A"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 100 16 8 8 0 000-16zM15 9.500a3.500 3.500 0 100 5M8 11h5M8 13h5"></path></svg></i><b class="tt">Budget</b><span>1 150 € restent en novembre</span></button><button type="button" class="monde vif" id="go" style="--c:#FFC4E1"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h14v6a3 3 0 01-3 3H8a3 3 0 01-3-3zM3 10h18M9 6h6"></path></svg></i><b class="tt">Cuisiner</b><span>On cuisine dimanche ?</span></button></div></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div><div class="voile"></div><div class="aide bloc"><div class="aide-haut"><div class="masc" id="a-m" data-m style="position:relative;width:84px;height:84px;flex:none"></div><div style="min-width:0"><h2 class="tt" id="a-titre">Dis-moi</h2><p class="p" id="a-sous">Je réponds, et je fais.</p></div><button type="button" class="retour x" aria-label="Fermer">×</button></div><div class="fil" id="fil"></div><div class="puces" id="puces"></div><div class="saisie"><div class="champ" style="flex:1 1 auto;min-width:0"><input id="a-champ" type="text" placeholder="Écris, ou parle" aria-label="Ta demande"></div><button type="button" class="micro" id="a-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div></div>
+</section>
+
+<section class="e" id="auj">
+  <div class="soleil"></div><div class="sol" style="top:266px"></div>
+  <div class="haut" data-in><span class="pion serie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 01-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-3 0-6 1-10z" fill="#FF5A47" stroke="#2A1A4A" stroke-width="2.2" stroke-linejoin="round"></path></svg><span class="tt" id="serie">7 jours</span></span><i style="flex:1 1 auto"></i><span class="av mini">S</span></div>
+  <div class="masc" data-m style="left:22px;top:122px;width:140px;height:140px"></div>
+  <div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">Bonsoir Sam !</span><br>Ce soir, c'est lasagnes.</div></div>
+  <div class="col" style="top:286px;gap:12px"><div class="bloc ceSoir" id="plat" data-in><img src="img/lasagnes-carre.jpg" alt=""><div id="autre"><small><span>Ce soir</span><u>Autre chose ?</u></small><b class="tt">Lasagnes aux légumes</b></div><button type="button" class="btn pt" id="mange">Mangé</button></div><div class="jmini" data-in><div><div class="mj-t"><span>Énergie</span><b><span id="n-e">1 240</span> / 2 000</b></div><div class="rail"><i id="g-e" style="width:62%"></i></div></div><div><div class="mj-t"><span>Protéines</span><b><span id="n-p">68</span> / 120 g</b></div><div class="rail pr"><i id="g-p" style="width:57%"></i></div></div></div><div class="mondes" data-in><button type="button" class="monde" id="m-semaine" style="--c:#CFE0FF"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14v14H5zM5 10h14M9 3v4M15 3v4"></path></svg></i><b class="tt">Semaine</b><span>Demain : chili, puis curry</span></button><button type="button" class="monde" id="m-frigo" style="--c:#A9F0D8"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 011 1v16a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zM6 10h12M9 6v2M9 13v3"></path></svg></i><b class="tt">Frigo</b><span>18 parts, 2 à sortir</span></button><button type="button" class="monde" id="m-budget" style="--c:#FFE08A"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 100 16 8 8 0 000-16zM15 9.500a3.500 3.500 0 100 5M8 11h5M8 13h5"></path></svg></i><b class="tt">Budget</b><span>1 150 € restent en novembre</span></button><button type="button" class="monde" id="go" style="--c:#FFC4E1"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h14v6a3 3 0 01-3 3H8a3 3 0 01-3-3zM3 10h18M9 6h6"></path></svg></i><b class="tt">Cuisiner</b><span>Nouvelle session</span></button></div></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div><div class="voile"></div><div class="aide bloc"><div class="aide-haut"><div class="masc" id="a-m" data-m style="position:relative;width:84px;height:84px;flex:none"></div><div style="min-width:0"><h2 class="tt" id="a-titre">Dis-moi</h2><p class="p" id="a-sous">Je réponds, et je fais.</p></div><button type="button" class="retour x" aria-label="Fermer">×</button></div><div class="fil" id="fil"></div><div class="puces" id="puces"></div><div class="saisie"><div class="champ" style="flex:1 1 auto;min-width:0"><input id="a-champ" type="text" placeholder="Écris, ou parle" aria-label="Ta demande"></div><button type="button" class="micro" id="a-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div></div>
+</section>
+
+<section class="e" id="elle">
+  <div class="soleil rose"></div><div class="sol" style="top:266px"></div>
+  <div class="haut" data-in><span class="pion serie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 01-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-3 0-6 1-10z" fill="#FF5A47" stroke="#2A1A4A" stroke-width="2.2" stroke-linejoin="round"></path></svg><span class="tt" id="serie">3 jours</span></span><i style="flex:1 1 auto"></i><span class="av mini t">L</span></div>
+  <div class="masc" data-m style="left:22px;top:122px;width:140px;height:140px"></div>
+  <div class="bz"><div class="bulle bloc" data-in id="bulle"><span class="tt">Bonsoir Léa !</span><br>Lasagnes ce soir. Sam a déjà mangé sa part.</div></div>
+  <div class="col" style="top:286px;gap:12px"><div class="bloc ceSoir" id="plat" data-in><img src="img/lasagnes-carre.jpg" alt=""><div id="autre"><small><span>Ce soir</span><u>Autre chose ?</u></small><b class="tt">Lasagnes aux légumes</b></div><button type="button" class="btn pt" id="mange">Mangé</button></div><div class="bloc carte-info" style="padding:9px 12px" data-in><span><b>Tes objectifs ?</b> Je doserai tes parts pour toi.</span><button type="button" class="btn j pt">Régler</button></div><div class="mondes" data-in><button type="button" class="monde" id="m-semaine" style="--c:#CFE0FF"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14v14H5zM5 10h14M9 3v4M15 3v4"></path></svg></i><b class="tt">Semaine</b><span>Demain : chili, puis curry</span></button><button type="button" class="monde" id="m-frigo" style="--c:#A9F0D8"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 011 1v16a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zM6 10h12M9 6v2M9 13v3"></path></svg></i><b class="tt">Frigo</b><span>17 parts, 2 à sortir</span></button><button type="button" class="monde" id="m-budget" style="--c:#FFE08A"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 100 16 8 8 0 000-16zM15 9.500a3.500 3.500 0 100 5M8 11h5M8 13h5"></path></svg></i><b class="tt">Budget</b><span>1 150 € restent en novembre</span></button><button type="button" class="monde" id="go" style="--c:#FFC4E1"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h14v6a3 3 0 01-3 3H8a3 3 0 01-3-3zM3 10h18M9 6h6"></path></svg></i><b class="tt">Cuisiner</b><span>Nouvelle session</span></button></div></div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div>
+</section>
+
+<section class="e" id="monbudget">
+  <div class="soleil" style="top:-330px"></div><div class="sol" style="top:206px"></div>
+  <button type="button" class="retour" aria-label="Retour à l'accueil"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button>
+  <div class="masc" data-m style="left:130px;top:62px;width:130px;height:130px"></div>
+  <div class="col" style="top:222px;gap:12px">
+    <h1 class="tt" style="font-size:32px;line-height:1" data-in>Le budget de novembre</h1>
+    <div class="bloc" style="padding:14px 16px;background:#FFE08A" data-in><span style="font-size:15px">Il vous reste</span><b class="tt" style="display:block;font-size:46px;line-height:1.05">1 150 €</b><span style="font-size:15px">une fois les charges du mois payées</span></div>
+    <div class="bloc" style="padding:4px 16px" data-in><div class="ligne"><span>Revenus à deux</span><b>4 000 €</b></div><div class="ligne"><span>Charges prévues</span><b>2 850 €</b></div><div class="ligne"><span>Courses notées</span><b>0 € sur 500 €</b></div></div>
+    <button type="button" class="btn j" data-in>Noter une dépense</button>
+    <p class="p" style="font-size:14.500px;text-align:center" data-in>Aperçu seulement : le budget aura son propre parcours.</p>
+  </div>
+  <div class="parle bloc" id="n-pot" role="button" tabindex="0" aria-label="Parler à Popote" data-in><span class="pp" data-p></span><span class="ph">Parle-moi, ou écris</span><span class="micro" id="n-mic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></span></div>
+</section>
+
+<section class="e" id="session">
+  <div class="soleil rose" style="top:-300px"></div><div class="sol" style="top:236px"></div>
+  <button type="button" class="retour" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"></path></svg></button>
+  <div class="masc" data-m style="left:120px;top:72px;width:150px;height:150px"></div>
+  <div class="col" style="top:252px;gap:12px">
+    <h1 class="tt" style="font-size:34px;line-height:1" data-in>Nouvelle session</h1>
+    <p class="p" style="font-size:15.5px" data-in>Ta semaine en cours ne bouge pas : les nouvelles barquettes s'ajoutent au frigo.</p>
+    <div class="bloc" style="padding:13px 14px 15px" data-in><b class="tt" style="font-size:19px;font-weight:600">On cuisine quand ?</b><div class="jours"><button type="button" class="jour">Sam. 14</button><button type="button" class="jour ici">Dim. 15</button><button type="button" class="jour">Autre jour</button></div></div>
+    <div class="bloc" style="padding:12px 14px;display:flex;align-items:center;gap:10px" data-in><div style="flex:1 1 auto"><b class="tt" style="font-size:17.5px;font-weight:600;display:block;white-space:nowrap">Combien de parts ?</b><small style="font-size:14px;color:var(--gris)">16 la dernière fois</small></div><button type="button" class="btn b pt rond" id="moins" aria-label="Moins">−</button><b class="tt" id="parts" style="font-size:30px;min-width:38px;text-align:center">16</b><button type="button" class="btn b pt rond" id="plus2" aria-label="Plus">+</button></div>
+    <div class="bloc carte-info" data-in><span class="ic" style="background:#FFE08A">24</span><span><b>recettes dans votre carnet.</b> Je peux aussi en inventer une.</span></div>
+    <button type="button" class="btn" id="choisir" data-in>Choisir les recettes</button>
+  </div>
+</section>
+
+<section class="e" id="voix" style="background:#4D8DFF">
+  <div class="soleil bleu" style="top:-125px"></div>
+  <button type="button" class="retour x" aria-label="Fermer le mode vocal" style="font-family:var(--titre);font-size:26px;line-height:1;color:var(--encre)">×</button>
+  <span class="pion g" style="position:absolute;z-index:3;right:16px;top:54px;font-size:15px;padding:6px 13px" data-in>Mode vocal</span>
+  <div class="ondes"><i></i><i></i><i></i></div>
+  <div class="masc" data-m style="left:100px;top:100px;width:190px;height:190px"></div>
+  <h1 class="tt etat" id="vx-etat">Je t'écoute…</h1>
+  <div class="col" style="top:350px;gap:12px">
+    <div class="bloc vx moi" id="vx-dit"></div>
+    <div class="bloc vx" id="vx-rep"></div>
+    <div class="bloc vx recu" id="vx-recu"></div>
+  </div>
+  <div class="col centre" style="top:auto;bottom:30px"><button type="button" class="micro gros" id="vx-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div>
+</section>
+
+    <div class="doigt" id="doigt"></div>
+  </div></div>
+  <div class="ordi-cadre" id="ordi-cadre"><div class="ordi" id="ordi">
+
+    <section class="e" id="pcauj">
+      <div style="position:absolute;left:0;top:0;width:820px;height:232px;overflow:hidden;border-bottom:3.5px solid var(--encre)"><div class="soleil" style="left:-140px;top:-420px;width:1100px;height:1100px"></div>
+        <b class="tt" style="position:absolute;left:28px;top:22px;font-size:30px">Popote</b>
+        <div class="masc" data-m style="left:150px;top:42px;width:180px;height:180px"></div>
+        <div class="bulle bloc" style="left:352px;top:84px;font-size:19px" data-in id="bulle"><span class="tt" style="font-size:24px">Bonsoir Sam !</span><br>Ce soir, c'est lasagnes.</div>
+        <div class="haut" style="left:auto;right:22px;top:20px" data-in><span class="pion serie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 01-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-3 0-6 1-10z" fill="#FF5A47" stroke="#2A1A4A" stroke-width="2.2" stroke-linejoin="round"></path></svg><span class="tt" id="serie">7 jours</span></span><span class="av mini">S</span></div></div>
+      <div style="position:absolute;left:40px;top:254px;width:740px;display:flex;flex-direction:column;gap:14px">
+        <div class="bloc ceSoir" id="plat" data-in><img src="img/lasagnes-carre.jpg" alt=""><div id="autre"><small><span>Ce soir</span><u>Autre chose ?</u></small><b class="tt">Lasagnes aux légumes</b></div><button type="button" class="btn pt" id="mange">Mangé</button></div><div class="jmini" data-in><div><div class="mj-t"><span>Énergie</span><b><span id="n-e">1 240</span> / 2 000</b></div><div class="rail"><i id="g-e" style="width:62%"></i></div></div><div><div class="mj-t"><span>Protéines</span><b><span id="n-p">68</span> / 120 g</b></div><div class="rail pr"><i id="g-p" style="width:57%"></i></div></div></div><div class="mondes" data-in><button type="button" class="monde" id="m-semaine" style="--c:#CFE0FF"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14v14H5zM5 10h14M9 3v4M15 3v4"></path></svg></i><b class="tt">Semaine</b><span>Demain : chili, puis curry</span></button><button type="button" class="monde" id="m-frigo" style="--c:#A9F0D8"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 011 1v16a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zM6 10h12M9 6v2M9 13v3"></path></svg></i><b class="tt">Frigo</b><span>18 parts, 2 à sortir</span></button><button type="button" class="monde" id="m-budget" style="--c:#FFE08A"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 100 16 8 8 0 000-16zM15 9.500a3.500 3.500 0 100 5M8 11h5M8 13h5"></path></svg></i><b class="tt">Budget</b><span>1 150 € restent en novembre</span></button><button type="button" class="monde" id="go" style="--c:#FFC4E1"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h14v6a3 3 0 01-3 3H8a3 3 0 01-3-3zM3 10h18M9 6h6"></path></svg></i><b class="tt">Cuisiner</b><span>Nouvelle session</span></button></div>
+      </div>
+      <aside class="panneau" aria-label="Popote"><div class="aide-haut"><div class="masc" id="a-m" data-m style="position:relative;width:84px;height:84px;flex:none"></div><div style="min-width:0"><h2 class="tt" id="a-titre">Parle-moi</h2><p class="p" id="a-sous">Je réponds, et je fais.</p></div></div><div class="fil" id="fil"></div><div class="puces" id="puces"></div><div class="saisie"><div class="champ" style="flex:1 1 auto;min-width:0"><input id="a-champ" type="text" placeholder="Écris, ou parle" aria-label="Ta demande"></div><button type="button" class="micro" id="a-micro" aria-label="Parler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a3 3 0 013 3v4a3 3 0 01-6 0V7a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v3"></path></svg></button></div></aside>
+    </section>
+  </div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function(){
+  const POT='<svg viewBox="0 0 200 200" role="img" aria-label="Popote, la petite marmite"><g class="vap" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0"><path d="M78 40q-10-12 0-24"></path><path d="M122 40q10-12 0-24"></path></g><g class="corps"><rect x="12" y="96" width="30" height="18" rx="9" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></rect><rect x="158" y="96" width="30" height="18" rx="9" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></rect><path d="M34 84h132v54a40 40 0 01-40 40H74a40 40 0 01-40-40z" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5" stroke-linejoin="round"></path><path d="M48 98v34" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".45"></path><circle cx="62" cy="142" r="9" fill="#FF8FC7" opacity=".85"></circle><circle cx="138" cy="142" r="9" fill="#FF8FC7" opacity=".85"></circle><g class="yeux"><ellipse cx="78" cy="122" rx="13" ry="15" fill="#fff" stroke="#2A1A4A" stroke-width="4"></ellipse><ellipse cx="122" cy="122" rx="13" ry="15" fill="#fff" stroke="#2A1A4A" stroke-width="4"></ellipse><circle cx="80" cy="124" r="6.500" fill="#2A1A4A"></circle><circle cx="124" cy="124" r="6.500" fill="#2A1A4A"></circle><circle cx="82" cy="121" r="2" fill="#fff"></circle><circle cx="126" cy="121" r="2" fill="#fff"></circle></g><g class="dodo" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round" opacity="0"><path d="M66 124q12 9 24 0"></path><path d="M110 124q12 9 24 0"></path></g><g class="joie" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0"><path d="M66 128l12-12 12 12"></path><path d="M110 128l12-12 12 12"></path></g><path class="bouche" d="M88 147q12 12 24 0" fill="none" stroke="#2A1A4A" stroke-width="5" stroke-linecap="round"></path></g><g class="couv"><rect x="36" y="64" width="128" height="24" rx="12" fill="#FFC62E" stroke="#2A1A4A" stroke-width="5"></rect><circle cx="100" cy="56" r="11" fill="#FF5A47" stroke="#2A1A4A" stroke-width="5"></circle></g></svg>';
+  const tel=document.getElementById('tel'),cadre=document.getElementById('cadre'),doigt=document.getElementById('doigt'),guide=document.getElementById('guide');
+  const G={};document.querySelectorAll('.e').forEach(s=>G[s.id]=s.innerHTML);
+  let jeton=0,ici=null;
+  const page=document.querySelector('.page'),ordiCadre=document.getElementById('ordi-cadre');
+  const $=s=>(page.classList.contains('pc')?document.getElementById('ordi'):tel).querySelector(s),$$=s=>tel.querySelectorAll(s);
+  const dors=ms=>new Promise((ok,non)=>{const j=jeton;setTimeout(()=>j===jeton?ok():non('arret'),ms)});
+  function echelle(){const etroit=innerWidth<=820,h=innerHeight-(etroit?70:36),w=etroit?innerWidth-20:1e4;cadre.style.setProperty('--k',Math.max(.35,Math.min(1,h/844,w/390)).toFixed(4));
+    ordiCadre.style.setProperty('--kp',Math.max(.2,Math.min(1,h/740,(etroit?innerWidth-24:innerWidth-420)/1180)).toFixed(4))}
+  addEventListener('resize',echelle);echelle();
+  // La marmite et ses humeurs
+  const m=(sel)=>typeof sel==='string'?$('#'+ici+' '+(sel||'[data-m]')):sel;
+  const yeux=(el,mode)=>{gsap.set(el.querySelector('.yeux'),{opacity:mode==='ouverts'?1:0});gsap.set(el.querySelector('.dodo'),{opacity:mode==='dodo'?1:0});gsap.set(el.querySelector('.joie'),{opacity:mode==='joie'?1:0})};
+  const cligne=el=>gsap.to(el.querySelector('.yeux'),{scaleY:.1,transformOrigin:'50% 60%',duration:.08,yoyo:true,repeat:1,repeatDelay:.05});
+  const saute=(el,h=34)=>{gsap.to(el,{y:'-='+h,duration:.27,ease:'power2.out',yoyo:true,repeat:1});gsap.to(el.querySelector('.couv'),{y:-16,rotation:-8,transformOrigin:'50% 100%',duration:.26,yoyo:true,repeat:1});gsap.fromTo(el.querySelector('.vap'),{opacity:1,y:0},{opacity:0,y:-18,duration:.8})};
+  const parle=(el,n=7)=>gsap.to(el.querySelector('.bouche'),{scaleY:2.2,transformOrigin:'50% 0%',duration:.11,yoyo:true,repeat:n*2-1});
+  const triste=el=>gsap.set(el.querySelector('.bouche'),{scaleY:-1,transformOrigin:'50% 50%',y:6});
+  const confettis=(x,y,n=34)=>{const sec=$('#'+ici),cs=['#FF5A47','#FFC62E','#2FD6A3','#4D8DFF','#FF8FC7'];for(let i=0;i<n;i++){const e=document.createElement('i');e.className='conf';e.style.background=cs[i%5];sec.appendChild(e);const a=-Math.PI/2+(Math.random()-.5)*2.2,d=110+Math.random()*190;
+    gsap.fromTo(e,{x,y,rotation:0},{x:x+Math.cos(a)*d,y:y+Math.sin(a)*d+260,rotation:(Math.random()-.5)*900,duration:1.5+Math.random()*.7,ease:'power1.out',onComplete:()=>e.remove()});gsap.to(e,{opacity:0,duration:.4,delay:1.2})}};
+  const appui=el=>gsap.to(el,{y:6,boxShadow:'0 1px 0 #2A1A4A',duration:.09,yoyo:true,repeat:1});
+  async function touche(sel){const el=typeof sel==='string'?$(sel):sel,k=parseFloat(getComputedStyle(cadre).getPropertyValue('--k'))||1,r=el.getBoundingClientRect(),t=tel.getBoundingClientRect();
+    gsap.killTweensOf(doigt);gsap.set(doigt,{x:(r.left+r.width/2-t.left)/k,y:(r.top+r.height/2-t.top)/k,scale:1.5,opacity:0});gsap.to(doigt,{scale:1,opacity:1,duration:.22});await dors(320);
+    gsap.to(doigt,{scale:.8,duration:.1,yoyo:true,repeat:1});appui(el);await dors(200);gsap.to(doigt,{opacity:0,duration:.3,delay:.1})}
+  async function maintiens(sel,apres){const el=$(sel),k=parseFloat(getComputedStyle(cadre).getPropertyValue('--k'))||1,r=el.getBoundingClientRect(),t=tel.getBoundingClientRect();
+    gsap.killTweensOf(doigt);gsap.set(doigt,{x:(r.left+r.width/2-t.left)/k,y:(r.top+r.height/2-t.top)/k,scale:1.5,opacity:0});gsap.to(doigt,{scale:.85,opacity:1,duration:.25});
+    gsap.to(el,{y:6,boxShadow:'0 1px 0 #2A1A4A',duration:.1});gsap.to(el.querySelector('s'),{width:'100%',duration:2,ease:'none'});await dors(2100);
+    gsap.to(el,{y:0,boxShadow:'0 7px 0 #2A1A4A',duration:.1});gsap.to(doigt,{opacity:0,duration:.3});el.querySelector('span').textContent=apres}
+  const prouve=async(sel)=>{await touche(sel);const b=$(sel);b.querySelector('span').textContent='C\'est bien toi';gsap.to(b,{background:'#A9F0D8',duration:.2})};
+  async function tape(sel,texte){const el=$(sel);el.value='';for(const c of texte){el.value+=c;await dors(38)}}
+  // Passer d'un écran à l'autre : le nouveau monte, ses éléments rebondissent en place.
+  function va(id){page.classList.toggle('pc',id.startsWith('pc'));const de=ici?document.getElementById(ici):null,a=document.getElementById(id);gsap.killTweensOf('*');gsap.set(doigt,{opacity:0});a.innerHTML=G[id];a.querySelectorAll('[data-m]').forEach(x=>x.innerHTML=POT);
+    document.querySelectorAll('.e').forEach(s=>{s.classList.toggle('on',s===a||s===de);s.style.zIndex=s===a?2:1;gsap.set(s,{clearProps:'transform,opacity'})});
+    if(de&&de!==a){gsap.fromTo(a,{yPercent:100},{yPercent:0,duration:.5,ease:'power3.out'});gsap.to(de,{scale:.94,opacity:.6,duration:.5,onComplete:()=>{de.classList.remove('on');gsap.set(de,{clearProps:'transform,opacity'})}})}
+    ici=id;gsap.from(a.querySelectorAll('[data-in]'),{y:36,opacity:0,scale:.92,duration:.55,stagger:.07,ease:'back.out(1.8)',delay:de?.25:.05});
+    a.querySelectorAll('[data-m]').forEach(x=>gsap.from(x,{scale:.4,y:40,duration:.7,ease:'back.out(2)',delay:de?.2:0}))}
+
+  // ——— Aujourd'hui : les aides propres à ce parcours ———
+  const q=s=>document.querySelector('#'+ici+' '+s);
+  const el=(tag,cls,html)=>{const e=document.createElement(tag);e.className=cls;e.innerHTML=html;return e};
+  const fr=n=>n.toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g,'\u00a0');
+  const M=()=>q('[data-m]');
+  function vas(id){feuille=false;fait=false;parts=STOCK-(id==='elle'?1:0);document.querySelectorAll('.e').forEach(s=>{if(s.id!==ici&&s.id!==id)s.innerHTML=''});va(id);document.querySelectorAll('#'+id+' [data-p]').forEach(x=>x.innerHTML=POT)}
+  const bulle=html=>{const b=q('#bulle');b.innerHTML=html;gsap.fromTo(b,{scale:.85},{scale:1,duration:.35,ease:'back.out(2.5)'})};
+  const compte=(e,de,a)=>{const o={v:de};gsap.to(o,{v:a,duration:.9,ease:'power2.out',onUpdate:()=>{e.textContent=fr(Math.round(o.v))}})};
+  const note=()=>{const b=q('#mange');b.textContent='+ Dessert';b.className='btn j pt';q('#plat small').innerHTML='<span>Mangé.</span><u>Annuler</u>';gsap.from(b,{scale:.85,duration:.4,ease:'back.out(3)'})};
+  let feuille=false;
+  const STOCK=18;let fait=false,parts=STOCK;
+  const phraseFrigo=()=>parts+' parts, '+(fait?'2 plats':'2 à sortir');
+  const frigo=()=>tuile('m-frigo',phraseFrigo());
+  const MIS={auj:'Sors 2 parts de chili pour demain midi.<button type="button" class="btn j pt" id="sors">Je les sors</button>',
+    vide:'Une part de chili décongelée depuis le 5 novembre : à jeter.<button type="button" class="btn b pt" id="jete">Jeté</button>'};
+  const mission=()=>{if(!fait&&MIS[ici]){bulle(MIS[ici]);parle(M(),5)}};
+  const tuile=(id,texte)=>{const t=q('#'+id);t.querySelector('span').textContent=texte;gsap.fromTo(t,{scale:.9},{scale:1,duration:.5,ease:'back.out(3.5)'})};
+  const monte=(pe,e0,e1,pp,p0,p1)=>{gsap.to(q('#g-e'),{width:pe+'%',duration:.9,ease:'power2.out'});compte(q('#n-e'),e0,e1);gsap.to(q('#g-p'),{width:pp+'%',duration:.9,ease:'power2.out'});compte(q('#n-p'),p0,p1)};
+  const PUCES=['Ce soir, on mange quoi ?','Lance une session','Reste quoi au congélateur ?','Le budget ?'];
+  async function ouvre(titre,sous,puces){feuille=true;q('#a-titre').textContent=titre;q('#a-sous').textContent=sous;q('#fil').innerHTML='';q('#puces').innerHTML=puces.map(p=>'<button type="button" class="btn b pt">'+p+'</button>').join('');
+    gsap.to(q('.voile'),{opacity:1,duration:.3});gsap.to(q('.aide'),{y:0,duration:.55,ease:'back.out(1.2)'});await dors(800)}
+  const ferme=()=>{feuille=false;gsap.to(q('.aide'),{y:'105%',duration:.4,ease:'power3.in'});gsap.to(q('.voile'),{opacity:0,duration:.4})};
+  const ajoute=(cls,html)=>{const e=el('div',cls+' bloc',html);q('#fil').appendChild(e);gsap.from(e,{y:16,opacity:0,scale:.9,duration:.4,ease:'back.out(2)'});return e};
+  async function pense(ms){const e=ajoute('rep','<span class="pts"><i></i><i></i><i></i></span>'),c=q('#a-m .couv');gsap.to(e.querySelectorAll('i'),{y:-6,duration:.3,stagger:.12,yoyo:true,repeat:-1});
+    gsap.to(c,{rotation:-10,y:-6,transformOrigin:'50% 100%',duration:.3});await dors(ms);gsap.to(c,{rotation:0,y:0,duration:.2});e.remove()}
+  async function ecris(texte){const c=q('#a-champ');c.value='';for(const x of texte){c.value+=x;await dors(34)}await dors(350);c.value='';ajoute('dit',texte);await dors(250)}
+  const tamponne=async()=>{const t=el('div','tampon','Mangé !');q('#plat').appendChild(t);gsap.fromTo(t,{scale:3,opacity:0,rotation:-30},{scale:1,opacity:1,rotation:-12,duration:.28,ease:'power3.in'});await dors(290);
+    const p=q('#plat');gsap.fromTo(p,{x:-5},{x:5,duration:.05,yoyo:true,repeat:3,onComplete:()=>gsap.set(p,{x:0})})};
+  const dejaMange=()=>{q('#plat').appendChild(el('div','tampon','Mangé !'));gsap.set(q('#g-e'),{width:'86%'});q('#n-e').textContent='1 720';gsap.set(q('#g-p'),{width:'83%'});q('#n-p').textContent='99';parts=STOCK-1;q('#m-frigo span').textContent=phraseFrigo();
+    const b=q('#mange');b.textContent='+ Dessert';b.className='btn j pt';q('#plat small').innerHTML='<span>Mangé.</span><u>Annuler</u>'};
+  const DOSES='<div class="dose"><div><b>Fromage blanc</b><small>8 g prot. le pot</small></div><button type="button" class="btn b pt rond" aria-label="Moins">−</button><span class="q" id="q-y">2 pots</span><button type="button" class="btn b pt rond" aria-label="Plus">+</button></div>'
+    +'<div class="dose"><div><b>Granola</b><small>10 g prot. aux 100 g</small></div><button type="button" class="btn b pt rond" id="m-c" aria-label="Moins">−</button><span class="q" id="q-c">30 g</span><button type="button" class="btn b pt rond" id="p-c" aria-label="Plus">+</button></div>'
+    +'<div class="total"><span>Ce dessert</span><b id="d-tot">+ 280 kcal, + 19 g prot.</b></div><div class="total"><span>Ta journée</span><b id="d-jour">2 000 / 2 000 kcal</b></div>'
+    +'<div class="actes"><button type="button" class="btn pt" id="d-ok">Ajouter au dîner</button><button type="button" class="btn b pt">Autre dessert</button></div>';
+  const S={
+    async vide(){vas('vide');await dors(1400);parle(M(),7);cligne(M());await dors(1500);mission();await dors(2600)},
+    async perime(){if(ici!=='vide'||feuille||fait){vas('vide');await dors(1300)}if(!q('#jete')){mission();await dors(1500)}
+      await touche(q('#jete'));fait=true;bulle('<span class="tt">Merci !</span><br>Frigo propre.');tuile('m-frigo','12 parts de chili');yeux(M(),'joie');saute(M(),26);await dors(2300);yeux(M(),'ouverts');
+      bulle('<span class="tt">On cuisine dimanche ?</span><br>Touche « Cuisiner », ou dis-le-moi.');parle(M(),6);await dors(2600)},
+    async demande(){if(ici!=='vide'||feuille){vas('vide');await dors(1300)}
+      await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',PUCES);await ecris('Je veux cuisiner dimanche');await pense(1200);parle(q('#a-m'),6);
+      ajoute('rep','<b>Dimanche 15, 16 parts</b> comme la dernière fois ? Je t\'emmène choisir les recettes.<div class="actes"><button type="button" class="btn pt" id="oui">C\'est parti</button><button type="button" class="btn b pt">Changer</button></div>');
+      await dors(2100);await touche(q('#oui'));await dors(150);vas('session');await dors(1000);parle(M(),6);await dors(2600)},
+    async session(){vas('session');await dors(1600);for(const n of ['18','20']){await touche(q('#plus2'));const p=q('#parts');p.textContent=n;gsap.from(p,{scale:1.5,duration:.3,ease:'back.out(3)'});await dors(350)}
+      await dors(500);await touche(q('#choisir'));yeux(M(),'joie');saute(M(),30);await dors(1500)},
+    async soir(){vas('auj');await dors(1300);parle(M(),6);cligne(M());await dors(1500);mission();await dors(2600)},
+    async mange(){if(ici!=='auj'||feuille||q('.tampon')){vas('auj');await dors(1300)}
+      await touche(q('#mange'));await tamponne();confettis(300,330,36);yeux(M(),'joie');saute(M(),30);monte(86,1240,1720,83,68,99);
+      note();parts--;frigo();
+      bulle('<span class="tt">Bien joué !</span><br>Encore 21 g de protéines et l\'objectif tombe.');await dors(3400);yeux(M(),'ouverts');await dors(500)},
+    async sortir(){if(ici!=='auj'||feuille||fait){vas('auj');await dors(1300)}if(!q('#sors')){mission();await dors(1500)}
+      await touche(q('#sors'));fait=true;bulle('<span class="tt">2 parts sorties !</span><br>Prêtes pour demain midi.');frigo();confettis(285,520,18);yeux(M(),'joie');saute(M(),24);await dors(2800);yeux(M(),'ouverts')},
+    async budget(){if(ici!=='auj'||feuille){vas('auj');await dors(1300)}
+      await touche(q('#m-budget'));await dors(150);vas('monbudget');await dors(1200);parle(M(),6);await dors(2600);await touche(q('.retour'));await dors(150);vas('auj');await dors(1400);
+      await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',PUCES);await touche(q('#puces button:nth-child(4)'));ajoute('dit','Le budget ?');await pense(900);parle(q('#a-m'),6);
+      ajoute('rep','Il reste <b>1 150 €</b> en novembre, une fois les charges payées. Courses : 0 € noté sur 500 €.<div class="actes"><button type="button" class="btn b pt">Ouvrir le budget</button></div>');await dors(3200)},
+    async dessert(){if(ici!=='auj'||!q('.tampon')||feuille){vas('auj');dejaMange();await dors(1300)}
+      bulle('<span class="tt">Un dessert ?</span><br>Il te reste 280 kcal et 21 g de protéines.');parle(M(),6);await dors(1500);
+      await touche(q('#mange'));await ouvre('Quoi d\'autre ?','Une habitude, ou dis-le-moi.',['Mon dessert habituel','Skyr','Fromage blanc']);await dors(500);await touche(q('#puces button'));gsap.to(q('#puces'),{height:0,opacity:0,marginTop:-10,duration:.3});ajoute('dit','Mon dessert habituel');await pense(900);parle(q('#a-m'),6);
+      ajoute('rep','<b>2 fromages blancs</b> comme d\'habitude, et <b>30 g</b> de granola au lieu de 40 : tu tombes juste.');await dors(800);ajoute('rep large',DOSES);await dors(2600);
+      const dose=(g,tot,jour,rouge)=>{q('#q-c').textContent=g;q('#d-tot').textContent=tot;const j=q('#d-jour');j.textContent=jour;j.style.color=rouge?'#C22A17':'';gsap.from([q('#q-c'),j],{scale:1.3,duration:.3,ease:'back.out(3)'})};
+      await touche(q('#p-c'));dose('35 g','+ 300 kcal, + 20 g prot.','2 020 / 2 000 kcal',true);await dors(1700);await touche(q('#m-c'));dose('30 g','+ 280 kcal, + 19 g prot.','2 000 / 2 000 kcal',false);await dors(1200);
+      await touche(q('#d-ok'));await dors(150);ferme();await dors(500);q('#plat small').innerHTML='<span>Ajouté.</span><u>Annuler</u>';monte(100,1720,2000,98,99,118);
+      confettis(195,400,30);yeux(M(),'joie');saute(M(),30);bulle('<span class="tt">Pile 2 000 !</span><br>Dessert noté avec ton dîner.');await dors(2800);yeux(M(),'ouverts')},
+    async chips(){vas('auj');dejaMange();await dors(1300);await touche(q('#mange'));await ouvre('Quoi d\'autre ?','Une habitude, ou dis-le-moi.',['Mon dessert habituel','Skyr','Fromage blanc']);
+      await ecris('Des chips');gsap.to(q('#puces'),{height:0,opacity:0,marginTop:-10,duration:.3});await pense(1100);parle(q('#a-m'),6);
+      const rc=ajoute('rep large','<b>Des chips :</b> je ne connais pas ton paquet, alors j\'estime.<div class="rang" id="l-q"><span class="fx change">?</span><div><b>Quelle quantité ?</b><div class="actes"><button type="button" class="btn b pt" id="poignee">Une poignée, 30 g</button><button type="button" class="btn b pt">Un paquet, 150 g</button><button type="button" class="btn b pt">Autre</button></div></div></div>');
+      await dors(2400);await touche(q('#poignee'));const l=q('#l-q');l.innerHTML='<span class="fx reste">✓</span><div>30 g : <b>environ 160 kcal, 2 g prot.</b> <span class="pion" style="font-size:12.5px;padding:2px 8px">estimé</span></div>';gsap.from(l.firstChild,{scale:0,duration:.4,ease:'back.out(3)'});await dors(700);
+      const fin=el('div','actes','<button type="button" class="btn pt" id="c-ok">Ajouter</button><button type="button" class="btn b pt">Photo de l\'étiquette</button>');rc.appendChild(fin);gsap.from(fin,{y:10,opacity:0,duration:.35});await dors(2000);await touche(q('#c-ok'));await dors(150);ferme();await dors(500);
+      q('#plat small').innerHTML='<span>Ajouté.</span><u>Annuler</u>';monte(94,1720,1880,84,99,101);
+      bulle('<span class="tt">Noté, en estimation.</span><br>Avec l\'étiquette, je serai exacte.');parle(M(),7);await dors(3200)},
+    async habitude(){vas('auj');await dors(1300);await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',[]);
+      const c=q('#a-champ');c.value='Mon dessert habituel : 2 fromages bl…';await dors(700);c.value='';ajoute('dit','Mon dessert habituel : 2 fromages blancs et du granola. Granola : 400 kcal, 10 g de protéines.');await dors(300);await pense(1400);parle(q('#a-m'),6);
+      const rc=ajoute('rep large','<b>Voilà ce que j\'ai compris.</b> Il me manque deux choses.<div class="rang"><span class="fx reste">✓</span><div>Ton dessert : <b>2 fromages blancs et du granola</b></div></div>'
+        +'<div class="rang" id="l-c"><span class="fx change">?</span><div>Granola : 400 kcal, 10 g prot. <b>Pour quelle quantité ?</b><div class="actes"><button type="button" class="btn b pt" id="c100">Pour 100 g</button><button type="button" class="btn b pt">Par portion</button></div></div></div>'
+        +'<div class="rang" id="l-y"><span class="fx change">?</span><div>Fromage blanc : <b>je n\'ai pas ses valeurs.</b><div class="actes"><button type="button" class="btn b pt" id="photo">Photo de l\'étiquette</button><button type="button" class="btn b pt">Les dire</button></div></div></div>');
+      await dors(2800);await touche(q('#c100'));let l=q('#l-c');l.innerHTML='<span class="fx reste">✓</span><div>Granola : <b>400 kcal, 10 g prot. aux 100 g</b></div>';gsap.from(l.firstChild,{scale:0,duration:.4,ease:'back.out(3)'});await dors(1000);
+      await touche(q('#photo'));await dors(500);l=q('#l-y');l.innerHTML='<span class="fx reste">✓</span><div>Fromage blanc : <b>80 kcal, 8 g prot. le pot</b>, lu sur l\'étiquette.</div>';gsap.from(l.firstChild,{scale:0,duration:.4,ease:'back.out(3)'});await dors(1100);
+      const fin=el('div','actes','<button type="button" class="btn pt" id="range">Enregistrer mon dessert</button><button type="button" class="btn b pt">Corriger</button>');rc.appendChild(fin);gsap.from(fin,{y:10,opacity:0,duration:.35});await dors(1500);await touche(q('#range'));
+      ajoute('rep','C\'est rangé dans <b>Nos aliments</b>. Je te le proposerai après le dîner, dosé selon ta journée.');yeux(q('#a-m'),'joie');await dors(3200)},
+    async autre(){if(ici!=='auj'||feuille||fait||q('.tampon')||q('.est')){vas('auj');await dors(1300)}
+      await touche(q('#autre'));await ouvre('Qu\'as-tu mangé ?','Un plat du frigo, ou dis-le-moi.',['Chili']);
+      await ecris('Un kebab-frites au resto');await pense(1300);parle(q('#a-m'),6);
+      ajoute('rep','<b>Kebab-frites :</b> environ 950 kcal et 38 g de protéines. Je le note pour ce soir ?<div class="actes"><button type="button" class="btn pt" id="oui">C\'est noté</button><button type="button" class="btn b pt">Corriger</button></div>');
+      await dors(2200);await touche(q('#oui'));await dors(150);ferme();await dors(500);
+      q('#g-e').classList.add('trop');monte(100,1240,2190,88,68,106);const im=el('span','vd est','≈');q('#plat img').replaceWith(im);gsap.from(im,{scale:.5,duration:.4,ease:'back.out(3)'});
+      q('#plat small').innerHTML='<span>Estimé.</span><u>Annuler</u>';q('#plat b').textContent='Kebab-frites';const b=q('#mange');b.textContent='+ Dessert';b.className='btn j pt';
+      bulle('<span class="tt">C\'est noté.</span><br>190 kcal de trop, rien de grave. Les lasagnes restent au frigo.');parle(M(),7);await dors(3400)},
+    async phrase(){vas('auj');await dors(1300);await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',[]);
+      await ecris('J\'ai mangé les lasagnes, un yaourt à 100 kcal et 10 g de prot, et 30 g de chips');await pense(1400);parle(q('#a-m'),6);
+      ajoute('rep large','<b>Ton dîner</b>, si j\'ai bien compris :<div class="rang"><span class="fx reste">✓</span><div>Lasagnes aux légumes<br><b>480 kcal, 31 g prot.</b></div></div><div class="rang"><span class="fx reste">✓</span><div>Yaourt, avec tes valeurs<br><b>100 kcal, 10 g prot.</b></div></div>'
+        +'<div class="rang"><span class="fx change">?</span><div>Chips, 30 g <span class="pion" style="font-size:12.5px;padding:2px 8px">estimé</span><br><b>environ 160 kcal, 2 g prot.</b></div></div><div class="total"><span>En tout</span><b>+ 740 kcal, + 43 g prot.</b></div>'
+        +'<div class="actes"><button type="button" class="btn pt" id="tout">Tout valider</button><button type="button" class="btn b pt">Modifier</button></div>');
+      await dors(3600);await touche(q('#tout'));await dors(150);ferme();await dors(500);await tamponne();confettis(300,330,36);yeux(M(),'joie');saute(M(),30);
+      monte(99,1240,1980,93,68,111);note();parts--;frigo();
+      bulle('<span class="tt">Tout est noté.</span><br>Trois choses d\'un coup. Il te reste 20 kcal.');await dors(3400);yeux(M(),'ouverts')},
+    async savoir(){if(ici!=='auj'){vas('auj');await dors(1300)}
+      await touche(q('#n-pot'));await ouvre('Dis-moi','Je réponds, et je fais.',PUCES);await touche(q('#puces button:nth-child(3)'));ajoute('dit','Reste quoi au congélateur ?');await pense(900);parle(q('#a-m'),5);
+      ajoute('rep','<b>12 parts de chili</b>, bonnes jusqu\'au 10 février. Rien d\'autre.<div class="actes"><button type="button" class="btn b pt">Ouvrir le frigo</button></div>');await dors(2300);
+      gsap.to(q('#puces'),{height:0,opacity:0,marginTop:-10,duration:.3});await ecris('Comment je change mes objectifs ?');await pense(900);parle(q('#a-m'),6);
+      ajoute('rep','Dans <b>Mon compte</b>, « Mes objectifs ». Aujourd\'hui : 2 000 kcal et 120 g de protéines.<div class="actes"><button type="button" class="btn j pt">M\'y emmener</button></div>');await dors(3200)},
+    async voix(){if(ici!=='auj'||feuille||q('.tampon')||q('.est')){vas('auj');await dors(1400)}await touche(q('#n-mic'));await dors(150);
+      vas('voix');const o=document.querySelectorAll('#voix .ondes i'),onde=()=>gsap.fromTo(o,{scale:.75,opacity:.9},{scale:1.7,opacity:0,duration:1.6,stagger:.5,repeat:-1,ease:'power1.out'});let tw=onde();
+      const etat=x=>{q('#vx-etat').textContent=x},d=q('#vx-dit'),dis=async x=>{d.textContent='';for(const w of x.split(' ')){d.textContent+=(d.textContent?' ':'')+w;await dors(170)}};
+      gsap.to(q('.couv'),{y:-10,transformOrigin:'50% 100%',duration:.4,delay:.6});await dors(1500);gsap.to(d,{opacity:1,duration:.3});await dis('J\'ai mangé les lasagnes, avec un yaourt à 100 kcal et 10 g de protéines, et 30 g de chips.');
+      await dors(600);tw.kill();gsap.set(o,{opacity:0});etat('Je note…');gsap.to(q('.couv'),{y:-6,rotation:-10,duration:.3});await dors(1100);gsap.to(q('.couv'),{y:0,rotation:0,duration:.2});
+      etat('Je te réponds');const r=q('#vx-rep');r.innerHTML='Lasagnes, yaourt, et les chips que j\'estime à <b>160 kcal</b>. Je valide ?';gsap.fromTo(r,{y:16,opacity:0},{y:0,opacity:1,duration:.4,ease:'back.out(2)'});parle(M(),12);
+      const u=q('#vx-recu'),ligne=(s,x)=>'<div class="rang"><span class="fx '+(s?'reste':'change')+'">'+(s?'✓':'?')+'</span><div>'+x+'</div></div>',L=['Lasagnes : <b>480 kcal, 31 g prot.</b>','Yaourt : <b>100 kcal, 10 g prot.</b>','Chips, 30 g : <b>environ 160 kcal</b>, estimé'];
+      u.innerHTML=L.map((x,i)=>ligne(i<2,x)).join('');gsap.fromTo(u,{y:16,opacity:0},{y:0,opacity:1,duration:.4,ease:'back.out(2)',delay:.3});await dors(2600);
+      etat('Je t\'écoute…');tw=onde();await dors(700);await dis('Oui, valide.');await dors(500);tw.kill();gsap.set(o,{opacity:0});
+      u.innerHTML=L.map(x=>ligne(true,x)).join('');gsap.from(u.querySelectorAll('.fx'),{scale:0,duration:.4,stagger:.2,ease:'back.out(3)'});etat('C\'est noté !');r.innerHTML='Tu es à <b>1 980 kcal</b> et <b>111 g</b> de protéines.';yeux(M(),'joie');saute(M(),30);confettis(195,300,24);parle(M(),8);await dors(3000);yeux(M(),'ouverts')},
+    async elle(){vas('elle');await dors(1400);parle(M(),6);await dors(1500);await touche(q('#mange'));await tamponne();confettis(300,330,30);yeux(M(),'joie');saute(M(),30);note();parts--;frigo();
+      bulle('<span class="tt">Bon appétit !</span><br>Il reste 4 parts de lasagnes.');await dors(2600);yeux(M(),'ouverts')},
+    async quota(){vas('auj');await dors(1200);await touche(q('#n-pot'));await ouvre('Je me repose','De retour demain à 6 h.',[]);yeux(q('#a-m'),'dodo');
+      ajoute('rep','J\'ai beaucoup parlé aujourd\'hui : je ne réponds plus jusqu\'à demain matin.<br><b>Tout le reste de l\'appli marche.</b>');const c=q('#a-champ');c.disabled=true;c.placeholder='De retour demain à 6 h';gsap.set([c,q('#a-micro')],{opacity:.45});await dors(3400)},
+    async panne(){vas('auj');await dors(1200);await touche(q('#mange'));const b=q('#mange');b.textContent='…';await dors(1400);triste(M());gsap.fromTo(b,{x:-8},{x:8,duration:.06,yoyo:true,repeat:5,onComplete:()=>gsap.set(b,{x:0})});
+      b.textContent='Réessayer';b.className='btn j pt';b.style.cssText='font-size:15px;padding:0 10px';q('#plat small').innerHTML='<span>Pas noté.</span>';bulle('<span class="tt">Oups, pas noté.</span><br>Je n\'arrive pas à joindre la cuisine.');await dors(3400)},
+    async pcauj(){vas('pcauj');q('#puces').innerHTML=PUCES.map(p=>'<button type="button" class="btn b pt">'+p+'</button>').join('');gsap.from(q('#puces').children,{y:14,opacity:0,duration:.35,stagger:.07,delay:.5});await dors(1700);parle(M(),6);await dors(900);
+      await ecris('On mange quoi demain ?');await pense(1000);parle(q('#a-m'),6);
+      ajoute('rep','Demain midi : <b>chili</b>, sors-en 2 parts ce soir. Demain soir : <b>curry de pois chiches</b>.<div class="actes"><button type="button" class="btn b pt">Voir la semaine</button></div>');await dors(3400)}
+  };
+  const CH=[
+    ['Un soir sans rien de prévu',[['vide','L\'accueil tel qu\'il serait','Rien de prévu, une part à jeter. Les quatre tuiles disent où en est le foyer.'],['perime','La part oubliée','Popote le dit, le bouton est dans sa bulle.'],['demande','« Je veux cuisiner dimanche »','Popote comprend, propose, et t\'emmène.'],['session','Nouvelle session','Toujours là, même avec une semaine en cours.']]],
+    ['Après la session',[['soir','Un soir de semaine','Le plat du soir, ta journée, tes quatre mondes.'],['mange','Mangé','Un appui : tampon, confettis, jauges qui montent.'],['sortir','Sortir du congélateur','Popote le demande, un geste, et la tuile Frigo se met à jour.'],['autre','J\'ai mangé autre chose','Tu le dis, Popote estime et note après ton accord.'],['budget','Et le budget ?','Un appui sur sa tuile, ou une question à Popote.']]],
+    ['Un dessert, des chips, autre chose',[['dessert','Une habitude, dosée pour toi','Popote propose les quantités, tu ajustes, tu valides.'],['chips','Des chips, sans les valeurs','Elle demande la quantité, estime, et le dit.'],['habitude','Lui apprendre un produit','Elle dit ce qu\'elle a compris et demande ce qui lui manque.']]],
+    ['Popote répond et agit',[['phrase','Tout dire en une phrase','Le plat, le yaourt, les chips : un récapitulatif, une validation.'],['voix','Le mode vocal','Le micro de la barre : elle récapitule, tu dis oui.'],['savoir','Une question','Sur ton frigo, puis sur l\'appli : elle t\'y emmène.']]],
+    ['Léa',[['elle','Son accueil','Le même soir, vu par elle, sans objectifs réglés.']]],
+    ['Et si…',[['quota','Popote a trop parlé','L\'assistant se repose, l\'appli marche.'],['panne','Pas de réseau','Rien n\'est noté en douce : on le dit, on réessaie.']]],
+    ['Sur PC',[['pcauj','Aujourd\'hui en large','Les mêmes tuiles, et Popote toujours ouverte à droite.']]]];
+  const chap=document.getElementById('chap');
+  chap.innerHTML=CH.map(([t,xs])=>'<h2>'+t+'</h2>'+xs.map(([id,n,d])=>'<button type="button" data-s="'+id+'">'+n+'<small>'+d+'</small></button>').join('')).join('');
+  const marque=id=>chap.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.s===id)));
+  async function joue(ids,boucle){const j=++jeton;try{do{for(const id of ids){if(j!==jeton)return;marque(id);await S[id]()}if(boucle)await dors(1800)}while(boucle&&j===jeton)}catch(e){if(e!=='arret')console.error(e)}}
+  const FILM=['vide','perime','demande','soir','mange','dessert','sortir','voix'];
+  window.lance=id=>id==='film'?joue(FILM,true):joue([id],false);
+  chap.addEventListener('click',e=>{const b=e.target.closest('button');if(b){guide.classList.remove('ouvert');window.lance(b.dataset.s)}});
+  document.getElementById('film').addEventListener('click',()=>window.lance('film'));
+  document.getElementById('ouvre').addEventListener('click',()=>guide.classList.toggle('ouvert'));
+  const voulu=(location.hash||'').slice(1);window.lance(S[voulu]?voulu:'film');
+})();
+</script>
