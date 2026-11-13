@@ -130,7 +130,8 @@ Types d'erreur nouveaux : `trop_d_abonnements_push` (409), `abonnement_push_conf
 
 | Rôle | Tâche | Objet | Compatible avec l'appli en prod parce que | Retour arrière |
 |---|---|---|---|---|
-| **M1** | N1 | `push_subscription`, `push_setting` (RLS forcée, aucun droit) ; déclencheur `login_session_ferme` ; fonctions `enregistre_mon_abonnement_push`, `mes_abonnements_push`, `retire_mon_abonnement_push`, `mes_reglages_push`, `regle_mon_push` | tables et fonctions neuves ; le déclencheur ne se déclenche que sur `revoked_at` posé et ne touche que `push_subscription` : l'appli en ligne n'écrit pas dans `login_session` | `drop trigger`, `drop function`, `drop table` (aucune donnée à garder) |
+| **M1a** | N1a | `push_subscription` (RLS forcée, aucun droit) ; déclencheur `login_session_ferme` ; fonctions `enregistre_mon_abonnement_push`, `mes_abonnements_push`, `retire_mon_abonnement_push` | tables et fonctions neuves ; le déclencheur ne se déclenche que sur `revoked_at` posé et ne touche que `push_subscription` : l'appli en ligne n'écrit pas dans `login_session` | `drop trigger`, `drop function`, `drop table` (aucune donnée à garder) |
+| **M1b** | N1b | `push_setting` (RLS forcée, aucun droit) ; `mes_reglages_push`, `regle_mon_push` ; **le crochet** `private.efface_les_donnees_push` (première version : `push_setting` seulement) | neuves | `drop function`, `drop table push_setting` |
 | **M2** | N3 | `push_outbox` ; `private.met_en_file_push`, `prend_les_pushs`, `classe_le_push`, `efface_l_abonnement_push`, `met_en_file_mon_essai_push`, `push_en_retard` ; purge `pg_cron` | neuves | `cron.unschedule`, `drop function`, `drop table` (les lignes en attente sont perdues : sans importance) |
 | **M3** | N6 | `private.push_passe` (RLS forcée), `private.signe_un_appel_interne`, `private.reveille_le_push`, `public.etat_du_reveil_push` ; planification `push-reveil` (tolérante : seulement si `pg_cron` existe) | neuves ; la planification ne fait rien tant que les secrets du coffre manquent | `cron.unschedule('push-reveil')` ; **restaurer d'abord le corps M2b de `private.purge_push_outbox`** (M3 le redéfinit pour purger `push_passe`), puis `drop function`, `drop table` |
 
@@ -170,7 +171,7 @@ fusionnées ; `main` protégée ; revue adverse (agent Sonnet effort high en lec
 | Voie | Tâches, dans l'ordre | Dépend de |
 |---|---|---|
 | Essais | **N0** (aucune PR : quatre essais, résultats écrits dans la PR de la tâche qui s'en sert) | F8 pour E1 |
-| Base | **N1a** (M1 : abonnements) → **N1b** (réglages, crochet d'effacement) ; **N3a** après N1a ; **N3b** après N3a ; **N6a** après N5b (+ F8 pour les noms du coffre) | 0.4bis S6 (`verrouille_la_personne`), A6 (crochet d'une ligne) |
+| Base | **N1a** (M1a) → **N1b** (M1b) → **N3a** (M2a) → **N3b** (M2b) ; **N6a** après N5b (+ F8 pour les noms du coffre) → **N6b** (workflow, fiche) après N6a **et** N5b | 0.4bis S6 (`verrouille_la_personne`), A6 (crochet d'une ligne) |
 | API sans base | **N2a** (aucune dépendance de ce plan ; seul endroit où `py-vapid` et `http-ece` sont ajoutés) → **N4a** (après N2a) → **N4b** (après N4a) ; **N2b** (routes) après N1a et N2a ; **N5a** (file Python, passe) après N3b et N4b ; **N5b** (route interne) après N5a ; **N7a** (réglages) après N1b et N2b ; **N7b** (essai) après N3a, N5b, N7a ; **N8** (script des clés) après N2a | aucune boucle |
 | Front | **N9** (dans la PR de F22) → **N10** (service worker) → **N11** (couche push) → **N12** (écran) → **N13** (e2e) | N11 après le contrat de N2 et N7 (F4 le synchronise) ; N13 après N7 et N12 |
 | Clôture | **N14** preuves réelles et clôture | toutes ; gestes de Kamil |
@@ -182,6 +183,27 @@ Parallèle possible : N2a dès maintenant ; N1 en même temps ; N9 pendant F22 ;
 **Commandes de fin d'une PR front** : `npm run lint && npx tsc -b && npm test && npm run build`, puis le Playwright ciblé ; d'une PR API : `uv run ruff format --check && uv run ruff check && uv run mypy && uv run pytest -q -m "not integration"`, puis `-m integration`.
 
 ---
+
+## Les tranches, une à une (chacune est une PR indépendante : fichiers, test rouge d'abord, vérification, migration, dépendance, commit)
+
+| Tranche | Fichiers | Test rouge d'abord | Vérification | Migration | Dépend de | Commit |
+|---|---|---|---|---|---|---|
+| N1a | M1a, `tests/db/push-abonnements.test.ts` (cas 1 à 5, 7, 8, 10 à 12) | `npx vitest run tests/db/push-abonnements.test.ts` : « relation … n'existe pas » | même commande + `npm test` | M1a | S6, A6 | `feat(push): range les abonnements push par session` |
+| N1b | M1b, `tests/db/push-reglages.test.ts` (cas 6, 9, surface des réglages) | idem, sur `push_setting` absent | même | M1b | N1a | `feat(push): ajoute les réglages push et le crochet d'effacement` |
+| N2a | `push/adresse.py`, `push/cles.py`, `config.py`, tests unitaires, `.env.example`, `pyproject.toml`, `uv.lock` | `uv run pytest tests/unit/test_push_adresse.py` : `ModuleNotFoundError` | `uv run ruff … && uv run mypy && uv run pytest -q -m "not integration"` | aucune | rien | `feat(push): valide l'adresse d'un abonnement et la configuration VAPID` |
+| N2b | `api/push_abonnements.py`, `schemas/push.py`, matrice, `openapi.json` | `uv run pytest tests/integration/test_push_abonnements.py -m integration` : `404` des routes | idem + `-m integration` | aucune | N1a, N2a | `feat(push): expose les abonnements push` |
+| N3a | M2a, `tests/db/push-file.test.ts` (cas 1 à 4, 12, 13, 13b, 13c, 16) | `npx vitest run tests/db/push-file.test.ts` | idem | M2a | N1b | `feat(push): ajoute la file d'envoi et le quota de l'essai` |
+| N3b | M2b, mêmes tests (cas 5 à 11, 13d à 15, 17) | idem | idem | M2b | N3a | `feat(push): prend, classe et purge la file d'envoi` |
+| N4a | `push/types.py`, `push/charge.py`, tests, vecteur de la RFC 8291 | `uv run pytest tests/unit/test_push_types.py` | contrôles API | aucune | N2a | `feat(push): le registre des notifications et la charge utile` |
+| N4b | `push/envoi.py`, `tests/_faux_service_push.py`, tests | `uv run pytest tests/unit/test_push_envoi.py` | idem | aucune | N4a | `feat(push): chiffre, signe et envoie une notification` |
+| N5a | `infra/push_file.py`, `push/passe.py`, tests de la passe, liste fermée de `base.connexion()` | `uv run pytest tests/unit/test_push_passe.py` | idem + `-m integration` | aucune | N3b, N4b | `feat(push): la passe d'envoi de la file` |
+| N5b | `api/internes_push.py`, `main.py`, tests de la route | `uv run pytest tests/integration/test_push_interne.py -m integration` : `404` | idem | aucune | N5a | `feat(push): la route interne d'envoi, signée` |
+| N6a | M3, `tests/db/push-reveil.test.ts`, `cron_alive` dans la route et son test | `npx vitest run tests/db/push-reveil.test.ts` | idem + route | M3 | N5b, noms de F8 | `feat(push): réveille le conteneur par pg_cron quand une notification est échue` |
+| N6b | `.github/workflows/push-veille.yml`, `docs/exploitation.md` | `actionlint` rouge sur un fichier absent | `actionlint`, `zizmor` | aucune | N6a (et N5b) | `ci(push): veille quotidienne des notifications` |
+| N7a | `api/push_reglages.py`, tests, matrice | `uv run pytest tests/unit/test_push_reglages.py` | idem | aucune | N1b, N2b | `feat(push): règle les notifications par type` |
+| N7b | route d'essai, `test_push_essai.py`, `test_push_de_bout_en_bout.py` | `uv run pytest tests/integration/test_push_essai.py -m integration` | idem + `-m integration` | aucune | N3a, N5b, N7a | `feat(push): envoie une notification d'essai` |
+| N11a | `src/push/plateforme.ts`, `etat.ts`, `abonnement.ts`, tests | `npx vitest run src/push` | `npm run lint && npx tsc -b && npm test && npm run build` | — | N10 | `feat(front): l'état et les gestes des notifications push` |
+| N11b | `src/api/ressources/push.ts`, `reconcilie.ts`, tests | `npx vitest run src/api/ressources/push.test.ts src/push/reconcilie.test.ts` | idem | — | N11a, contrat de N2b et N7 | `feat(front): les hooks push et la réconciliation à l'ouverture` |
 
 ## Les tâches
 
@@ -213,7 +235,7 @@ jamais dans un fichier de plus.
 
 ---
 
-### N1 : Les abonnements en base (migration M1) — ≈ 330 lignes
+### N1 : Les abonnements en base (migrations M1a et M1b) — coupée en N1a (≈ 250 lignes) et N1b (≈ 90 lignes)
 
 **Pourquoi :** D4, D8 ; exigence « rattachés à la session, supprimés à la déconnexion de cet appareil et avec le compte ».
 **Dépend de :** 0.4bis S6 (`private.verrouille_la_personne(uuid)`) et A6 (`private.efface_le_compte` supprime les lignes de `login_session`).
@@ -225,7 +247,7 @@ jamais dans un fichier de plus.
 - [ ] **Étape 1 : les tests d'abord** (`tests/db/push-abonnements.test.ts`, personnes de banc Sam et Léa, deux foyers). Cas :
   1. enregistrer rend `cree` et un identifiant ; **la même adresse par la même personne** (même session ou nouvelle session) met la session et les clés à jour, **même identifiant** ;
   2. **la même adresse d'une autre personne avec le MÊME triplet** (adresse, `p256dh`, `auth`) : l'ancienne ligne et ses envois en attente disparaissent, nouvel identifiant ; **avec d'autres clés : `conflit`, rien n'est supprimé** (la victime garde son abonnement) ;
-  3. **le 6e abonnement d'une personne** rend `limite` et n'écrit rien (le 5e passe) ; **un demandeur déjà à cinq qui revendique l'adresse d'un autre (même triplet) reçoit `limite` et ne supprime RIEN chez l'autre** ; deux enregistrements simultanés (deux connexions, verrou de personne) ne dépassent jamais 5 ; deux personnes qui se revendiquent la même adresse en croisé ne s'interbloquent pas (verrous dans l'ordre des UUID) ; **deux premières inscriptions simultanées de la même adresse : une seule ligne, aucune violation d'unicité** ; **A revendique l'adresse de B pendant que C la reprend : A voit l'état final de l'adresse et ne supprime jamais la ligne de C sans preuve** ; **une session n'a jamais deux abonnements** : s'inscrire avec une autre adresse remplace le précédent (le compte de la personne ne bouge pas) ;
+  3. **le 6e abonnement d'une personne** rend `limite` et n'écrit rien (le 5e passe) ; **un demandeur déjà à cinq qui revendique l'adresse d'un autre (même triplet) reçoit `limite` et ne supprime RIEN chez l'autre** ; deux enregistrements simultanés (deux connexions, verrou de personne) ne dépassent jamais 5 ; deux personnes qui se revendiquent la même adresse en croisé ne s'interbloquent pas (verrous dans l'ordre des UUID) ; **deux premières inscriptions simultanées de la même adresse : une seule ligne, aucune violation d'unicité** ; **A revendique l'adresse de B pendant que C la reprend : A voit l'état final de l'adresse et ne supprime jamais la ligne de C sans preuve** ; **une session n'a jamais deux abonnements** : s'inscrire avec une autre adresse libre remplace le précédent (le compte de la personne ne bouge pas) ; **cinq abonnements dont celui de la session courante, revendication d'une adresse d'un autre avec le même triplet : `limite`, RIEN supprimé (la suppression de l'abonnement de la session ne libère pas de place pour un transfert)** ;
   4. une session **fermée** ou **échue** ne peut pas enregistrer (`session_inconnue`) ; la session d'une autre personne non plus ;
   5. **poser `revoked_at`** sur la session supprime ses abonnements : testé par **chaque chemin de fermeture** (`ferme_un_appareil`, `ferme_les_autres_appareils`, `ferme_les_autres_sessions`, `efface_mes_donnees`) et par un `update` direct ;
   6. `efface_mes_donnees()` ne laisse **aucune** ligne de `push_subscription` pour la personne (cascade depuis `login_session`) ; **`private.efface_les_donnees_push(personne)`** (le crochet : M1 le crée, M2a le redéfinit pour ajouter `push_essai`) supprime `push_setting` et `push_essai` ; **`private.efface_le_compte` l'appelle seulement s'il existe** (amendement d'une ligne à A6, gardé par `to_regprocedure`, voir « Écarts à relayer » : l'ordre des migrations n'importe donc pas) ; tant que l'amendement n'est pas fusionné, ce cas est écrit `it.fails` et devient vert à sa fusion ; en secours, tout part avec le compte Auth ;
@@ -236,11 +258,11 @@ jamais dans un fichier de plus.
   11. **`unique (id, person_id)` et `unique (session_id)`** existent ;
   12. contraintes : adresse hors forme `https://…`, `endpoint_sha256` de mauvaise longueur, `p256dh` qui n'est pas du base64url de 87 caractères, `auth` qui n'en fait pas 22 : refusés.
 - [ ] **Étape 2 : lancer, voir rouge** : `npx vitest run tests/db/push-abonnements.test.ts` → échec « relation public.push_subscription n'existe pas ».
-- [ ] **Étape 3 : la migration.** Code complet :
+- [ ] **Étape 3 : la migration.** **Deux migrations distinctes, dans cet ordre (une migration fusionnée ne se modifie jamais) : M1a = le SQL ci-dessous SAUF `push_setting`, `private.efface_les_donnees_push`, `mes_reglages_push` et `regle_mon_push` ; M1b = ces quatre objets, et rien d'autre.** Les tests 6 (crochet) et 9 (réglages) et le test de surface des réglages sont ceux de N1b. Code complet :
 
 ```sql
 -- ═══════════════════════════════════════════════════════════════════════════
--- <M1> · LES ABONNEMENTS PUSH (plan des notifications push, N1)
+-- <M1a et M1b> · LES ABONNEMENTS PUSH (plan des notifications push, N1)
 --
 -- Un abonnement est la clé d'un appareil : adresse du service de push + deux clés de chiffrement. Ce sont des SECRETS de la
 -- personne : aucun droit de table, RLS forcée, lus par les fonctions d'envoi seulement (M2). Rattaché à une SESSION : il disparaît avec
@@ -308,6 +330,8 @@ declare
   v_hash bytea := extensions.digest(convert_to(p_endpoint, 'utf8'), 'sha256');
   v_autre public.push_subscription%rowtype;
   v_existe boolean;
+  v_n integer;
+  v_remplace boolean;
   v_id uuid;
 begin
   if v_person is null then
@@ -335,14 +359,18 @@ begin
     return query select null::uuid, 'conflit'::text;
     return;
   end if;
-  -- 4. Un abonnement par session : le précédent de CETTE session (autre adresse) est remplacé, sans compter dans le quota.
-  delete from public.push_subscription ps where ps.session_id = p_session and ps.endpoint_sha256 <> v_hash;
-  -- 5. Le quota se vérifie AVANT toute suppression chez un tiers : un demandeur plein ne détruit rien.
-  if not (v_existe and v_autre.person_id = v_person)
-     and (select count(*) from public.push_subscription ps where ps.person_id = v_person) >= 5 then
-    return query select null::uuid, 'limite'::text;
-    return;
+  -- 4. Le quota se contrôle SANS AUCUNE MUTATION, avant toute suppression. Un TRANSFERT entre personnes exige de la place (< 5) sans compter
+  --    qu'on libère l'abonnement de la session ; une adresse LIBRE peut remplacer l'abonnement de CETTE session (même appareil, autre adresse).
+  select count(*), bool_or(ps.session_id = p_session and ps.endpoint_sha256 <> v_hash) into v_n, v_remplace
+    from public.push_subscription ps where ps.person_id = v_person;
+  v_remplace := coalesce(v_remplace, false);
+  if v_existe and v_autre.person_id <> v_person then
+    if v_n >= 5 then return query select null::uuid, 'limite'::text; return; end if;
+  elsif not v_existe then
+    if v_n - (case when v_remplace then 1 else 0 end) >= 5 then return query select null::uuid, 'limite'::text; return; end if;
   end if;
+  -- 5. Les mutations, dans cet ordre : le précédent de la session (autre adresse), puis l'ancien propriétaire de l'adresse.
+  delete from public.push_subscription ps where ps.session_id = p_session and ps.endpoint_sha256 <> v_hash;
   if v_existe and v_autre.person_id <> v_person then
     delete from public.push_subscription ps where ps.id = v_autre.id;  -- l'appareil change de main : ses envois en attente partent avec la ligne
   end if;
@@ -670,7 +698,7 @@ grant execute on function public.met_en_file_une_notification(text, uuid, text, 
   *(Tout ce qui suit est la migration M2b, N3b.)* `prend_les_pushs(p_limite integer default 50)` : **quatre instructions séparées dans la même transaction (jamais des CTE de modification qui visent les mêmes lignes : leur ordre est indéterminé)** — (1) `update … set state = 'abandoned' where state in ('queued','sending') and due and deadline_at <= now()` ; (2) `update … set state = 'dropped'` pour les lignes échues dont la session de l'abonné n'est plus active ; (3) `select o.id … for update of o skip locked limit p_limite` avec **les prédicats `deadline_at > now()` et session active écrits en toutes lettres** ; (4) `update … set state='sending', attempts = attempts + 1, claimed_until = now() + interval '2 minutes' returning …` ; rend `id, kind, subscription_id, attempts, endpoint, p256dh, auth, enabled` (jointure sur `push_setting`) **et `ttl_restant_s` = `deadline_at - now()` (au moins 1)** : l'en-tête `TTL` d'une reprise est ce temps restant, jamais la durée du type, pour qu'une livraison tardive ne dépasse jamais l'échéance ; **seule fonction qui rend une adresse**.
   `classe_le_push(p_id uuid, p_etat text, p_status smallint default null, p_retry_after_s integer default null)` : `case p_etat when 'sent' …` ; le calcul du délai est `(array[60, 300, 1800, 7200])[least(attempts, 4)]`, au minimum `p_retry_after_s`, puis `abandoned` si `now() + délai > deadline_at`.
   **`rend_le_push(p_id uuid)`** : remet une ligne `sending` non commencée en `queued`, **retire l'essai qu'elle avait consommé** (`attempts - 1`) et `next_attempt_at = now()` (budget de la passe dépassé, N5).
-  `private.efface_les_donnees_push(personne)` (redéfinie : supprime aussi `push_essai`). `private.purge_push_outbox()` : **efface les `sent` de plus de 3 jours, les `abandoned`/`dropped` de plus de 30 jours, les lignes de `push_essai` de plus d'un jour, et les abonnements dont la session est échue** (`expires_at` ou `absolute_expires_at` passé, sans attendre la purge des sessions qui garde 30 jours de plus : la conservation annoncée est tenue) ; planification `cron.schedule('push-outbox-purge', '41 3 * * *', …)` **tolérante** (comme 0126 : avertissement si `pg_cron` manque).
+  `private.efface_les_donnees_push(personne)` (redéfinie à partir de M1b : supprime `push_setting` ET `push_essai`, **tables qui existent toutes deux à ce moment** ; chaque version du crochet ne cite que des tables déjà créées). `private.purge_push_outbox()` : **efface les `sent` de plus de 3 jours, les `abandoned`/`dropped` de plus de 30 jours, les lignes de `push_essai` de plus d'un jour, et les abonnements dont la session est échue** (`expires_at` ou `absolute_expires_at` passé, sans attendre la purge des sessions qui garde 30 jours de plus : la conservation annoncée est tenue) ; planification `cron.schedule('push-outbox-purge', '41 3 * * *', …)` **tolérante** (comme 0126 : avertissement si `pg_cron` manque).
 - [ ] **Étape 3 :** `npx supabase migration up`, `npx vitest run tests/db/push-file.test.ts` → 17 cas verts, puis `npm test` sans régression.
 - [ ] **Étape 4 : mutations** : prendre sans `skip locked` ; envoyer une ligne échue ; ne pas tester la session ; `sent` sans `sent_at` ; délai de reprise constant ; purger les `queued` ; ajouter une colonne `params jsonb` (le test de schéma casse) ; `met_en_file_push` exécutable par `authenticated` ; oublier le quota.
 - [ ] **Étape 5 : commit** `feat(push): ajoute la file d'envoi des notifications` ; PR brouillon.
@@ -928,8 +956,8 @@ from popote_api.push.charge import charge_utile
 from popote_api.push.envoi import Issue, Resultat, envoie
 from popote_api.push.types import DEFINITIONS, TypeDePush
 
-BUDGET_S: Final = 15.0  # `pg_net` attend 60 s, la route 25 s (normes § 3.6) : on s'arrête bien avant
-NETTOYAGE_S: Final = 3.0  # le temps de rendre UNE ligne, hors budget mais borné
+BUDGET_S: Final = 15.0  # TOTAL, nettoyage compris : `pg_net` attend 60 s, la route 25 s (normes § 3.6)
+NETTOYAGE_S: Final = 3.0  # réservé dans le budget total pour rendre UNE ligne
 TRAVAILLEURS: Final = 5
 LIGNES_MAX: Final = 50
 
@@ -953,32 +981,36 @@ def _definition(kind: str):  # type: ignore[no-untyped-def]
 
 
 async def vide_la_file(file: FilePush, client, vapid, config) -> Bilan:  # type: ignore[no-untyped-def]
-    """Échéance ABSOLUE de la passe. Chaque travailleur réclame une seule ligne (`prend(1)`) : le TTL envoyé est donc calculé AU DÉPART,
-    jamais pendant une attente en mémoire ; à l'échéance ou à une annulation extérieure, la ligne en cours est rendue (`rend_le_push`),
-    dans un nettoyage protégé et borné, puis l'exception se propage."""
+    """Échéance ABSOLUE, nettoyage compris : le travail s'arrête à `BUDGET_S - NETTOYAGE_S`, le reste du budget sert à rendre les lignes.
+    Chaque travailleur ABSORBE le dépassement d'échéance (aucune exception n'arrive à `gather`) : la fonction ne rend la main qu'une fois
+    TOUS les nettoyages finis. La prise elle-même est sous l'échéance. Le quota de lignes se réserve de façon atomique (aucun `await`
+    entre le test et l'incrément)."""
     bilan = Bilan()
-    echeance = asyncio.get_running_loop().time() + BUDGET_S
+    echeance = asyncio.get_running_loop().time() + BUDGET_S - NETTOYAGE_S
 
     async def travailleur() -> None:
-        while bilan.prises < LIGNES_MAX and asyncio.get_running_loop().time() < echeance:
-            lignes = await file.prend(1)  # courte transaction : elle valide AVANT l'appel réseau
-            if not lignes:
+        while True:
+            if bilan.prises >= LIGNES_MAX or asyncio.get_running_loop().time() >= echeance:
                 return
-            bilan.prises += 1
-            ligne = lignes[0]
+            bilan.prises += 1  # réservation atomique : 5 travailleurs ne peuvent pas dépasser 50
+            ligne: LigneDue | None = None
             termine = False
             try:
                 async with asyncio.timeout_at(echeance):
+                    lignes = await file.prend(1)  # courte transaction, VALIDÉE avant l'appel réseau, sous l'échéance
+                    if not lignes:
+                        termine = True
+                        return
+                    ligne = lignes[0]
                     await _traite(file, client, vapid, config, ligne, bilan)
-                termine = True
+                    termine = True
+            except TimeoutError:
+                return  # absorbé ici : la ligne en cours est rendue dans le `finally`
             finally:
-                if not termine:  # échéance, annulation extérieure ou erreur : la ligne n'est PAS perdue
+                if ligne is not None and not termine:  # échéance, annulation extérieure ou erreur : la ligne n'est PAS perdue
                     await asyncio.shield(_rend(file, ligne))
 
-    try:
-        await asyncio.gather(*(travailleur() for _ in range(TRAVAILLEURS)), return_exceptions=False)
-    except TimeoutError:
-        pass  # l'échéance a coupé les travailleurs ; leurs lignes sont déjà rendues
+    await asyncio.gather(*(travailleur() for _ in range(TRAVAILLEURS)))
     return bilan
 
 
@@ -1025,7 +1057,7 @@ async def _traite(file: FilePush, client, vapid, config, ligne: LigneDue, bilan:
   **Idempotente par construction** (état relu en base, lignes prises sous `skip locked`) : le test l'écrit.
 - [ ] **Étape 3 : `infra/push_file.py`** : cinq fonctions minces qui appellent `public.prend_les_pushs`, `classe_le_push`, `rend_le_push`, `efface_l_abonnement_push`, `push_en_retard` par `base.connexion()` (une transaction courte par appel). `tests/unit/test_architecture.py` : le module est ajouté à la liste fermée, raison écrite.
 - [ ] **Étape 4 : tests** : 
-  - unitaires de la passe avec une **fausse file en mémoire** et le faux service : **50 lignes à réponses lentes (3 s chacune) : la passe rend la main en moins de 16 s d'horloge murale, au plus 5 lignes sont en cours à l'échéance et sont rendues (`rend_le_push`), aucune n'est perdue ni envoyée deux fois, jamais plus de 5 requêtes simultanées ; `TTL` d'une ligne envoyée = temps restant AU DÉPART (aucune ligne n'attend en mémoire) ; un `rend_le_push` lent (4 s) ne bloque pas la passe au-delà de `NETTOYAGE_S` ; une ANNULATION EXTÉRIEURE de la passe rend elle aussi la ligne en cours ; `vapid.sign` qui lève : l'abonnement n'est pas supprimé, la ligne repart en reprise** ; **une ligne empoisonnée (clé `p256dh` hors courbe écrite par appel SQL direct) à côté d'une ligne valide : l'abonnement empoisonné est supprimé, la ligne valide est envoyée, la passe va au bout** ; envoyée → `sent` ; `410` → l'abonnement est effacé, **aucun autre** ; `429` + `Retry-After` → `retry` avec ce délai ; `500` → `retry` ; `302` → `abandoned` (REFUSE), `refused` compté ; type inconnu du registre → `abandoned` sans envoi ; **réglage coupé** → `dropped` sans envoi ; **réglage absent et `actif_par_defaut` faux** → `dropped` ; plus de 5 envois simultanés jamais (compteur du faux service) ;
+  - unitaires de la passe avec une **fausse file en mémoire** et le faux service : **50 lignes à réponses lentes (3 s chacune) : la passe rend la main en moins de 16 s d'horloge murale, au plus 5 lignes sont en cours à l'échéance et sont rendues (`rend_le_push`), aucune n'est perdue ni envoyée deux fois, jamais plus de 5 requêtes simultanées ; `TTL` d'une ligne envoyée = temps restant AU DÉPART (aucune ligne n'attend en mémoire) ; un `rend_le_push` lent (4 s) ne bloque pas la passe au-delà de `NETTOYAGE_S` ; une ANNULATION EXTÉRIEURE de la passe rend elle aussi la ligne en cours ; **une prise lente (`prend` qui dort 20 s) est coupée à l'échéance et ne dépasse pas le budget ; cinq nettoyages de durées différentes (0,1 s à 4 s) : la passe attend les cinq et reste sous 15 s ; jamais plus de 50 lignes prises (compteur vérifié avec 5 travailleurs et 200 lignes échues)** ; `vapid.sign` qui lève : l'abonnement n'est pas supprimé, la ligne repart en reprise** ; **une ligne empoisonnée (clé `p256dh` hors courbe écrite par appel SQL direct) à côté d'une ligne valide : l'abonnement empoisonné est supprimé, la ligne valide est envoyée, la passe va au bout** ; envoyée → `sent` ; `410` → l'abonnement est effacé, **aucun autre** ; `429` + `Retry-After` → `retry` avec ce délai ; `500` → `retry` ; `302` → `abandoned` (REFUSE), `refused` compté ; type inconnu du registre → `abandoned` sans envoi ; **réglage coupé** → `dropped` sans envoi ; **réglage absent et `actif_par_defaut` faux** → `dropped` ; plus de 5 envois simultanés jamais (compteur du faux service) ;
   - intégration (base locale + faux service, deux abonnés dont un expire) : **un abonné `201`, l'autre `410` : la ligne du premier est `sent`, l'abonnement du second a disparu, aucun doublon** ; processus tué après la prise (`claimed_until` passé) → repris, **doublon écrit comme voulu** ; échecs successifs : 60 s, 300 s, 1 800 s, 7 200 s puis `abandoned` à l'échéance ; **la transaction de prise est validée avant l'appel réseau** (le faux service lit `pg_stat_activity` : aucune transaction ouverte de l'API pendant la requête) ;
   - route : sans signature → `404` ; signature périmée → `404` ; signature d'un autre chemin → `404` ; **rejeu dans les 300 s : mêmes lignes, aucune seconde requête au faux service** ; sans clés VAPID → `503` ; **la réponse ne contient ni identifiant, ni adresse** ; `caplog` sans adresse ni clé ; `remaining` juste (plus de 50 lignes : deux passes les finissent) ;
   - `tests/unit/test_routes_fermees.py` et `test_internes.py` : la route est sous `/internal`, avec la dépendance de signature.
@@ -1381,7 +1413,7 @@ export function installePush(portee: ServiceWorkerGlobalScope = self): void {
 
 - [ ] **Étape 1 : `plateforme.ts` et `etat.ts`** : fonctions **pures**, testées par table :
   - `plateforme({ ua, platform, maxTouchPoints, standalone, displayModeStandalone, aServiceWorker, aPushManager, aNotification })` → `{ ios: boolean, installee: boolean, supporte: boolean }` (iPadOS 13+ se présente comme un Mac : `platform === 'MacIntel' && maxTouchPoints > 1` vaut iOS) ;
-  - `etatDesNotifications({ plateforme, permission, config, abonnementDuNavigateur, abonnementsDuServeur, session })` → l'union : `non-supporte` · **`a-installer`** (iOS hors écran d'accueil : **on ne demande rien**) · `indisponible` (`config.enabled` faux) · `a-demander` (`permission === 'default'`) · `refuse` (`'denied'` : texte différent iOS et autres) · `actif-ici` (accord, abonnement du navigateur **et** ligne du serveur correspondante `current`) · `a-reparer` (accord mais abonnement du navigateur absent, ou absent du serveur, ou clé publique du serveur ≠ celle de l'abonnement) ;
+  - `etatDesNotifications({ plateforme, permission, config, abonnementDuNavigateur, abonnementsDuServeur, session })` → l'union : `non-supporte` · **`a-installer`** (iOS hors écran d'accueil : **on ne demande rien**) · `indisponible` (`config.enabled` faux) · `a-demander` (`permission === 'default'`) · `refuse` (`'denied'` : texte différent iOS et autres) · `actif-ici` (accord, abonnement du navigateur **et** ligne du serveur correspondante `current`) · `a-reparer` (accord mais abonnement du navigateur absent, ou aucun `current` côté serveur, ou clé publique du serveur ≠ celle de l'abonnement ; l'écart d'endpoint est corrigé en silence par la réconciliation, pas montré) ;
   - table de cas : un cas par état et par plateforme (iPhone Safari onglet → `a-installer` **même si** `PushManager` est absent ; iPhone installée → `a-demander` ; Chrome Android ; Firefox ; Safari macOS ; navigateur sans `PushManager` hors iOS → `non-supporte`).
 - [ ] **Étape 2 : `abonnement.ts`** (code complet des deux gestes ; **le premier `await` du clic est la permission**) :
 
@@ -1413,9 +1445,9 @@ export async function desabonneCetAppareil(): Promise<void> {
 
   `memeCle` compare l'`applicationServerKey` de l'abonnement (octets) à la clé du serveur. Tests (faux `navigator`, `Notification`, `serviceWorker`) : refus → `PermissionRefusee`, **`subscribe` jamais appelé** ; accord → `subscribe` appelé avec `userVisibleOnly: true` et la bonne clé ; abonnement existant de même clé → réutilisé, aucun `subscribe` ; clé changée → `unsubscribe` puis `subscribe` ; **`Notification.requestPermission` est le premier appel asynchrone** (ordre des appels espionnés) ; `desabonneCetAppareil` sans enregistrement ne lève pas.
 - [ ] **Étape 3 : hooks** (`src/api/ressources/push.ts`, un par opération du contrat : `usePushConfig`, `usePushAbonnements`, `useEnregistreAbonnement` (porte l'`Idempotency-Key` fournie par le client, F9 de la fondation), `useRetireAbonnement`, `usePushReglages`, `useRegleNotification`, `useEnvoieEssai`) ; clés de requête précises (`['push', 'config']`, `['push', 'abonnements']`, `['push', 'reglages']`) ; **aucune invalidation globale** ; `409 trop_d_abonnements_push`, `429`, `503` se lisent par `type` (A2 de la fondation), jamais par `detail`.
-- [ ] **Étape 4 : `reconcilie.ts`** (« se réconcilier à chaque ouverture », appelé une fois par la coque connectée). **Une session n'a qu'un abonnement** (`unique (session_id)`, N1) : `current` dit donc sans ambiguïté si CET appareil est connu. Si la permission est accordée, que l'abonnement du navigateur existe et que **la liste ne contient aucun `current`** **ou** que `config.vapid_public_key` a changé → se réabonne et **réenregistre** (le serveur remplace l'ancien de la session). Un navigateur qui a tourné son adresse sans le dire est détecté **à l'envoi** (404/410 supprime la ligne) puis à l'ouverture suivante (plus de `current`) : auto-guérison, écrite ; **jamais de demande de permission ici** (aucun geste) ; échec silencieux sauf `console.error` d'une référence. Tests : serveur sans l'appareil → réenregistre ; clé tournée → `unsubscribe` + `subscribe` + réenregistre ; permission `default` → ne fait rien ; aucun appel quand tout concorde.
+- [ ] **Étape 4 : `reconcilie.ts`** (« se réconcilier à chaque ouverture », appelé une fois par la coque connectée). **Une session n'a qu'un abonnement** (`unique (session_id)`, N1) : `current` dit donc sans ambiguïté si CET appareil est connu. Si la permission est accordée et que l'abonnement du navigateur existe : **à chaque ouverture de l'appli (une fois par chargement, drapeau en mémoire), le front réenregistre l'abonnement COURANT** (`POST` avec une `Idempotency-Key` neuve : l'enregistrement est idempotent côté serveur, même triplet = mêmes lignes, aucun effet) ; si `config.vapid_public_key` a changé, il se réabonne d'abord. Un navigateur qui a tourné son adresse sans le dire est donc corrigé **dès l'ouverture**, sans attendre un 404/410 ; l'auto-guérison à l'envoi (404/410 supprime la ligne) reste le second filet. Test : `current === true`, même clé VAPID, **endpoint différent** → le `POST` part avec le nouvel endpoint ; coût : une écriture par chargement, sous la limite de 30 par minute ; **jamais de demande de permission ici** (aucun geste) ; échec silencieux sauf `console.error` d'une référence. Tests : serveur sans l'appareil → réenregistre ; clé tournée → `unsubscribe` + `subscribe` + réenregistre ; permission `default` → ne fait rien ; aucun appel quand tout concorde.
 - [ ] **Étape 5 :** **la déconnexion** : exposer `desabonneCetAppareil()` ; **à relayer au plan d'« Entrer »** : la déconnexion d'un appareil l'appelle **avant** `DELETE /me/sessions/current` (le serveur supprime de toute façon la ligne, D4 ; ceci libère l'abonnement du navigateur). Hors de ce plan : je ne modifie pas le parcours.
-- [ ] **Étape 6 :** `npm run lint && npx tsc -b && npm test && npm run build` verts. **Mutations** : demander la permission après un autre `await` (le test d'ordre casse) ; classer l'iPhone hors écran d'accueil en `a-demander` ; ne pas comparer la clé ; réconcilier en demandant la permission. **Commit** `feat(front): la couche des notifications push (état, geste, réconciliation)` ; PR brouillon.
+- [ ] **Étape 6 :** `npm run lint && npx tsc -b && npm test && npm run build` verts. **Mutations** : demander la permission après un autre `await` (le test d'ordre casse) ; classer l'iPhone hors écran d'accueil en `a-demander` ; ne pas comparer la clé ; réconcilier en demandant la permission ; ne pas réenregistrer quand `current` est vrai (le cas « endpoint différent » casse). **Commit** `feat(front): la couche des notifications push (état, geste, réconciliation)` ; PR brouillon.
 
 ---
 
