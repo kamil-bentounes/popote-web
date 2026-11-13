@@ -15,17 +15,23 @@ Les décisions qui reviennent à Kamil sont listées au § 12 et lui sont posée
 ## 1. But, stratégie, sortie
 
 **But.** Remplacer l'accès direct du navigateur à Supabase par une API qui suit les normes, refaire la
-connexion, poser des contrôles automatiques, et prouver la sécurité, le contrat et la tenue en charge, sans
-changer les écrans.
+connexion, poser des contrôles automatiques, et prouver la sécurité, le contrat et la tenue en charge. Les
+écrans sont neufs (style « Jeu »), parcours par parcours ; l'ancienne appli reste telle quelle en prod jusqu'au
+jour J.
 
 **Stratégie : construire à côté, basculer une fois.** L'appli actuelle reste en ligne, intacte, pendant toute
-l'étape 0. La nouvelle (API + front rebranché) se construit et se teste en local et sur l'environnement
+l'étape 0. La nouvelle (API + front neuf) se construit et se teste en local et sur l'environnement
 d'essai, puis remplace l'ancienne en une bascule répétée à l'avance (§ 11). Pourquoi pas domaine par domaine en
 prod : il faudrait faire cohabiter deux connexions (jeton Supabase pour les domaines pas encore migrés, cookie
 pour les autres) et laisser le navigateur ouvert sur la base jusqu'au bout. Pour un foyer de deux personnes,
-avec 34 parcours e2e comme filet, une bascule répétée est plus simple et plus sûre.
+avec pour filet les e2e de chaque nouveau parcours et les contrôles de la fondation du front (CSP, `/api` hors
+cache, axe, comparaison visuelle, Lighthouse), une bascule répétée est plus simple et plus sûre. Les 34
+anciens parcours e2e sont retirés de `popote-web` (ils restent lisibles dans l'étiquette
+`ancien-front-2026-11-13` et dans l'ancien dépôt).
 
-**Hors périmètre.** Le design, les nouveaux parcours, la réécriture des prompts. L'IA est seulement déplacée
+**Hors périmètre.** Les nouveaux parcours (sauf « Entrer », qui rend la connexion utilisable), la réécriture
+des prompts. Le design (système « Jeu ») est dans le périmètre de l'étape 0 pour sa part technique : jetons,
+composants, harnais de comparaison. L'IA est seulement déplacée
 derrière l'API (0.6), journalisée et bornée.
 
 **Seuls changements visibles admis** : la nouvelle adresse `notre-popote.fr`, une reconnexion le jour de la
@@ -36,8 +42,8 @@ connexion » (lien magique ; décision du 19/10 : l'invitation suffit), et des e
 1. le navigateur ne parle plus qu'à `notre-popote.fr` : plus aucune clé Supabase dans le front ; les clés
    historiques (`anon`, `service_role`) sont désactivées ; l'API de données, GraphQL et Realtime sont fermés ;
    les inscriptions publiques et le lien magique sont coupés dans Supabase Auth ;
-2. tout ce que l'appli fait aujourd'hui passe par l'API, et les specs e2e (adaptées à la nouvelle connexion)
-   sont vertes en local, sur l'essai et sur la prod après la bascule ;
+2. tout ce que l'appli fait aujourd'hui passe par l'API, et les e2e des nouveaux parcours sont verts en local
+   et sur l'essai ; la fumée de prod (§ 11) joue le parcours « Entrer » après la bascule ;
 3. la session tient dans un cookie `HttpOnly` : aucun jeton lisible par le JavaScript ;
 4. les deux dépôts ont une intégration continue bloquante et ne se déploient que par elle ;
 5. le contrat OpenAPI est publié et toute rupture est détectée avant la fusion ;
@@ -94,7 +100,9 @@ Le service worker du front exclut `/api/*` de son repli de navigation et de ses 
 **Les deux dépôts** (choix de Kamil : deux dépôts, reliés seulement par le contrat).
 - `popote-web` : reprend l'historique du dépôt actuel (`batchcooking`), poussé dans un nouveau dépôt ; l'ancien
   continue de servir l'appli en ligne jusqu'à la bascule. On en retire `supabase/`, `worker/`, les scripts de
-  base et les tests de base, qui partent dans l'API. Il contient aussi le petit relais Cloudflare.
+  base et les tests de base, qui partent dans l'API. Il contient aussi le petit relais Cloudflare. *(Amendé le
+  13/11/2026 : l'ancien front est retiré de `popote-web` (F1) ; il ne contient plus que le nouveau front, le
+  relais et le système de design.)*
 - `popote-api` : nouveau. Il devient dès l'étape 0.2 le **seul propriétaire des migrations** ; l'ancien dépôt
   est gelé côté base (plus aucun `db push` ni déploiement de fonction depuis lui). Il reçoit
   `supabase/migrations` (historique gardé), la logique des Edge Functions portée en Python, les tests de base
@@ -393,7 +401,9 @@ serveur. Popote n'est pas un client OAuth ; c'est le principe qui est repris.
   upgrade-insecure-requests`.
 - HSTS avec `preload`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
   `Permissions-Policy` réduite (appareil photo pour l'appli seulement), `Cross-Origin-Opener-Policy:
-  same-origin`. Posés par l'hôte du front.
+  same-origin`. Posés par l'hôte du front. *(Amendé le 13/11/2026 : la CSP passe en `enforce` dès que le front
+  n'appelle plus Supabase (F23) et gagne `object-src 'none'` ; le build interdit tout script ou style en ligne
+  et tout `data:` de police.)*
 - Polices servies par notre domaine (plus d'appel à Google Fonts).
 
 ### 7.4 Secrets
@@ -458,7 +468,9 @@ docs/              normes d'API, sécurité, exploitation, fiche de bascule
 ### 8.3 `popote-web`
 - TypeScript strict ; routes typées (TanStack Router) avec chargement à la demande par route ; une frontière
   d'erreur par route ; données seulement par le client généré et des hooks TanStack Query par ressource, avec
-  des clés précises (plus d'invalidation globale) ; aucun `fetch` hors de la couche API.
+  des clés précises (plus d'invalidation globale) ; aucun `fetch` hors de la couche API *(amendé le
+  13/11/2026 : vérifié par un test d'architecture ; une frontière d'erreur déclarée par route, un
+  `document.title` par route, aucune variable `VITE_*`)*.
 - Le relais Cloudflare (fichiers + `/api/*`) vit dans ce dépôt, avec l'adresse de l'API de chaque
   environnement en configuration.
 - Suivi des erreurs du navigateur (D4) et budgets de performance (Lighthouse) dans l'intégration continue.
@@ -478,13 +490,15 @@ docs/              normes d'API, sécurité, exploitation, fiche de bascule
   Les tests de base sont portés en Python au fil des parcours, quand on touche à leur domaine ; l'état
   « ouvert » disparaît avec le dernier.
 - Les tests purs du front (`src/**/*.test.ts`) restent dans `popote-web` ; les specs Playwright aussi, jouées
-  contre une pile locale complète (base, API, front).
+  contre une pile locale complète (base, API, front). *(Amendé le 13/11/2026 : les specs Playwright du front se
+  jouent contre le relais local (`wrangler dev`, CSP en `enforce`), l'API réelle pour les parcours (pile
+  locale), une API simulée pour le banc.)*
 
 ### 9.2 Ce qui tourne à chaque envoi
 | Dépôt | Contrôles |
 |---|---|
 | `popote-api` | ruff, mypy, pytest (unit, integration sur une base Supabase locale, matrice d'autorisation, tests de base repris), Schemathesis sur le contrat, oasdiff, pip-audit, gitleaks, Semgrep, construction et scan de l'image |
-| `popote-web` | oxlint, tsc, vitest, génération du client (écart = échec), build, npm audit, gitleaks, Playwright sur une pile locale complète |
+| `popote-web` | oxlint, tsc, vitest, génération du client (écart = échec), build, npm audit, gitleaks, Playwright sur une pile locale complète *(amendé le 13/11/2026 : + dérive du contrat, garde du build, axe sur le banc, captures de comparaison, Lighthouse)* |
 
 ### 9.3 Tenue en charge (k6), sur l'essai
 - Charge : 50 utilisateurs virtuels pendant 10 minutes (25 fois l'usage réel) : lectures p95 < 300 ms,
@@ -545,7 +559,8 @@ captures regardées, documentation à jour, déployé sur l'essai.
 | 0.8 | Preuves (ASVS, ZAP, charge, contrat) ; bascule au jour J, fermeture à J+2 (§ 11) | La nouvelle adresse, une reconnexion, l'appli à réinstaller |
 
 Chaque domaine de 0.5 suit la même boucle : routes et tests dans l'API → hooks du front basculés → e2e vertes
-en local et sur l'essai. L'appli en prod ne change qu'au jour J ; avant, seules des migrations compatibles
+en local et sur l'essai *(amendé le 13/11/2026 : un hook TanStack Query par ressource, un écran dans le style
+« Jeu », les e2e du parcours verts en local et sur l'essai)*. L'appli en prod ne change qu'au jour J ; avant, seules des migrations compatibles
 touchent sa base, chacune après la sauvegarde (§ 5.3).
 
 ---
@@ -617,3 +632,27 @@ la sauvegarde du matin même.
   clés d'accès https://supabase.com/docs/guides/auth/passkeys
 - Scaleway, domaine personnalisé d'un conteneur :
   https://www.scaleway.com/en/docs/serverless-containers/how-to/add-a-custom-domain-to-a-container/
+
+---
+
+## Amendement du 13/11/2026 : fondation du front
+
+Kamil a tranché : le nouveau front remplace entièrement l'ancien, parcours par parcours, dans le style « Jeu ».
+Cette spec supposait un front « rebranché » avec ses 34 parcours e2e comme filet. Le plan
+[`../plans/2026-11-13-fondation-du-front.md`](../plans/2026-11-13-fondation-du-front.md) (F1 à F25) en tire les
+conséquences ; ses amendements, en fin de fichier, priment. Ce que cela change dans la spec (les passages
+concernés portent une note « amendé le 13/11/2026 ») :
+
+| Spec | Avant | Après |
+|---|---|---|
+| § 1 « Stratégie » | « 34 parcours e2e comme filet » ; le front reste identique, rebranché | **le filet est neuf** : les e2e de chaque nouveau parcours (écrits avec lui), plus, pour la fondation, les contrôles du plan (CSP, `/api` hors cache, axe, comparaison visuelle, Lighthouse). Les 34 anciens parcours (`e2e/*.spec.ts`, branchés sur Supabase en direct par la clé de service) sont **retirés** ; ils restent lisibles dans l'historique (étiquette `ancien-front-2026-11-13`) et dans l'ancien dépôt, qui sert la prod jusqu'à la bascule |
+| § 1 critère 2 | « les specs e2e (adaptées à la nouvelle connexion) sont vertes en local, sur l'essai et sur la prod » | « **les e2e des nouveaux parcours** sont verts en local et sur l'essai ; la fumée de prod (§ 11) joue le parcours « Entrer » après la bascule » |
+| § 1 « Hors périmètre » | « Le design, les nouveaux parcours » | le design (système « Jeu ») est **dans** le périmètre de l'étape 0 pour sa part technique : jetons, composants, harnais ; les parcours restent hors de l'étape 0 sauf « Entrer », qui rend la connexion utilisable |
+| § 1 « But » (« sans changer les écrans ») | écrans inchangés | écrans **neufs** ; l'ancienne appli reste telle quelle en prod jusqu'au jour J |
+| § 2 « Les deux dépôts » (`popote-web` « reprend l'historique du dépôt actuel ») | l'ancien front vit dans `popote-web` | l'ancien front est retiré de `popote-web` (F1) ; `popote-web` ne contient que le nouveau front, le relais et le système de design |
+| § 7.3 CSP | « posés par l'hôte du front » ; `report-only` tant que le front parle à Supabase | **enforce** dès F23 : plus aucun appel direct à Supabase ; la CSP gagne seulement **`object-src 'none'`** ; le reste ne change pas (`'self'` partout, `img-src` avec `data:` et `blob:`) ; aucune police, image ni script d'un autre domaine ; le build interdit tout script ou style en ligne et tout `data:` de police |
+| § 8.3 `popote-web` | « routes typées… aucun `fetch` hors de la couche API » | inchangé, **et vérifié** : test d'architecture ; plus : une frontière d'erreur déclarée **par route** ; `document.title` par route ; aucune variable `VITE_*` |
+| § 9.1 dernière puce | « les specs Playwright aussi, jouées contre une pile locale complète (base, API, front) » | les specs Playwright du front se jouent **contre le relais local** (`wrangler dev`, CSP en `enforce`), l'API réelle pour les parcours (pile locale), une API simulée (MSW ou un relais sans amont) pour le banc |
+| § 9.2 ligne `popote-web` | oxlint, tsc, vitest, génération du client, build, npm audit, gitleaks, Playwright | + **dérive du contrat** (copie épinglée, `oasdiff` contre `popote-api`), **garde du build** (CSP, `/api` hors cache), axe sur le banc, captures de comparaison (artefact), **Lighthouse** (budgets) |
+| § 10 « Chaque domaine de 0.5 suit la même boucle » | « hooks du front basculés → e2e vertes » | « un hook TanStack Query par ressource, un écran dans le style « Jeu », les e2e du parcours verts en local et sur l'essai » |
+| § 11 « dernière version de l'ancien site… » | sans changement | sans changement (l'ancien site est dans l'autre dépôt) ; **l'essai** n'a plus l'ancien front dès F1 : il sert une page d'attente qui remplace l'ancien service worker (voir le risque 1 du plan) |

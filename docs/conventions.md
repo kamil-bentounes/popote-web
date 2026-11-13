@@ -26,5 +26,4 @@ Reprises du § 8 de la [spec du socle](superpowers/specs/2026-11-12-socle-design
 
 ## L'API
 
-Le front ne parle qu'à `/api` (voir `popote-api/docs/normes-api.md`). Jusqu'à l'étape 0.5, il parle encore à
-Supabase en direct : c'est la seule exception, elle disparaît au jour J.
+Le front ne parle qu'à `/api` (voir `popote-api/docs/normes-api.md`).
