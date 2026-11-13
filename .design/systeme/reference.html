@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Popote, système de design « Jeu »</title>
+<link rel="stylesheet" href="jetons-racine.css">
+<link rel="stylesheet" href="composants.css">
+<style>
+  /* Mise en page de cette page de référence seulement : rien ici n'est à porter dans l'appli. */
+  body { margin: 0; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 40px max(16px, env(safe-area-inset-left, 0px)) 80px; }
+  .page > header p { max-width: 62ch; }
+  section { margin-top: 48px; }
+  section > h2 { font-size: var(--text-titre-m); margin-bottom: 6px; }
+  section > p { margin: 0 0 18px; max-width: 70ch; }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: 22px 18px; align-items: start; }
+  .cas { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .cas > small { font-size: var(--text-note); color: var(--color-gris); }
+  .nuance { height: 64px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-petit); display: grid; place-items: center; font-size: 0.84rem; }
+  .scene { position: relative; height: 330px; overflow: hidden; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-bloc); }
+  code { font-size: 0.86em; background: var(--color-lilas-pale); padding: 1px 6px; border-radius: 6px; }
+</style>
+</head>
+<body class="jeu">
+<div class="page">
+  <header>
+    <h1 class="titre" style="font-size: var(--text-titre-xl)">Popote, le style « Jeu »</h1>
+    <p class="texte-doux">La référence des composants de base et de leurs états. Chaque exemple est le HTML et le CSS à porter. Les classes vivent dans <code>composants.css</code>, les valeurs dans <code>jetons.css</code>.</p>
+  </header>
+
+  <section>
+    <h2 class="titre">Couleurs</h2>
+    <p class="texte-doux">Le texte est toujours encre sur les couleurs franches. Le blanc n'est permis que sur les deux foncées.</p>
+    <div class="grille" style="grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr))">
+      <div class="nuance" style="background: var(--color-creme)">crème</div>
+      <div class="nuance" style="background: var(--color-papier)">papier</div>
+      <div class="nuance" style="background: var(--color-encre); color: var(--color-papier)">encre</div>
+      <div class="nuance" style="background: var(--color-menthe)">menthe</div>
+      <div class="nuance" style="background: var(--color-jaune)">jaune</div>
+      <div class="nuance" style="background: var(--color-tomate)">tomate</div>
+      <div class="nuance" style="background: var(--color-ciel)">ciel</div>
+      <div class="nuance" style="background: var(--color-rose)">rose</div>
+      <div class="nuance" style="background: var(--color-tomate-fonce); color: var(--color-papier)">tomate foncée</div>
+      <div class="nuance" style="background: var(--color-ciel-fonce); color: var(--color-papier)">ciel foncé</div>
+      <div class="nuance" style="background: var(--color-menthe-pale)">menthe pâle</div>
+      <div class="nuance" style="background: var(--color-jaune-pale)">jaune pâle</div>
+      <div class="nuance" style="background: var(--color-rose-pale)">rose pâle</div>
+      <div class="nuance" style="background: var(--color-tomate-pale)">tomate pâle</div>
+      <div class="nuance" style="background: var(--color-lilas-pale)">lilas pâle</div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="titre">Typographie</h2>
+    <p class="texte-doux">Fredoka pour les titres, les boutons et les chiffres mis en avant. Nunito, en gras, pour tout ce qui se lit.</p>
+    <div class="bloc" style="padding: 22px; display: flex; flex-direction: column; gap: 12px">
+      <span class="titre" style="font-size: var(--text-titre-xl)">Popote</span>
+      <span class="titre" style="font-size: var(--text-titre-l)">Bienvenue, Léa !</span>
+      <span class="titre" style="font-size: var(--text-titre-m)">Regarde tes mails</span>
+      <span class="titre" style="font-size: var(--text-titre-s)">Lasagnes saumon-poireaux</span>
+      <span>Texte courant : un code à 6 chiffres est parti vers ton adresse.</span>
+      <span class="texte-doux" style="font-size: var(--text-note)">Note : il marche 10 minutes.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="titre">Bouton</h2>
+    <p class="texte-doux">Un seul bouton plein par écran. Menthe pour l'action principale, jaune pour envoyer ou valider une proposition de Popote, blanc pour le reste, tomate foncée pour le danger.</p>
+    <div class="grille">
+      <div class="cas"><button type="button" class="bouton">Continuer</button><small>Principal, au repos</small></div>
+      <div class="cas"><button type="button" class="bouton" data-appuye>Continuer</button><small>Appuyé (<code>:active</code>)</small></div>
+      <div class="cas"><button type="button" class="bouton" aria-busy="true">Un instant</button><small>Occupé (<code>aria-busy</code>)</small></div>
+      <div class="cas"><button type="button" class="bouton" disabled>Continuer</button><small>Désactivé</small></div>
+      <div class="cas"><button type="button" class="bouton bouton--jaune">Envoyer l'invitation</button><small>Jaune</small></div>
+      <div class="cas"><button type="button" class="bouton bouton--blanc">Recevoir un code</button><small>Blanc</small></div>
+      <div class="cas"><button type="button" class="bouton bouton--danger">Supprimer</button><small>Danger</small></div>
+      <div class="cas"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"><button type="button" class="bouton bouton--blanc bouton--petit">Renvoyer</button><button type="button" class="lien">Annuler</button><button type="button" class="lien lien--danger">Quitter Popote</button></div><small>Petit bouton, lien, lien de danger</small></div>
+      <div class="cas"><button type="button" class="bouton bouton--danger maintenir" id="tenir" aria-describedby="tenir-aide"><i class="voile"></i><span>Maintiens pour supprimer</span></button><small id="tenir-aide">À maintenir 2 s, au doigt ou avec la touche Espace : essaie</small><span id="tenir-annonce" role="status" class="texte-doux" style="font-size: var(--text-note)"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="titre">Champ et cases de code</h2>
+    <p class="texte-doux">Le libellé reste toujours au-dessus. L'erreur dit quoi faire, sous le champ.</p>
+    <div class="grille">
+      <div class="cas"><label class="champ"><span>Ton e-mail</span><input type="email" placeholder="toi@exemple.fr" aria-describedby="aide-1"></label><small id="aide-1">Au repos, avec une aide</small></div>
+      <div class="cas"><label class="champ" data-erreur><span>Ton e-mail</span><input type="email" value="lea@exemple" aria-invalid="true" aria-describedby="aide-2"></label><small id="aide-2" role="alert" style="color: var(--color-erreur)">Il manque la fin de l'adresse, après le point.</small></div>
+      <div class="cas"><label class="champ"><span>Ton prénom</span><input type="text" value="Léa" disabled></label><small>Désactivé</small></div>
+      <div class="cas"><div class="cases"><i>4</i><i>8</i><i>2</i><i></i><i></i><i></i></div><small>En cours de saisie</small></div>
+      <div class="cas"><div class="cases" data-etat="juste"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>3</i></div><small>Juste</small></div>
+      <div class="cas"><div class="cases" data-etat="faux" id="faux"><i>1</i><i>3</i><i>5</i><i>7</i><i>9</i><i>0</i></div><small>Faux : les cases tremblent une fois</small></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="titre">Bloc, pastille, tampon, avatar</h2>
+    <p class="texte-doux">Le bloc porte le contenu. La pastille informe et ne se touche pas. Le tampon récompense un geste.</p>
+    <div class="grille">
+      <div class="cas"><div class="bloc" style="padding: 16px; position: relative"><span class="tampon" style="position: absolute; right: 10px; top: -16px" id="tampon">Mangé !</span><small class="texte-doux">Ce soir, pour vous deux</small><div class="titre" style="font-size: var(--text-titre-s); margin: 2px 0 8px">Lasagnes saumon-poireaux</div><span class="pastille">512 kcal</span> <span class="pastille pastille--menthe">42 g prot.</span></div><small>Bloc avec pastilles et tampon</small></div>
+      <div class="cas"><div style="display: flex; gap: 8px; flex-wrap: wrap"><span class="pastille">C'est toi</span><span class="pastille pastille--menthe">Invitée</span><span class="pastille pastille--rose">Mission du soir</span><span class="pastille pastille--lilas">Encore 30 jours</span></div><small>Pastilles</small></div>
+      <div class="cas"><div style="display: flex; gap: 14px"><div class="avatar">K</div><div class="avatar avatar--menthe">L</div><div class="avatar avatar--libre">+</div></div><small>Avatars : deux personnes, une place libre</small></div>
+      <div class="cas"><div class="jauge"><i style="--part: 64%"></i></div><div class="jauge jauge--ciel"><i style="--part: 56%"></i></div><small>Jauges : énergie, protéines</small></div>
+      <div class="cas"><div class="suivi"><div data-fait><i></i>Envoyée</div><div data-fait><i></i>Ouverte</div><div><i></i>Arrivée</div></div><small>Suivi en trois étapes</small></div>
+      <div class="cas"><div class="bloc" style="padding: 4px 14px"><div class="effet" data-sens="perd"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></i><span>Tes objectifs <b>disparaissent</b>.</span></div><div class="effet" data-sens="reste"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><span>Léa <b>garde</b> le frigo.</span></div><div class="effet" data-sens="change"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i><span>Elle est <b>prévenue</b>.</span></div></div><small>Lignes d'effet avant un geste grave</small></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="titre">La marmite</h2>
+    <p class="texte-doux">Le visage de Popote et de son assistant. Sept états, posés par <code>data-etat</code> : au repos elle cligne ; elle dort pendant le réveil du serveur ; elle écoute, réfléchit et parle en mode vocal ; elle fête une réussite ; elle s'inquiète quand quelque chose bloque. Chaque état a son signe dessiné, lisible même quand rien ne bouge.</p>
+    <div class="grille" id="marmites" style="grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr)); padding-top: 40px"></div>
+  </section>
+
+  <section>
+    <h2 class="titre">Décor, bulle, entrée d'écran, confettis</h2>
+    <p class="texte-doux">Le soleil et le sol ouvrent les écrans de moment fort. Les éléments d'un écran rebondissent en place l'un après l'autre. Les confettis ne partent que sur une vraie réussite.</p>
+    <div class="grille" style="grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr))">
+      <div class="cas"><div class="scene" id="scene"><div class="soleil"></div><div class="sol" style="top: 190px"></div>
+        <div class="marmite" data-marmite style="position: absolute; left: 22px; top: 40px; width: 130px; height: 130px"></div>
+        <span class="bulle entre" style="position: absolute; left: 160px; top: 62px; --rang: 1">Bonsoir !</span>
+        <div style="position: absolute; left: 18px; right: 18px; top: 214px; display: flex; flex-direction: column; gap: 12px"><span class="titre entre" style="font-size: var(--text-titre-s); --rang: 2">Ce soir, c'est lasagnes.</span><button type="button" class="bouton entre" style="--rang: 3" id="fete">Je l'ai mangé</button></div>
+      </div><small>Touche le bouton : confettis et joie. <button type="button" class="lien" id="rejoue">Rejouer l'entrée</button></small></div>
+      <div class="cas"><div class="scene" style="background: var(--color-ciel)"><div class="soleil soleil--ciel"></div><div class="sol" style="top: 190px"></div><div class="marmite" data-marmite data-etat="inquiet" style="position: absolute; left: 50%; margin-left: -65px; top: 40px; width: 130px; height: 130px"></div>
+        <div style="position: absolute; left: 18px; right: 18px; top: 214px; text-align: center"><span class="titre" style="font-size: var(--text-titre-s)">Ce lien a expiré</span><p class="texte-doux" style="margin: 6px 0 0; font-size: var(--text-note)">Variante ciel : attente, voix, souci.</p></div></div><small>Soleil ciel</small></div>
+    </div>
+  </section>
+</div>
+<script>
+// Scripts de démonstration seulement. Dans l'appli, ces mouvements passent par Motion.
+const POT = '<svg viewBox="0 0 200 200" role="img" aria-label="Popote, la petite marmite"><g class="vapeur" fill="none" style="stroke:var(--color-gris)" stroke-width="6" stroke-linecap="round"><path d="M78 40q-10-12 0-24"/><path d="M122 40q10-12 0-24"/></g><text class="zzz" x="150" y="50" font-family="Fredoka, sans-serif" font-size="30" font-weight="600" style="fill:var(--color-encre)">z z</text><g class="ondes" fill="none" style="stroke:var(--color-encre)" stroke-width="5" stroke-linecap="round"><path d="M4 84q-10 21 0 42"/><path d="M-12 74q-16 31 0 62"/><path d="M196 84q10 21 0 42"/><path d="M212 74q16 31 0 62"/></g><rect x="12" y="96" width="30" height="18" rx="9" style="fill:var(--color-tomate);stroke:var(--color-encre)" stroke-width="5"/><rect x="158" y="96" width="30" height="18" rx="9" style="fill:var(--color-tomate);stroke:var(--color-encre)" stroke-width="5"/><path d="M34 84h132v54a40 40 0 01-40 40H74a40 40 0 01-40-40z" style="fill:var(--color-tomate);stroke:var(--color-encre)" stroke-width="5" stroke-linejoin="round"/><path d="M48 98v34" style="stroke:var(--color-papier)" stroke-width="8" stroke-linecap="round" opacity=".45"/><circle cx="62" cy="142" r="9" style="fill:var(--color-rose)" opacity=".85"/><circle cx="138" cy="142" r="9" style="fill:var(--color-rose)" opacity=".85"/><g class="yeux"><ellipse cx="78" cy="122" rx="13" ry="15" style="fill:var(--color-papier);stroke:var(--color-encre)" stroke-width="4"/><ellipse cx="122" cy="122" rx="13" ry="15" style="fill:var(--color-papier);stroke:var(--color-encre)" stroke-width="4"/><g class="pupilles"><circle cx="80" cy="124" r="6.5" style="fill:var(--color-encre)"/><circle cx="124" cy="124" r="6.5" style="fill:var(--color-encre)"/><circle cx="82" cy="121" r="2" style="fill:var(--color-papier)"/><circle cx="126" cy="121" r="2" style="fill:var(--color-papier)"/></g></g><g class="dodo" fill="none" style="stroke:var(--color-encre)" stroke-width="5" stroke-linecap="round"><path d="M66 124q12 9 24 0"/><path d="M110 124q12 9 24 0"/></g><g class="joie" fill="none" style="stroke:var(--color-encre)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M66 128l12-12 12 12"/><path d="M110 128l12-12 12 12"/></g><path class="bouche" d="M88 147q12 12 24 0" fill="none" style="stroke:var(--color-encre)" stroke-width="5" stroke-linecap="round"/><ellipse class="bouche-ouverte" cx="100" cy="152" rx="12" ry="10" style="fill:var(--color-encre)"/><path class="goutte" d="M158 60q9 13 0 19q-9-6 0-19z" style="fill:var(--color-ciel);stroke:var(--color-encre)" stroke-width="4" stroke-linejoin="round"/><g class="couvercle"><rect x="36" y="64" width="128" height="24" rx="12" style="fill:var(--color-jaune);stroke:var(--color-encre)" stroke-width="5"/><circle cx="100" cy="56" r="11" style="fill:var(--color-tomate);stroke:var(--color-encre)" stroke-width="5"/></g></svg>';
+const ETATS = [['repos', 'Repos'], ['sommeil', 'Sommeil'], ['ecoute', 'Écoute'], ['reflexion', 'Réflexion'], ['parole', 'Parole'], ['joie', 'Joie'], ['inquiet', 'Inquiétude']];
+document.getElementById('marmites').innerHTML = ETATS.map(([e, n]) => '<div class="cas" style="align-items:center"><div class="marmite" data-etat="' + e + '">' + POT + '</div><small>' + n + ' : <code>' + e + '</code></small></div>').join('');
+document.querySelectorAll('[data-marmite]').forEach(m => { m.innerHTML = POT; });
+
+function confettis(scene, x, y, n = 30) {
+  const jeton = n => getComputedStyle(document.documentElement).getPropertyValue('--color-' + n).trim();
+  const couleurs = ['tomate', 'jaune', 'menthe', 'ciel', 'rose'].map(jeton);
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('i'); c.className = 'confetti'; c.style.background = couleurs[i % 5]; c.style.left = x + 'px'; c.style.top = y + 'px'; scene.appendChild(c);
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2, d = 90 + Math.random() * 150;
+    c.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: `translate(${Math.cos(a) * d}px,${Math.sin(a) * d + 220}px) rotate(${(Math.random() - 0.5) * 900}deg)`, opacity: 0 }],
+      { duration: 1400 + Math.random() * 600, easing: 'cubic-bezier(.2,.6,.4,1)' }).onfinish = () => c.remove();
+  }
+}
+const scene = document.getElementById('scene'), marmite = scene.querySelector('.marmite');
+document.getElementById('fete').addEventListener('click', () => { confettis(scene, 160, 240); marmite.dataset.etat = 'joie'; setTimeout(() => { marmite.dataset.etat = 'repos'; }, 1400); });
+document.getElementById('rejoue').addEventListener('click', () => scene.querySelectorAll('.entre').forEach(e => { e.style.animation = 'none'; void e.offsetWidth; e.style.animation = ''; }));
+const tenir = document.getElementById('tenir'), annonce = document.getElementById('tenir-annonce'); let minuteur;
+const lache = () => { if (!('tenu' in tenir.dataset)) return; clearTimeout(minuteur); delete tenir.dataset.tenu; if (annonce.textContent === 'Maintiens encore…') annonce.textContent = 'Relâché : rien n\'est supprimé.'; };
+const tiens = () => { if ('tenu' in tenir.dataset) return; tenir.dataset.tenu = ''; annonce.textContent = 'Maintiens encore…';
+  minuteur = setTimeout(() => { tenir.querySelector('span').textContent = 'Supprimé'; annonce.textContent = 'Supprimé.'; clearTimeout(minuteur); delete tenir.dataset.tenu; }, 2000); };
+tenir.addEventListener('pointerdown', tiens);
+['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(e => tenir.addEventListener(e, lache));
+tenir.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); tiens(); } });
+tenir.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') lache(); });
+</script>
+</body>
+</html>
