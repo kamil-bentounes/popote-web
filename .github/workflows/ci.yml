@@ -27,7 +27,18 @@ jobs:
       - run: npx tsc -b
       - run: npx tsc -p relais
       - run: npm test
-      - run: npm run build -- --mode development
+      - run: npm run build
+      # L'essai sert `dist/` : il lui faut une page, un `sw.js` qui remplace l'ancien service worker
+      # (voir scripts/verifie-sw-remplacant.mjs) et aucune trace de l'ancien front.
+      - name: Garde du build
+        run: |
+          test -f dist/index.html
+          test -f dist/sw.js
+          node scripts/verifie-sw-remplacant.mjs dist/sw.js
+          if grep -rqiE 'supabase|sb_publishable' dist; then
+            echo "dist contient une trace de l'ancien front (supabase ou sb_publishable)" >&2
+            exit 1
+          fi
       - run: npm audit --omit=dev --audit-level=high
   secrets:
     runs-on: ubuntu-24.04
@@ -69,8 +80,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # `.env.essai` (versionné) pose l'URL et la clé publiable du projet Supabase d'essai.
-      - run: npm run build -- --mode essai
+      - run: npm run build
       - name: Déployer le Worker
         run: npx wrangler deploy
         env:
