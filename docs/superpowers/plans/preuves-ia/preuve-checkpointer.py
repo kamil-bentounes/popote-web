@@ -21,8 +21,11 @@ Rejeu, depuis un dossier de travail neuf (jamais dans un dépôt : l'interpréte
   psql "$PGURL_ADMIN" -c 'create database ia_essai'          # pile Supabase locale, jamais l'essai ni la prod
   uv venv venv && VIRTUAL_ENV=venv uv pip install --exclude-newer 2026-10-29T00:00:00Z \
       langgraph langgraph-checkpoint-postgres "psycopg[binary]" psycopg-pool pydantic
-  T=$(python3 -c 'import uuid;print(uuid.uuid4())'); for p in init run elague reprise rejeu efface; do
-      venv/bin/python -I preuve-checkpointer.py $p $T; done
+  seq() { T=$(python3 -c 'import uuid;print(uuid.uuid4())'); for p in "$@"; do
+      LANGGRAPH_STRICT_MSGPACK=true venv/bin/python -I preuve-checkpointer.py $p $T || exit 1; done; }
+  seq init run mauvaise_reprise elague reprise rejeu efface   # A : reprise, élagage, rejeu, effacement
+  seq init run course                                         # B : deux reprises simultanées (écriture 2 : d'où le verrou)
+  seq init run nouvelle_entree                                # C : un nouveau message abandonne l'interruption
   psql "$PGURL_ADMIN" -c 'drop database ia_essai'
 Le DSN ci-dessous est celui, documenté, de la pile locale (`docs/dev.md` de popote-api) : aucune donnée réelle.
 """
@@ -176,11 +179,17 @@ async def main(phase: str, thread: str) -> None:
 
         res = await asyncio.gather(une(), une(), return_exceptions=True)
         print("COURSE", [type(r).__name__ if isinstance(r, Exception) else len(r) for r in res])
+        async with p.connection() as c:
+            n = await un(c, "select n from effets where nom='ecriture'")
+        assert n == 2, "la course n'a pas reproduit la double écriture que le verrou de reprise du plan doit fermer"
     elif phase == "nouvelle_entree":
         out = [c async for c in g.astream({"phrase": "autre phrase"}, cfg, durability="sync")]
         st = await g.aget_state(cfg)
         print("NOUVELLE ENTREE", json.dumps(out, default=str)[:200])
         print("   état :", st.values, "| suite :", st.next)
+        assert st.values.get("phrase") == "autre phrase" and st.next, "l'ancienne interruption n'a pas été abandonnée"
+        async with p.connection() as c:
+            assert await un(c, "select n from effets where nom='appel_modele'") == 2, "le sous-graphe devait repartir de zéro"
     elif phase == "efface":
         await saver.adelete_thread(thread)
         async with p.connection() as c:
