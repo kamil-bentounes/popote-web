@@ -24,12 +24,16 @@
   font-family: var(--font-titre); font-size: var(--text-bouton); font-weight: 600; cursor: pointer;
   box-shadow: var(--shadow-dur), var(--inset-shadow-reflet); transition: transform var(--duree-appui), box-shadow var(--duree-appui); }
 .bouton:active:not(:disabled), .bouton[data-appuye] { transform: translateY(var(--enfoncement)); box-shadow: var(--shadow-enfonce), var(--inset-shadow-reflet); }
-.bouton:focus-visible, .champ input:focus-visible, .lien:focus-visible { outline: 4px solid var(--color-jaune); outline-offset: 3px; }
+/* Focus au clavier : un anneau d'encre (au moins 3:1 sur tous nos fonds), cerné de jaune */
+.bouton:focus-visible, .champ input:focus-visible, .lien:focus-visible { outline: 4px solid var(--color-encre); outline-offset: 3px; }
+.bouton:focus-visible { box-shadow: var(--shadow-dur), var(--inset-shadow-reflet), 0 0 0 11px var(--color-jaune); }
+.champ input:focus-visible { box-shadow: var(--shadow-dur-petit), 0 0 0 11px var(--color-jaune); }
+.lien:focus-visible { border-radius: 8px; box-shadow: 0 0 0 11px var(--color-jaune); }
 .bouton:disabled { background: var(--color-lilas-pale); color: var(--color-gris); box-shadow: var(--shadow-enfonce); transform: translateY(var(--enfoncement)); cursor: not-allowed; }
 .bouton--jaune { background: var(--color-jaune); }     /* envoyer, valider une proposition de Popote */
 .bouton--blanc { background: var(--color-papier); }    /* action secondaire */
-.bouton--danger { background: var(--color-tomate-fonce); color: #fff; }
-.bouton--petit { width: auto; min-height: 46px; padding: 0 15px; border-radius: var(--radius-petit); font-size: 1.03rem; box-shadow: var(--shadow-dur-petit); }
+.bouton--danger { background: var(--color-tomate-fonce); color: var(--color-papier); }
+.bouton--petit { width: auto; min-height: 46px; padding: 0 15px; border-radius: var(--radius-petit); font-size: var(--text-texte); box-shadow: var(--shadow-dur-petit); }
 .bouton[aria-busy="true"] { pointer-events: none; }
 .bouton[aria-busy="true"]::after { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 3.5px solid var(--color-encre); border-right-color: transparent; animation: tourne 0.7s linear infinite; }
 .lien { background: none; border: 0; padding: 0 6px; min-height: var(--cible); font: inherit; font-weight: 800; color: var(--color-encre); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
@@ -37,16 +41,16 @@
 
 /* Bouton à maintenir : pour supprimer ou retirer quelqu'un. Le voile avance pendant 2 s. */
 .maintenir { position: relative; overflow: hidden; touch-action: none; user-select: none; }
-.maintenir > .voile { position: absolute; inset: 0 auto 0 0; width: 0; background: rgb(42 26 74 / 0.35); }
+.maintenir > .voile { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--color-voile); }
 .maintenir[data-tenu] > .voile { width: 100%; transition: width 2s linear; }
 .maintenir > span { position: relative; }
 
 /* Champ */
 .champ { display: block; }
-.champ > span { display: block; margin: 0 0 6px 4px; font-size: 0.9rem; }
+.champ > span { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle); }
 .champ input { width: 100%; height: 58px; padding: 0 16px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-champ); background: var(--color-papier);
-  font-family: var(--font-texte); font-weight: 800; font-size: 1.125rem; color: var(--color-encre); box-shadow: var(--shadow-dur-petit); }
-.champ input::placeholder { color: #8E82B0; }
+  font-family: var(--font-texte); font-weight: 800; font-size: var(--text-champ); color: var(--color-encre); box-shadow: var(--shadow-dur-petit); }
+.champ input::placeholder { color: var(--color-gris); }
 .champ[data-erreur] input { background: var(--color-tomate-pale); }
 .champ > small { display: block; margin: 8px 0 0 4px; font-size: var(--text-note); color: var(--color-gris); }
 .champ[data-erreur] > small { color: var(--color-erreur); }
@@ -54,55 +58,56 @@
 
 /* Pastille : une information courte. Jamais cliquable. */
 .pastille { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: var(--trait-fin) solid var(--color-encre); border-radius: var(--radius-pastille);
-  background: var(--color-jaune-pale); font-size: 0.84rem; white-space: nowrap; }
+  background: var(--color-jaune-pale); font-size: var(--text-pastille); white-space: nowrap; }
 .pastille--menthe { background: var(--color-menthe-pale); }
 .pastille--rose { background: var(--color-rose-pale); }
 .pastille--lilas { background: var(--color-lilas-pale); }
 
 /* Tampon : la récompense d'un geste (« Mangé ! », « C'est lancé ! »). Il arrive en tournant. */
-.tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: 12px; background: var(--color-tomate); color: var(--color-encre);
-  font-family: var(--font-titre); font-size: 1.06rem; transform: rotate(8deg); animation: tampon var(--duree-entree) var(--ease-rebond) both; }
+.tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-tampon); background: var(--color-tomate); color: var(--color-encre);
+  font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg); animation: tampon var(--duree-entree) var(--ease-rebond) both; }
 @keyframes tampon { from { transform: rotate(-40deg) scale(0); } to { transform: rotate(8deg) scale(1); } }
 
 /* Cases du code à 6 chiffres */
 .cases { display: flex; justify-content: space-between; gap: 8px; }
 .cases > i { flex: 1 1 0; max-width: 52px; height: 64px; display: grid; place-items: center; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-champ);
-  background: var(--color-papier); box-shadow: var(--shadow-dur-petit); font-style: normal; font-family: var(--font-titre); font-size: 2rem; }
+  background: var(--color-papier); box-shadow: var(--shadow-dur-petit); font-style: normal; font-family: var(--font-titre); font-size: var(--text-case); }
 .cases[data-etat="juste"] > i { background: var(--color-menthe-pale); }
 .cases[data-etat="faux"] > i { background: var(--color-tomate-pale); }
 .cases[data-etat="faux"] { animation: tremble 0.42s; }
 @keyframes tremble { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
 
 /* Bulle : ce que dit la marmite */
-.bulle { position: relative; display: inline-block; padding: 11px 14px; border: var(--trait) solid var(--color-encre); border-radius: 22px; background: var(--color-papier); box-shadow: var(--shadow-dur-petit); }
+.bulle { position: relative; display: inline-block; padding: 11px 14px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-bouton); background: var(--color-papier); box-shadow: var(--shadow-dur-petit); }
 .bulle::before { content: ""; position: absolute; left: -13px; top: 22px; width: 20px; height: 20px; background: var(--color-papier);
   border-left: var(--trait) solid var(--color-encre); border-bottom: var(--trait) solid var(--color-encre); transform: rotate(45deg); }
 
 /* Avatar d'une personne du foyer */
 .avatar { width: 86px; height: 86px; display: grid; place-items: center; border-radius: 50%; border: var(--trait) solid var(--color-encre); box-shadow: var(--shadow-dur-petit);
-  background: var(--color-jaune); font-family: var(--font-titre); font-size: 2.5rem; }
+  background: var(--color-jaune); font-family: var(--font-titre); font-size: var(--text-titre-l); }
 .avatar--menthe { background: var(--color-menthe); }
-.avatar--libre { background: var(--color-papier); border-style: dashed; box-shadow: none; color: #8E82B0; }
+.avatar--libre { background: var(--color-papier); border-style: dashed; box-shadow: none; color: var(--color-gris); }
 
 /* Jauge : énergie, protéines, budget */
 .jauge { height: 22px; border: 3px solid var(--color-encre); border-radius: var(--radius-pastille); background: var(--color-papier); overflow: hidden; }
 .jauge > i { display: block; height: 100%; width: var(--part, 0%); border-right: 3px solid var(--color-encre);
-  background: repeating-linear-gradient(-55deg, var(--color-tomate) 0 10px, #FF7C6B 10px 20px); background-size: 200% 100%; animation: defile 1.4s linear infinite; transition: width 0.9s var(--ease-rebond); }
-.jauge--ciel > i { background-image: repeating-linear-gradient(-55deg, var(--color-ciel) 0 10px, #77A8FF 10px 20px); }
+  background: repeating-linear-gradient(-55deg, var(--color-tomate) 0 10px, var(--color-tomate-clair) 10px 20px); background-size: 200% 100%; animation: defile 1.4s linear infinite; transition: width 0.9s var(--ease-rebond); }
+.jauge--ciel > i { background-image: repeating-linear-gradient(-55deg, var(--color-ciel) 0 10px, var(--color-ciel-clair) 10px 20px); }
 @keyframes defile { to { background-position: -28px 0; } }
 
 /* Suivi en étapes (invitation : envoyée, ouverte, arrivée) */
 .suivi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.suivi > div { text-align: center; font-size: 0.84rem; color: var(--color-gris); }
+.suivi > div { text-align: center; font-size: var(--text-pastille); color: var(--color-gris); }
 .suivi > div[data-fait] { color: var(--color-encre); }
 .suivi i { display: block; height: 14px; margin-bottom: 5px; border: 3px solid var(--color-encre); border-radius: var(--radius-pastille); background: var(--color-papier); overflow: hidden; }
 .suivi div[data-fait] i::after { content: ""; display: block; height: 100%; background: var(--color-menthe); animation: remplit 0.6s var(--ease-sortie) both; }
 @keyframes remplit { from { width: 0; } to { width: 100%; } }
 
 /* Ligne d'effet : ce qui disparaît, ce qui reste, ce qui change. Le signe change avec la couleur. */
-.effet { display: flex; align-items: center; gap: 12px; padding: 10px 0; font-size: 0.97rem; line-height: 1.25; }
+.effet { display: flex; align-items: center; gap: 12px; padding: 10px 0; font-size: var(--text-effet); line-height: 1.25; }
 .effet + .effet { border-top: var(--trait-fin) solid var(--color-filet); }
-.effet > i { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid var(--color-encre); border-radius: 12px; font-style: normal; font-family: var(--font-titre); font-size: 1.1rem; }
+.effet > i { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid var(--color-encre); border-radius: var(--radius-tampon); }
+.effet > i svg { width: 18px; height: 18px; fill: none; stroke: var(--color-encre); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .effet[data-sens="perd"] > i { background: var(--color-tomate-pale); }
 .effet[data-sens="reste"] > i { background: var(--color-menthe-pale); }
 .effet[data-sens="change"] > i { background: var(--color-jaune-pale); }
@@ -110,8 +115,8 @@
 /* Soleil et sol : le décor du haut des écrans de moment fort */
 .soleil { position: absolute; left: 50%; top: 100px; width: 700px; height: 700px; margin: -350px 0 0 -350px; border-radius: 50%;
   background: repeating-conic-gradient(var(--color-soleil-a) 0 12deg, var(--color-soleil-b) 12deg 24deg); animation: tourne 40s linear infinite; }
-.soleil--ciel { background: repeating-conic-gradient(#5E9BFF 0 12deg, #79ADFF 12deg 24deg); }
-.soleil--rose { background: repeating-conic-gradient(#FFA3D0 0 12deg, #FFBBDC 12deg 24deg); }
+.soleil--ciel { background: repeating-conic-gradient(var(--color-soleil-ciel-a) 0 12deg, var(--color-soleil-ciel-b) 12deg 24deg); }
+.soleil--rose { background: repeating-conic-gradient(var(--color-soleil-rose-a) 0 12deg, var(--color-soleil-rose-b) 12deg 24deg); }
 .sol { position: absolute; left: -40px; right: -40px; top: 300px; bottom: -40px; background: var(--color-creme); border-top: var(--trait) solid var(--color-encre); border-radius: 50% 50% 0 0 / 38px 38px 0 0; }
 @keyframes tourne { to { transform: rotate(360deg); } }
 
@@ -124,51 +129,55 @@
 @keyframes entre { from { opacity: 0; transform: translateY(36px) scale(0.92); } to { opacity: 1; transform: none; } }
 
 /* Confettis : petits rectangles à contour, lancés par le script de référence */
-.confetti { position: absolute; width: 12px; height: 16px; border: var(--trait-fin) solid var(--color-encre); border-radius: 4px; pointer-events: none; }
+.confetti { position: absolute; width: 12px; height: 16px; border: var(--trait-fin) solid var(--color-encre); border-radius: var(--radius-confetti); pointer-events: none; }
 
 /* ——— La marmite : le visage de Popote et de son assistant ———
-   Un seul SVG, six états posés par data-etat. Repos : elle cligne. */
+   Un seul SVG, sept états posés par data-etat. Chaque état a un signe dessiné, visible même sans aucun mouvement :
+   sommeil = yeux fermés et « z z » ; écoute = ondes de chaque côté ; réflexion = vapeur et regard en l'air ;
+   parole = bouche ouverte ; joie = yeux rieurs ; inquiétude = bouche à l'envers et goutte. Le mouvement s'ajoute par-dessus. */
 .marmite { display: inline-block; width: 176px; height: 176px; }
 .marmite svg { width: 100%; height: 100%; overflow: visible; }
-.marmite .dodo, .marmite .joie, .marmite .vapeur, .marmite .zzz { opacity: 0; }
+.marmite .dodo, .marmite .joie, .marmite .vapeur, .marmite .zzz, .marmite .ondes, .marmite .bouche-ouverte, .marmite .goutte { opacity: 0; }
 .marmite .yeux { transform-box: fill-box; transform-origin: 50% 60%; animation: cligne 4.2s infinite; }
-.marmite .bouche, .marmite .couvercle, .marmite .pupilles { transform-box: fill-box; transform-origin: 50% 50%; }
+.marmite .bouche, .marmite .bouche-ouverte, .marmite .couvercle, .marmite .pupilles { transform-box: fill-box; transform-origin: 50% 50%; }
 @keyframes cligne { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
 
 .marmite[data-etat="sommeil"] .yeux { opacity: 0; }
-.marmite[data-etat="sommeil"] .dodo { opacity: 1; }
-.marmite[data-etat="sommeil"] .zzz { opacity: 1; animation: zzz 2.4s ease-in-out infinite; }
+.marmite[data-etat="sommeil"] .dodo, .marmite[data-etat="sommeil"] .zzz { opacity: 1; }
+.marmite[data-etat="sommeil"] .zzz { animation: flotte 2.4s ease-in-out infinite alternate; }
 .marmite[data-etat="sommeil"] svg { animation: respire 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
 @keyframes respire { 50% { transform: scale(1.03, 0.97); } }
-@keyframes zzz { 0% { opacity: 0; transform: translate(0, 6px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(10px, -16px); } }
+@keyframes flotte { to { transform: translate(6px, -8px); } }
 
-.marmite[data-etat="ecoute"] .couvercle { animation: ecoute 0.5s ease-in-out infinite alternate; transform-origin: 50% 100%; }
-.marmite[data-etat="ecoute"] .yeux { animation: none; transform: scale(1.08); }
-@keyframes ecoute { to { transform: translateY(-7px); } }
+.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse 0.7s ease-in-out infinite alternate; }
+.marmite[data-etat="ecoute"] .couvercle { transform: translateY(-6px); }
+.marmite[data-etat="ecoute"] .yeux { animation: none; transform: scale(1.1); }
+@keyframes pulse { from { opacity: 0.45; } to { opacity: 1; } }
 
+.marmite[data-etat="reflexion"] .vapeur { opacity: 1; animation: flotte 1.1s ease-in-out infinite alternate; }
 .marmite[data-etat="reflexion"] .pupilles { transform: translate(-4px, -6px); }
 .marmite[data-etat="reflexion"] .yeux { animation: none; }
-.marmite[data-etat="reflexion"] .couvercle { animation: mijote 0.35s ease-in-out infinite alternate; transform-origin: 50% 100%; }
-.marmite[data-etat="reflexion"] .vapeur { animation: vapeur 1.2s ease-out infinite; }
-@keyframes mijote { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
-@keyframes vapeur { 0% { opacity: 0; transform: translateY(6px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-16px); } }
+.marmite[data-etat="reflexion"] .couvercle { transform: rotate(-5deg); transform-origin: 50% 100%; animation: mijote 0.35s ease-in-out infinite alternate; }
+@keyframes mijote { to { transform: rotate(5deg); } }
 
-.marmite[data-etat="parole"] .bouche { transform-origin: 50% 0%; animation: parle 0.22s ease-in-out infinite alternate; }
-@keyframes parle { to { transform: scaleY(2.2); } }
+.marmite[data-etat="parole"] .bouche { opacity: 0; }
+.marmite[data-etat="parole"] .bouche-ouverte { opacity: 1; transform-origin: 50% 0%; animation: parle 0.22s ease-in-out infinite alternate; }
+@keyframes parle { to { transform: scaleY(0.45); } }
 
 .marmite[data-etat="joie"] .yeux { opacity: 0; }
 .marmite[data-etat="joie"] .joie { opacity: 1; }
 .marmite[data-etat="joie"] svg { animation: saute 0.55s var(--ease-sortie) 2 alternate; }
-.marmite[data-etat="joie"] .couvercle { animation: ecoute 0.27s ease-out 4 alternate; transform-origin: 50% 100%; }
 @keyframes saute { to { transform: translateY(-38px); } }
 
 .marmite[data-etat="inquiet"] .bouche { transform: scaleY(-1) translateY(-6px); }
+.marmite[data-etat="inquiet"] .goutte { opacity: 1; }
 .marmite[data-etat="inquiet"] .pupilles { transform: translateY(4px); }
 .marmite[data-etat="inquiet"] .yeux { animation: none; }
 
-/* Mouvement réduit : plus de rotation ni de saut, les états restent lisibles par leur dessin */
+/* Mouvement réduit : plus rien ne bouge tout seul. Les états restent lisibles par leur dessin (voir la marmite). */
 @media (prefers-reduced-motion: reduce) {
-  .soleil, .jauge > i, .marmite svg, .marmite .couvercle, .marmite .vapeur, .marmite .zzz, .marmite .bouche { animation: none !important; }
-  .entre, .tampon, .feuille { animation-duration: 1ms !important; animation-delay: 0ms !important; }
-  .bouton { transition: none; }
+  .soleil, .jauge > i, .cases[data-etat="faux"], .marmite svg, .marmite .yeux, .marmite .couvercle, .marmite .vapeur, .marmite .zzz, .marmite .ondes, .marmite .bouche-ouverte { animation: none !important; }
+  .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+  .bouton, .jauge > i { transition: none; }
+  .bouton[aria-busy="true"]::after { content: "…"; width: auto; height: auto; border: 0; animation: none; }
 }

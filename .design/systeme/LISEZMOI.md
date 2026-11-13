@@ -40,8 +40,9 @@ sed 's/^@theme {/:root {/' jetons.css > jetons-racine.css
 8. **Un geste grave se maintient.** Supprimer ou retirer quelqu'un : la liste de ce qui disparaît, reste
    et change, une preuve d'identité, puis un appui de 2 secondes.
 9. **La pastille informe, elle ne se touche pas.** Ce qui se touche est un bouton ou un lien.
-10. **Zone touchable de 44 px au moins**, anneau jaune de 4 px au clavier, et respect de
-    `prefers-reduced-motion` : plus de rotation ni de saut, les états restent lisibles par leur dessin.
+10. **Zone touchable de 44 px au moins.** Au clavier, un anneau d'encre de 4 px cerné de jaune : l'encre tient
+    plus de 3:1 sur tous nos fonds, le jaune seul ne le tenait pas. Avec `prefers-reduced-motion`, plus rien ne
+    bouge tout seul, et chaque état reste lisible par son dessin.
 
 ## Les composants et leurs états
 
@@ -68,15 +69,48 @@ sed 's/^@theme {/:root {/' jetons.css > jetons-racine.css
 
 ## La marmite et l'assistant
 
-| État | Quand |
-|---|---|
-| `repos` | Par défaut. Elle cligne. |
-| `sommeil` | Le serveur se réveille (5 à 7 s) ; une connexion est en pause après trop d'essais. |
-| `ecoute` | Le mode vocal attend ou reçoit la voix. |
-| `reflexion` | L'assistant prépare une réponse ou une action. |
-| `parole` | L'assistant répond, à l'écrit comme à voix haute. |
-| `joie` | Un geste a abouti. Deux sauts, puis retour au repos. |
-| `inquiet` | Une erreur, un lien expiré, un départ. |
+Chaque état a un signe dessiné, qui se lit sans aucun mouvement ; le mouvement s'ajoute par-dessus.
+
+| État | Signe dessiné | Mouvement | Quand |
+|---|---|---|---|
+| `repos` | yeux ouverts, sourire | elle cligne | par défaut |
+| `sommeil` | yeux fermés, « z z » | elle respire | le serveur se réveille (5 à 7 s) ; une connexion est en pause |
+| `ecoute` | ondes de chaque côté, couvercle levé, grands yeux | les ondes battent | le mode vocal attend ou reçoit la voix |
+| `reflexion` | vapeur, regard en l'air, couvercle de travers | le couvercle mijote | l'assistant prépare une réponse ou une action |
+| `parole` | bouche ouverte | la bouche bat | l'assistant répond, à l'écrit comme à voix haute |
+| `joie` | yeux rieurs | deux sauts, puis retour au repos | un geste a abouti |
+| `inquiet` | bouche à l'envers, goutte, regard baissé | aucun | une erreur, un lien expiré, un départ |
+
+## À porter (consignes pour la fondation du front)
+
+Ces points viennent de la relecture adverse de la demande de fusion #38. Ils ne changent rien à la page de
+référence ; ils s'appliquent au moment de porter le système en composants React.
+
+- **Couche CSS.** Mettre les composants dans `@layer components`, pour qu'une utilité Tailwind (`p-2`) puisse les
+  ajuster. Les `@font-face` et les `@keyframes` restent hors couche.
+- **Jetons Tailwind.** Fermer les valeurs par défaut (`--color-*: initial;`, de même pour `--text-*`, `--radius-*`
+  et `--shadow-*`), sinon `bg-red-500` ou `rounded-xl` contournent le système. Les courbes et durées lues par Motion
+  demandent `@theme static` ; les ombres qui lisent `var(--color-encre)` demandent `@theme inline`.
+- **Politique de sécurité du contenu.** Pas de `<style>` ni de `<script>` en ligne dans l'appli, pas d'attribut
+  `style="…"` écrit dans le HTML : des classes, ou la propriété `style` de React. La marmite devient un composant
+  `<Marmite etat="…">`, sans `innerHTML`. Les polices passent par les ressources de Vite, les deux woff2 latins
+  sont préchargés.
+- **Bouton à maintenir.** Le maintien marche au doigt, à la souris et au clavier (Espace ou Entrée tenue 2 s),
+  et sa progression s'annonce (`role="status"`). La page de référence montre le comportement attendu.
+- **Bouton occupé.** `aria-busy` ne suffit pas : ajouter `aria-disabled` et une garde, pour que le clavier ne
+  relance pas l'action.
+- **Marmite et lecteurs d'écran.** Elle est décorative (`aria-hidden`) ; c'est le texte qui l'accompagne (bulle,
+  état de l'assistant) qui porte `role="status"`.
+- **Champ.** L'aide et l'erreur sont hors du libellé, reliées par `aria-describedby` ; l'erreur pose
+  `aria-invalid` et s'annonce.
+- **Jamais la couleur seule.** Étape de suivi faite : une coche et `aria-current` sur l'étape en cours. Cases
+  justes ou fausses : le texte dessous le dit toujours. Jauge : `role="progressbar"` et sa valeur.
+- **Mouvement sans fin.** Le soleil et le clignement sont du décor ; les rayures de la jauge ne défilent qu'à son
+  arrivée (2 s), puis s'arrêtent.
+- **Divers.** Ajouter le focus visible des cases et des avatars quand ils deviennent touchables ; régler `html` et
+  les marges de sécurité des téléphones dans la coque ; retirer `.jeu *` (le preflight de Tailwind le fait) ;
+  vérifier en CI que `jetons-racine.css` est bien la copie de `jetons.css` ; ne jamais écrire de texte en
+  `--color-erreur` sur `--color-tomate-pale` (4,25:1).
 
 ## Ce que ce dossier ne fait pas
 
