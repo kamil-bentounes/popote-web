@@ -1422,6 +1422,39 @@ La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F
 | A2 | F5a (`erreurs.ts`) et F19 (`ErreurEcran`) | `ErreurApi` : `status`, `code`, `title`, `detail`, … ; l'écran montre `title` et `detail` | `ErreurApi` garde **`type`** (l'URI du problème, RFC 9457) **et `code` si l'API le rend**. L'écran choisit son texte **d'après `type`** (phrase du catalogue `src/textes/`, repli par classe de statut puis phrase générique), **jamais d'après `detail`, qui n'est jamais affiché** (ni `message`, ni la pile). La référence (`instance`) reste affichée. Tests : un problem+json `500` dont le `detail` est un texte piège (mot anglais, détail technique) n'affiche **aucun** mot de ce `detail` et montre la phrase de son `type` ; un `type` inconnu donne la phrase de sa classe de statut ; mutation : afficher `detail` (casse) |
 | A3 | F18, F19, F20, F21 | chacun pose ses phrases dans son catalogue ; rien n'interdit à un parcours d'en écrire d'autres | **F18 à F21 sont la seule source des textes des états communs** : réveil, perte de réseau, `429`, `5xx` (et erreur générique), session expirée (`src/textes/reveil.ts`, `etats.ts`, `limite.ts`, `reseau.ts`, `session.ts`). Un parcours qui rencontre l'un de ces états rend le composant correspondant et **ne redéfinit pas** sa phrase ; une erreur propre au parcours (un champ refusé, un code faux) reste dans son propre catalogue |
 
+### Constats de F6 (revues adverses de la PR de F6, 13/11/2026) : ils priment sur le texte de F6
+
+- **La garde du build lit avec de vrais analyseurs** (parse5, postcss, postcss-value-parser, acorn, déclarés en versions exactes), non avec
+  des expressions régulières : elles laissaient passer `<script/type=module>`, `https&#58;//…`, `url("/\<retour>/evil")`, `fetch`,
+  `importScripts`, `<meta refresh>`, `<form action>`, `<use href>`, et refusaient à tort `content:"https://"` ou un commentaire.
+  Elle couvre les chargements dont l'URL est écrite telle quelle ; une URL calculée à l'exécution ne se voit pas : c'est `connect-src 'self'`
+  en production. Elle refuse un fichier trop gros ou illisible, un lien symbolique, une police référencée hors de `dist`.
+  **`scripts/garde-du-build.sh` réunit** page, `sw.js` remplaçant, garde du build, ancien front et axe-core ; il joue dans `front` **et**
+  dans `deploie-essai` (qui reconstruit `dist/` : le dist contrôlé n'était pas celui qu'on déployait).
+- **Limites assumées de la garde (arbitrage du 13/11)** : elle attrape les erreurs, pas l'obfuscation, et n'est pas une frontière de sécurité : c'est la
+  CSP en `enforce` qui l'est. Ne se voient pas : une URL construite à l'exécution (`new URL(a, base distante)`, `setAttribute("src", …)`, un appel dont l'argument n'est
+  pas une chaîne littérale), un nom de règle CSS échappé (`@im\70ort` ; le nom d'une *fonction* échappée, `u\72l(`, est décodé). Les `data:` sont refusés dans un
+  `@font-face` quel que soit leur type, et ailleurs sauf une vraie image (png, jpeg, gif, webp, avif, svg+xml, x-icon, bmp : `data:image/woff2` est refusé).
+- **`verifie-jetons` lit tout le CSS de `src/`** : une redéfinition d'un jeton du système hors de `@theme` (`:root{--color-encre:#000}` après le bloc, ou dans un autre
+  fichier) échoue ; une propriété personnalisée locale qui n'est pas un jeton (`--part`) reste libre ; les erreurs de `jetons-racine.css` remontent.
+- **F22 vérifiera le manifeste de précache** : la garde du build y ajoute le contrôle que `precacheAndRoute([...])` de `sw.js` ne contient que des URL de même origine
+  (aujourd'hui la garde lit `sw.js` comme un fichier JavaScript, sans en lire la liste de précache).
+- **Défauts de Tailwind** : en plus de ceux du plan, `--text-shadow-*`, `--blur-*`, `--perspective-*`, `--leading-*` et `--tracking-*` sont fermés
+  (les ombres floues et les flous contredisent « aucun flou »). Restent ouverts, parce qu'ils servent la mise en page : `--spacing`, `--breakpoint-*`,
+  `--container-*`, `--aspect-*`, `--font-weight-*`, `--default-*` (donc `transition` garde sa courbe : écrire les durées et courbes des jetons).
+  `jetons.test.ts` relit le thème par défaut de Tailwind : une version qui ajouterait une variable casse le test tant qu'elle n'est pas fermée ou admise.
+- **`@theme static inline` pour les ombres** : essayé, Tailwind 4.3 réécrit déjà une ombre avec sa valeur ; la classe est la même avec ou sans `inline`
+  (aucun test ne peut les distinguer). L'option reste, la doc la demande pour toute variable qui en lit une autre.
+- **`verifie-jetons`** analyse les blocs (une valeur peut contenir `;` ou `{}` dans `url()`), refuse une déclaration qui n'est pas un jeton, un jeton
+  déclaré deux fois ou hors de `@theme`, exige les quatorze remises à zéro, et compare aussi les quatre woff2, les deux licences OFL et les `@font-face`
+  au système.
+- **À faire par F7** : `composants.css` du système contient les quatre `@font-face` ; ils sont déjà dans `polices.css` : ne pas les porter une seconde fois
+  (`verifie-jetons` compare `polices.css` au système). Poser dans la couche `base` `font-family: var(--font-texte)` (sur `html`) et la police de titre :
+  tant que rien n'utilise Fredoka ni Nunito, les deux `preload` ne servent à rien (aucun avertissement vu en 4,5 s en Chromium, mais Chromium en émet un
+  si la police reste inutilisée).
+- **À faire par F22** : le précache de `sw.js` exclut les woff2 (le motif par défaut de Workbox) : ajouter `woff2` aux `globPatterns` et tester les quatre fichiers.
+- `@tailwindcss/node` 4.3.4 est déclaré (le test de F6 l'importe).
+
 ---
 
 ## Sources (vérifiées en ligne ou par essai le 13/11/2026)
