@@ -20,12 +20,13 @@ const incompletsAdmis = (projet: string) => (projet === 'pc' ? 1 : 2)
 // Et, à part, un seul dans « La marmite » (F17) : le « z z » de la marmite endormie est un `<text>` du dessin SVG, et axe le range
 // « incomplet » (`imgNode`, un texte dans une image : il ne sait pas le juger) ; encre sur crème, il se lit à l'œil, et le dessiner en
 // chemins s'écarterait du système. Borné par section : un autre incomplet, ailleurs, ne se cache pas dans cette marge.
-const INCOMPLETS_PAR_SECTION: Record<string, number> = { 'La marmite': 1 }
+// F18 : l'écran de réveil en montre trois (les trois moments où la marmite dort).
+const INCOMPLETS_PAR_SECTION: Record<string, number> = { 'La marmite': 1, 'Écran de réveil': 3 }
 // 187 mesurés au PC (186 au téléphone) avec F14b et F17 : le décor en ajoute 10, le tampon qui arrive 4, le tampon du bloc 1, la marmite 10 (162 et 161 avec F14a). Même marge qu'avant (9), pour WebKit, non joué en local.
 const REUSSITES_MIN = 177
 // Le plancher global ne voit pas la perte d'une section entière de F12 (la bulle seule : 7 sur 154 ; l'entrée d'écran, mesurée une fois ses éléments posés : 7 ; le décor : 10 sur 187). Un plancher par section, mesuré, le voit.
 // Le décor : titre et note de chaque scène, sur le sol (jamais sur le dégradé du soleil, que `incompletsAdmis` ne laisse pas passer).
-const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 15, Bulle: 7, 'Entrée d’écran': 7, Décor: 10, Tampon: 4, 'La marmite': 10 }
+const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 15, Bulle: 7, 'Entrée d’écran': 7, Décor: 10, Tampon: 4, 'La marmite': 10, 'Écran de réveil': 12 }
 
 async function mesure(page: Page, include: string) {
   const { violations, incomplete, passes } = await new AxeBuilder({ page }).include(include).withTags(BALISES).analyze()

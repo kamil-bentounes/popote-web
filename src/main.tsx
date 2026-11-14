@@ -6,9 +6,12 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import { nettoieAncienFrontDe } from './ancien-front'
 import { creeQueryClient } from './api/query-client'
+import { reveil } from './etats/reveil'
 import { creeRouteur } from './router'
 import { MotionProvider } from './ui/MotionProvider'
 
+// Avant tout : la garde de session lance sa requête dans `router.load()`, et la machine ignore les requêtes déjà en vol.
+reveil.demarre()
 nettoieAncienFrontDe(window)
 // Tant que F22 n'a pas refait la PWA, rien ne doit retirer le `sw.js` qui remplace celui de l'ancien front.
 registerSW({ immediate: true })
