@@ -1326,7 +1326,7 @@ select cron.schedule('rappel-semaine-vide', '0 16,17 * * 0', $$select private.ra
 
 **Questions (au plus trois)**
 
-- **À Kamil** : « Annuler » après « Sortir » ou « Jeté » **ne remet plus le repas d'avant** (la part revient libre) : est-ce bien ce que tu veux, ou le repas doit-il être rattaché quand il est encore libre (ce que dit la spec) ?
+- **Tranché par le coordinateur (14/11)** : « Annuler » après « Sortir », « Jeté » ou « Congeler » rend la part libre, sans la rattacher au repas d'avant (au plus simple, comme P2 bis) ; la spec v2 sera alignée.
 - **À la session design** : « Manger en plus » sur un repas **prévu** : la part prévue reste-t-elle prévue (le plan), ou le repas est-il noté comme mangé avec ses trois parts (le critère 66) ?
 - **À la session design** : le placement prend-il **toutes** les parts libres (règle écrite, le plan) ou les neuves et les plus pressées (exemple, le chili libre) ?
 
