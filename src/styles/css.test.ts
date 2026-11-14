@@ -193,7 +193,7 @@ describe('base.css', () => {
     expect(texte).toMatch(/html\s*\{[^}]*color-scheme:\s*light/)
     expect(texte).toMatch(/html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/)
     expect(texte).toMatch(/html\s*\{[^}]*font-family:\s*var\(--font-texte\)/)
-    expect(texte).toMatch(/body\s*\{[^}]*font-size:\s*var\(--text-texte\)/)
+    expect(texte).toMatch(/(?:^|\n)\s*body\s*\{[^}]*font-size:\s*var\(--text-texte\)/)
   })
 
   it('ne donne aucune taille de police à la racine : `rem` reste 16 px, comme dans le système, où `.jeu` n’est pas `html`', () => {
