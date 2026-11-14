@@ -30,7 +30,8 @@ demande de fusion, 400 lignes visées ; les coupes prévues sont écrites.
 - **L'écran ne calcule aucun montant** : parts, arrondis, « pour finir le mois », « par jour », écarts, virements du
   mois suivant, totaux des deux compteurs de la mise en place et montants du partage « Autre » viennent de l'API
   (B1, B2, B4, B10), le reste à reprendre ou à déduire compris. Aucune addition de montants côté écran, et rien de
-  « Mon compte » (B15) n'entre dans un montant du budget : l'écran n'additionne rien venant d'un compte perso.
+  « Mon compte » (B15) n'entre dans un montant du budget commun : l'écran n'additionne rien venant d'un compte perso, et
+  les montants de « Mon compte » (prévu, dépensé, reste) viennent aussi de l'API.
 - Les montants s'affichent par une seule fonction (`Intl.NumberFormat('fr-FR')`, deux décimales seulement quand il
   y a des centimes, espace insécable avant « € »), testée ; aucun montant n'est formaté ailleurs.
 - **Rien du budget ne reste dans le navigateur** (montants, libellés, charges, brouillon de mise en place) : ni
@@ -46,7 +47,7 @@ demande de fusion, 400 lignes visées ; les coupes prévues sont écrites.
 - Chaque écriture suit la politique de mutation d'« Aujourd'hui » (spec § 5, plan : règles communes) : clé
   d'opération, cible et version explicites, les trois cas en attente, incertain, refusé, avec leurs tests.
 - Les points de la spec § 17 sont retenus tels que la spec les suppose (décision du propriétaire, 13/11/2026 ; B-C4
-  est tranché : chacun voit tout ; B-C1, B-C2, B-C3 et B-C6 sont tranchés le 14/11/2026 ; B-C11 à B-C15 sont supposés par
+  est tranché : chacun voit tout ; B-C1, B-C2, B-C3 et B-C6 sont tranchés le 14/11/2026 ; B-C11 à B-C17 sont supposés par
   la spec). Il les relira : un point qu'il change rouvre la tâche concernée.
 - Tout changement sans changement d'écran est annoncé dans une région `status` ; le focus suit la spec § 18.
 - À la voix, aucun montant n'est dit : Popote l'affiche et dit « Je te l'affiche. » Chaque tâche qui passe par
@@ -89,8 +90,8 @@ demande de fusion, 400 lignes visées ; les coupes prévues sont écrites.
   finir novembre » ; aucun chiffre avant la réponse de l'API ; une lecture de plus de 24 heures : la tuile dit
   « Banque pas à jour », sans montant ; le budget en pause : aucun virement, aucun bouton ; la bulle du 29 (« Décembre se prépare ») puis du 1er
   (« Nouveau mois ») ; un virement du mois suivant reçu avant le 1er : le montant de « Pour finir novembre » est celui
-  de l'API, l'écran ne retranche rien ; « Mon compte » absente sans compte perso, présente avec son compteur de
-  questions ; la proposition de l'autre pour le reste du mois en priorité 2.
+  de l'API, l'écran ne retranche rien ; « Mon compte » absente sans compte perso, présente avec son compteur
+  d'opérations à ranger ; la proposition de l'autre pour le reste du mois en priorité 2.
 
 ### G2 : Poser le budget : revenus et thèmes
 
@@ -194,6 +195,8 @@ lecture (G5b).
   l'autre membre a déjà rangé une opération (liste périmée : seul le reste est rangé, l'écran se met à jour) ; un
   libellé contenant du HTML ou une consigne est affiché tel quel ; une liste vide ; une longue liste (le bouton du
   bas ne masque pas la dernière ligne) ; les trois cas de la politique de mutation ; mouvement réduit.
+- La liste prévoit la section « Mon compte » du titulaire seul (spec § 8.1) : G7 laisse la place et réutilise ses
+  composants, G11 la remplit.
 
 ### G8 : Dépense en liquide, avance
 
@@ -245,34 +248,51 @@ lecture (G5b).
 ### G11 : Mon compte et les comptes perso
 
 **Pourquoi :** spec § 7 (rapprochement), § 8.1, § 11.6, § 10 (« Reprise du reste »). **Dépend de :** G5, G6, G7, G8,
-G10 ; B15, B8, B9, plan du socle. **Coupe prévue :** brancher, renouveler, débrancher (G11a) ; « Mon compte », ses
-onglets et la ligne de l'écran Budget (G11b) ; « C'était pour le foyer ? » et la question du virement (G11c).
+G10 ; B15, B7, B8, B9, B3, plan du socle. **Coupe prévue :** brancher, renouveler, débrancher (G11a) ; l'écran « Mon
+compte », ses onglets et la ligne de l'écran Budget (G11b) ; le rangement du soir du compte perso, « Pas prévu » et
+« Je l'ajoute à tes charges ? » (G11c) ; « C'était pour le foyer ? » et la question du virement (G11d).
+
+Un compte perso suit **le même mécanisme que le compte joint** (spec § 8.1) : les composants de G1 (barres de poste,
+« dépassé de »), de G2 (la ligne de charge) et de G7 (la liste à ranger, les étiquettes, « Tout valider ») sont
+réutilisés, pas refaits.
 
 - [ ] Brancher un compte perso : le parcours de G5 avec ses quatre différences (la liste sans le compte joint, un ou
   plusieurs comptes cochables et aucun d'avance, la confirmation « Léa verra les opérations de ce compte. », la
   promesse sans solde) ; la ligne « Comptes perso » des réglages ; renouveler ; débrancher (sa confirmation, ce
-  qui reste) ; ce que voit l'autre (« Compte perso de Léa », sans bouton).
-- [ ] « Mon compte » : la liste, l'avatar du titulaire, les onglets « Moi » et « Léa » (celui de l'autre en lecture
-  seule), la catégorie corrigée, la ligne de l'écran Budget et son compteur de questions.
+  qui reste : les charges « à moi » et les avances validées ; le budget perso redevient déclaratif) ; ce que voit
+  l'autre (« Compte perso de Léa », sans bouton).
+- [ ] « Mon compte » : les onglets « Moi » et « Léa » (celui de l'autre en lecture seule : aucun bouton), par thème
+  le prévu, le dépensé, le reste, les charges fixes attendues pas encore passées, « Pas prévu », les dernières
+  opérations avec l'avatar ; la ligne de l'écran Budget et son compteur ; sans compte perso, le budget perso reste
+  déclaratif (rien de G11 n'apparaît).
+- [ ] Le rangement du soir : la section « Mon compte » de l'écran des opérations à ranger (G7), pour le titulaire
+  seul ; les étiquettes (ses charges « à moi », « Pas prévu », « À toi de dire », « C'était pour le foyer », « Mon
+  virement vers le compte joint », « Autre ») ; « Tout valider » ; ce que Popote retient (propre aux comptes perso) ;
+  « Je l'ajoute à tes charges ? » (récapitulatif, « Valider », « Modifier », « Non, juste cette fois »).
 - [ ] « C'était pour le foyer ? » (« Oui, pour le foyer » ouvre le bloc de G8 ; « Non, c'est perso ») et « C'est ton
   virement vers le compte joint ? » (rapprochement non sûr).
 - Tests : sans aucun compte perso, rien de G11 n'apparaît et tout le budget marche ; Léa ne peut ni renouveler ni
-  débrancher le compte de Sam, ni répondre à sa place ; après « Débrancher », plus aucune opération du compte, et
-  l'avance validée reste sans libellé ; l'avatar et « compte de Léa » au lecteur d'écran ; un libellé contenant du
-  HTML ou une consigne est affiché tel quel ; aucune opération perso dans un poste ni dans « Pour finir le mois » ;
+  débrancher le compte de Sam, ni ranger, corriger ou valider à sa place, ni répondre à sa place (aucun bouton, et un
+  appel direct refusé par le serveur) ; après « Débrancher », plus aucune opération du compte, les charges « à moi »
+  restent, l'avance validée reste sans libellé ; l'avatar et « compte de Léa » au lecteur d'écran ; un libellé
+  contenant du HTML ou une consigne est affiché tel quel ; aucune opération perso dans un poste du foyer ni dans
+  « Pour finir le mois » ; les montants de « Mon compte » sont ceux de l'API, au centime ; un poste perso dépassé dit
+  « dépassé de » ; corriger une étiquette perso avec la règle retenue, qui ne touche pas le joint ; « Tout valider »
+  bloqué par une opération perso « À toi de dire » ; une opération « Pas prévu » ajoutée aux charges perso fait monter
+  le « prévu » ; le compteur « à ranger » d'une personne compte le joint et son compte perso, jamais celui de l'autre ;
   une question « C'était pour le foyer ? » compte dans « opérations à ranger » ; « Oui » : rien n'est noté avant
-  « Valider », « Non » : dépense perso ; un accès perso arrêté ne change ni la bulle ni la tuile ; les trois cas de la
-  politique de mutation ; mouvement réduit.
+  « Valider », « Non » : rangée dans les charges « à moi » ou « Pas prévu » ; un accès perso arrêté ne change ni la
+  bulle ni la tuile ; les trois cas de la politique de mutation ; mouvement réduit.
 
 
 ### G12 : Sur PC, les scénarios au clic et les captures
 
 **Pourquoi :** spec § 14, § 19. **Dépend de :** toutes les tâches. **Coupe prévue :** le PC ; les scénarios 1 à 8 ;
-les scénarios 9 à 36.
+les scénarios 9 à 40.
 
 - [ ] Les deux colonnes à partir de 900 px, « Les dernières opérations » en tableau (B14), Popote à droite.
 - [ ] Un scénario Playwright par critère d'acceptation, sur l'environnement d'essai, avec une banque d'essai aux
-  réponses fixées, deux navigateurs pour les scénarios à deux personnes (9, 13, 17, 21, 22, 24, 26, 27, 28, 29, 30, 32, 33) et un assistant aux réponses
+  réponses fixées, deux navigateurs pour les scénarios à deux personnes (9, 13, 17, 21, 22, 24, 26, 27, 28, 29, 30, 32, 33, 39, 40) et un assistant aux réponses
   fixées.
 - [ ] Pour chaque écran et chaque état : une capture en 390 px, rangée à côté de sa capture de référence, et une en
   1440 px (référence : `50-pc.png` pour l'écran Budget seulement) ; en plus, à 320 px, en zoom 200 %, au clavier

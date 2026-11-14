@@ -26,14 +26,14 @@ et faire le point au début du mois suivant.
 |---|---|
 | Le cœur du Budget | Le foyer paie ses dépenses communes depuis un compte joint, alimenté par les deux. Popote gère tout : elle dit à chacun combien verser sur ce compte, chaque mois. |
 | Poser le budget | En discussion avec Popote, **un thème à la fois** : les revenus, puis le logement, les crédits, la voiture, manger, les abonnements, la santé et les loisirs, les enfants et les animaux. Pour chaque thème, les charges habituelles sont proposées ; on les touche ou on les dit. |
-| À deux, à moi, à l'autre | Chaque charge est dite « à deux », « à moi » ou « à Léa » (l'autre membre) au moment où elle est posée. Il n'y a pas d'écran à part pour les charges personnelles. |
+| À deux, à moi, à l'autre | Chaque charge est dite « à deux », « à moi » ou « à Léa » (l'autre membre) au moment où elle est posée. Il n'y a pas d'écran à part pour déclarer les charges personnelles ; leur suivi, avec un compte perso branché, est « Mon compte » (§ 8.1). |
 | Qui voit quoi | Chacun voit tout, les charges de l'autre et les comptes perso compris : « au plus simple ». Aucune confidentialité entre les deux membres du foyer. |
 | Les oublis | À la fin, Popote rappelle les charges qu'on oublie souvent, puis récapitule ; la personne valide ou modifie. |
 | La banque | À brancher en priorité. Popote lit le compte joint matin et soir, classe les opérations, et la personne valide. Le compte joint est le seul nécessaire pour poser le budget. |
 | Les avances | On dit à Popote « j'ai payé telle charge de mon compte » (ou elle le repère sur un compte perso branché) : elle récapitule, et le prochain virement de cette personne baisse d'autant. |
 | Valider à chaque étape | Popote ne note rien sans récapitulatif et sans accord. Partout. |
 | Le prototype | Validé le 13/11/2026, déclaration par thème comprise. |
-| Comptes personnels (14/11) | En option : chacun peut brancher un ou plusieurs de ses comptes perso, par le même parcours que le compte joint. Popote s'en sert pour reconnaître le virement vers le compte joint, repérer une dépense du foyer payée de ce compte (une avance), et lister le reste à part (« Mon compte »), sans jamais l'ajouter au calcul des virements. Les deux voient ces opérations, marquées de l'avatar de leur titulaire. Le budget commun marche sans aucun compte perso. |
+| Comptes personnels (14/11) | En option : chacun peut brancher un ou plusieurs de ses comptes perso, par le même parcours que le compte joint. Un compte perso suit le **même mécanisme** que le compte joint, appliqué au budget perso de son titulaire (ses charges « à moi ») : mêmes lectures, même classement par catégorie, même rangement du soir avec validation (« estimé », « validé »). L'écran « Mon compte » est le pendant perso du budget commun : par thème, le prévu, le dépensé, le reste, et les opérations « pas prévues », que Popote propose d'ajouter aux charges perso. Il sert aussi à reconnaître le virement vers le compte joint et à repérer une dépense du foyer (une avance). Il n'entre jamais dans le calcul des virements. Seul le titulaire le branche, le débranche et valide ; l'autre voit tout, en lecture seule, avec l'avatar du titulaire. Sans compte perso branché, le budget perso reste déclaratif. Le budget commun marche sans aucun compte perso. |
 | Le reste du mois (14/11) | À la clôture, s'il reste de l'argent, Popote le demande aux deux : « Le reprendre », « Le garder en coussin » ou « Le déduire ». Il faut l'accord des deux. « Toujours pareil » évite la question. |
 | Le virement (14/11) | Calculé et affiché à partir du 29 pour le mois suivant, attendu pour le 1er, en retard après le 5. Popote le rappelle le 29. |
 | Les rappels (14/11) | Le prénom est permis, sans interrupteur ; le ton peut être drôle. Jamais de montant ni de libellé bancaire. |
@@ -44,8 +44,8 @@ et faire le point au début du mois suivant.
 - **Payer, virer, prélever.** Popote lit, elle n'agit jamais sur un compte. Les virements sont faits par les
   personnes, dans l'appli de leur banque, y compris pour « Le reprendre » (§ 10).
 - L'épargne et les projets : aucun parcours ; le point du mois ne les propose pas.
-- Un budget des comptes personnels : un compte perso ne sert ni à poser le budget ni à calculer un virement, et n'a
-  ni postes ni « Pour finir le mois » (§ 11.6).
+- Pour un compte perso : un partage, un virement, un solde, un « Pour finir le mois », un coussin, un point du mois.
+  Il ne sert qu'à suivre le budget perso de son titulaire (§ 8.1), reconnaître le virement et repérer une avance (§ 11.6).
 - L'historique au-delà du mois en cours : seule la liste « Les dernières opérations » existe (PC, § 14). Ce qui a plus
   d'un an n'est plus consultable en détail : seuls les totaux par mois du foyer restent (§ 17, B-C3).
 - Les foyers d'une seule personne : pas de virement à calculer ; le Budget n'a pas de variante propre pour eux.
@@ -89,6 +89,11 @@ Il est tenu au centime, il est réservé comme le « gardé », et le point du m
 - *Fixe* : un montant connu qui tombe une fois (électricité, internet, assurance, copropriété).
 - *Poste* : une enveloppe qui se dépense au fil du mois (courses, restaurants, sorties, fast-food).
   Popote propose la nature d'après le thème ; elle se change dans les réglages.
+
+**Le budget perso.** Les charges « à moi » d'une personne (y compris celles que l'autre a dites pour elle, § 5.2)
+forment son budget perso. Même vocabulaire : charge, nature (fixe ou poste), périodicité, montant par mois, thème. Il n'a
+ni partage, ni virement, ni gardé réservé sur le compte joint, ni coussin, ni point du mois. Sans compte perso branché, il
+reste déclaratif ; avec un compte perso branché, il se suit comme le budget commun (§ 8.1).
 
 **Le total à deux** est la somme des montants par mois des charges à deux : 1 062,40 €.
 
@@ -324,7 +329,7 @@ postes et les charges fixes, la ligne « Mon compte » s'il y a lieu, la barre �
 | 4 | Mon virement est à verser, ou en retard | Dès le 29 : **Décembre se prépare :** ton virement est prêt, 691 € à verser sur le compte joint avant le 1er. Dès le 1er : **Nouveau mois :** verse 691 € sur le compte joint. Si l'autre a déjà versé : **Bonjour Léa !** À toi : 372 € à verser. | C'est fait |
 | 5 | Mon virement est annoncé, pas encore reçu | **Merci !** Je regarde ce soir s'il est arrivé. | le lien « Pas encore fait » |
 | 6 | Mon virement est reçu, pas celui de l'autre | **691 € bien reçus.** Léa n'a pas encore versé. | Lui rappeler |
-| 7 | Des opérations sont à ranger, ou une question m'attend sur un de mes comptes perso (§ 8.1) | **4 opérations** à ranger ce soir. | Voir |
+| 7 | Des opérations sont à ranger : celles du compte joint, et celles de mon propre compte perso (§ 8.1) | **4 opérations** à ranger ce soir. | Voir |
 | 8 | La banque ne répond pas | **Ta banque ne répond pas.** Tes chiffres datent d'hier soir. Je réessaie cette nuit. | |
 | 9 | Rien | **Tout est rangé.** 299 € pour finir novembre. | |
 
@@ -380,8 +385,9 @@ assurance : 2 passées sur 3 ». Seules les opérations **validées** comptent d
 opération estimée n'y entre pas avant l'accord (elle compte déjà, en revanche, dans « Pour finir le mois », § 4).
 
 **Mon compte.** Seulement quand un compte perso est branché (par l'un ou par l'autre), une ligne sous les postes :
-« **Mon compte** », avec le nombre de questions qui t'y attendent s'il y en a (« 2 questions »). Elle mène à
-`/budget/perso` (§ 8.1). Rien de ce qu'elle montre n'entre dans le bloc du haut, les postes ou les virements.
+« **Mon compte** », avec ce qui t'y attend s'il y a lieu (« 2 à ranger »). Elle mène à `/budget/perso` (§ 8.1). Ce
+qu'elle montre n'entre ni dans le bloc du haut, ni dans les postes du foyer, ni dans les virements.
+
 
 ## 7. Le virement du mois
 
@@ -406,8 +412,8 @@ opération estimée n'y entre pas avant l'accord (elle compte déjà, en revanch
   Elle ne coche « C'est fait » toute seule (« Annoncé, vu sur ton compte perso ») que si le rapprochement est sûr :
   le crédit du même montant est arrivé sur le compte joint dans les 3 jours, ou le libellé du débit désigne le
   compte joint. Sinon elle demande, dans les opérations à ranger : « **Un débit de 691 € est parti de ton compte
-  perso.** C'est ton virement vers le compte joint ? » avec « Oui, c'est lui » et « Non » ; « Non » le classe en
-  dépense perso. Ce rapprochement est un contrôle du serveur, par des règles fixes : le modèle n'y intervient pas,
+  perso.** C'est ton virement vers le compte joint ? » avec « Oui, c'est lui » et « Non » ; « Non » le range
+  parmi ses charges « à moi » ou « Pas prévu ». Ce rapprochement est un contrôle du serveur, par des règles fixes : le modèle n'y intervient pas,
   et le libellé n'est qu'une donnée comparée. « Annoncé » n'est pas « Reçu » : « Reçu » ne vient toujours que du
   crédit lu sur le compte joint. « Pas encore fait » défait une coche automatique comme une coche à la main. Un
   virement ainsi annoncé sert de « C'est fait » pour départager deux crédits du même montant (ci-dessus).
@@ -465,35 +471,57 @@ crédit, dit « reçu » au lecteur d'écran), le jour, et une étiquette.
 - **Les libellés nomment des tiers** (« M. Martin ») et peuvent en dire long. Ils ne sont pas écrits dans le journal
   des appels au modèle, et ce qui n'aide pas à classer (numéros de compte, références) en est retiré avant l'envoi.
   L'analyse d'impact de ce traitement appartient au socle.
+- **Le compte perso a son rangement dans le même écran**, sous le titre « Mon compte » : ses opérations à ranger n'y
+  sont montrées et rangées que par son titulaire ; l'autre ne les voit pas dans sa liste à ranger (§ 8.1). « Tout
+  valider » valide les deux listes montrées.
 
 ### 8.1 Les comptes personnels : « Mon compte » (`/budget/perso`)
 
-Seulement quand un compte perso est branché (§ 11.6). Rien dans cette section n'entre jamais dans un poste, dans
-« Pour finir le mois » ni dans un virement.
+Seulement quand un compte perso est branché (§ 11.6). Il suit le **même mécanisme que le compte joint** (§ 4, § 8),
+appliqué au budget perso de son titulaire (§ 4) : mêmes lectures, même classement des opérations par catégorie, même
+rangement du soir avec validation, mêmes états « estimé » et « validé ». Ce qui reste propre à lui : il n'entre jamais
+dans un poste du foyer, dans « Pour finir le mois » ni dans un virement vers le compte joint ; il n'a ni solde, ni point
+du mois, ni coussin ; seul son titulaire le branche, le débranche et **valide** ses opérations ; l'autre voit tout, en
+lecture seule.
 
-- **La liste.** Les opérations des comptes perso, la plus récente en haut, comme au § 8 : libellé de la banque tel
-  quel, montant avec son signe, jour. Chaque ligne porte l'avatar de son titulaire (« compte de Léa » au lecteur
-  d'écran) et une étiquette : une catégorie de la même liste fermée que le foyer (celle des pastilles, § 5.2) ou
-  « Autre ». Deux onglets, « Moi » et « Léa » (le prénom de l'autre), montrent les opérations de chaque titulaire ;
-  celui de l'autre est en lecture seule. Popote : « **Voilà ce que je vois sur ton compte perso.** Rien de tout ça ne
-  touche au budget du foyer. »
-- **Classées sans validation.** Popote classe chaque opération, marquée « estimé » ; la personne n'a rien à valider.
-  Seules les questions ci-dessous comptent dans « opérations à ranger » (§ 6, priorité 7). Toucher l'étiquette d'une
-  de ses opérations la corrige, avec ou sans règle retenue (§ 8). Les libellés sont des données, comme au § 8.
+- **Ranger le soir.** Après la lecture, Popote classe les nouvelles opérations du compte perso, dans le même écran que
+  le compte joint (§ 8), sous le titre « Mon compte » : le libellé de la banque tel quel, le montant avec son signe, le
+  jour, et une étiquette proposée par Popote : l'une des charges « à moi » (un poste ou une charge fixe, marquée
+  « estimé »), « Pas prévu » quand rien ne correspond, ou « À toi de dire ». Seul le titulaire range : il touche
+  l'étiquette pour la corriger, puis « Tout valider ». Les choix, en plus des charges « à moi » : « C'était pour le
+  foyer » et « Mon virement vers le compte joint » (un débit seulement, § 7), « Pas prévu », « Autre ». Popote
+  retient ce qu'il corrige (« **Compris.** Pharmacie, c'est santé : je m'en souviens. ») ; cette règle vaut pour ses
+  comptes perso seulement, jamais pour le joint, et se retire dans les réglages. Mêmes contrôles qu'au § 8 : liste
+  fermée vérifiée par le serveur, libellés = données jamais consignes, opération en attente non rangée.
+- **L'écran « Mon compte ».** Le pendant perso de l'écran Budget. Deux onglets, « Moi » et « Léa » (le prénom de
+  l'autre) ; celui de l'autre est en lecture seule : aucun bouton pour ranger, corriger, valider ni débrancher, l'avatar
+  du titulaire sur chaque ligne (« compte de Léa » au lecteur d'écran). Pour chaque thème où le titulaire a des charges :
+  ce qui était prévu (ses charges perso déclarées), ce qui est dépensé ce mois-ci (les opérations **validées**, comme les
+  postes du § 6, avec « dépassé de » quand c'est le cas), ce qui reste ; une ligne pour chaque charge fixe attendue qui
+  n'est pas encore passée ; en bas « Pas prévu », les opérations validées sans charge correspondante ; puis les dernières
+  opérations. Les montants sont calculés par l'API (B15). Popote : « **Voilà ton mois perso.** Rien de tout ça ne touche
+  au budget du foyer. »
+- **« Pas prévu » : l'ajouter aux charges perso.** Pour une opération « Pas prévu », Popote propose à son titulaire de
+  l'ajouter : « **Pharmacie, 18 €.** Je l'ajoute à tes charges ? » Un récapitulatif (le nom, le montant par mois, la
+  périodicité, le thème, « à moi ») avec « Valider », « Modifier » et « Non, juste cette fois » ; rien n'est ajouté avant
+  « Valider », comme pour les oublis du § 5.3. La charge ajoutée range cette opération et les suivantes du même
+  libellé, et le « prévu » du thème monte. « Non, juste cette fois » laisse l'opération « Pas prévu ».
 - **« C'était pour le foyer ? »** Quand une opération d'un compte perso ressemble à une dépense du foyer (Popote lui
   trouve un poste ou une charge à deux, d'après son libellé et ses règles apprises), elle la demande à son titulaire
   seul : « **Carrefour, 41 €.** C'était pour le foyer ? » avec « Oui, pour le foyer » et « Non, c'est perso ». On
-  peut aussi toucher une opération et répondre « Oui, pour le foyer » quand Popote n'a rien demandé. « Oui » ouvre le
+  peut aussi toucher une opération et choisir « C'était pour le foyer » quand Popote n'a rien demandé. « Oui » ouvre le
   récapitulatif d'une dépense payée par la personne, ou d'une avance pour une charge fixe (§ 9) : « Courses, 41 €.
   Payé par toi, de ton compte perso. **Le compte joint te doit 41 €.** » avec « Valider » et « Modifier ». Rien
-  n'est noté avant « Valider » ; « Pas deux fois » et « Annuler » valent comme au § 9. « Non » classe l'opération en
-  dépense perso. L'autre voit la question et ne répond pas pour son titulaire (il peut dire l'avance de l'autre,
-  § 9).
+  n'est noté avant « Valider » ; « Pas deux fois » et « Annuler » valent comme au § 9. « Non » range l'opération
+  parmi les charges « à moi » ou « Pas prévu ». L'autre voit la question et ne répond pas pour son titulaire (il peut
+  dire l'avance de l'autre, § 9).
 - **Un débit qui ressemble au virement** vers le compte joint pose la question du § 7.
+- **Corriger après coup.** Une opération perso validée se corrige comme au § 8, tant que le mois est ouvert.
 - **À l'arrivée.** Comme pour le compte joint (§ 8), Popote lit les 90 derniers jours au branchement pour apprendre
   les libellés, puis efface ceux d'avant le mois du branchement le jour même.
 - **Mémoire.** Les opérations d'un compte perso sont gardées 1 an, ou jusqu'au débranchement (§ 11.6) ; aucun total
   n'en est gardé.
+
 
 ## 9. Une dépense en liquide, une avance
 
@@ -711,17 +739,19 @@ nécessaire pour poser le budget : le budget commun marche entièrement sans com
   ton compte perso ? » avec « Oui, c'est lui » et « Non » ; la promesse « Date, montant, libellé, et le solde du
   compte » devient « **Date, montant, libellé.** Rien d'autre. », car le solde d'un compte perso n'est ni demandé ni
   gardé ; et un compte perso ne remplace jamais le compte joint.
-- **À quoi il sert**, et à rien d'autre : reconnaître le virement vers le compte joint (§ 7) ; repérer une dépense
-  du foyer payée de ce compte, qui devient une avance (§ 8.1, § 9) ; lister le reste en dépenses perso classées par
-  catégorie (§ 8.1). Il n'entre jamais dans le calcul d'un virement, d'un poste ni de « Pour finir le mois ».
+- **À quoi il sert**, et à rien d'autre : suivre le budget perso de son titulaire, avec le même mécanisme que le
+  compte joint (§ 8.1) ; reconnaître le virement vers le compte joint (§ 7) ; repérer une dépense du foyer payée de ce
+  compte, qui devient une avance (§ 8.1, § 9). Il n'entre jamais dans le calcul d'un virement, ni dans un poste du foyer
+  ni dans « Pour finir le mois ». Sans compte perso branché, le budget perso reste déclaratif.
 - **Qui voit quoi.** Pas de cloisonnement : chacun voit ce que l'autre dépense (§ 17, B-C4). Les opérations d'un
-  compte perso sont vues des deux, marquées de l'avatar de leur titulaire. Seul le titulaire branche, renouvelle ou
-  débranche son compte, et seul lui répond aux questions qui le concernent.
+  compte perso sont vues des deux, en lecture seule pour l'autre, marquées de l'avatar de leur titulaire. Seul le
+  titulaire branche, renouvelle ou débranche son compte, range et valide ses opérations, et répond aux questions qui
+  le concernent.
 - **Débrancher.** Réglages, ligne du compte : « **Débrancher ce compte ?** Je ne lis plus rien, et j'efface toutes
-  ses opérations, rangées ou pas. Les avances que tu as validées restent. » avec « Débrancher » et « Annuler ».
+  ses opérations, rangées ou pas. Tes charges « à moi » et les avances que tu as validées restent. » avec « Débrancher » et « Annuler ».
   L'accès est coupé chez le prestataire, et **toutes** les opérations du compte sont effacées tout de suite, avec
   le numéro masqué et la banque. À la différence du compte joint, rien n'y est « à vous deux » : aucune opération
-  perso n'est conservée et aucun total n'en est gardé. Ce qui reste est ce que la personne a validé pour le foyer :
+  perso n'est conservée et aucun total n'en est gardé ; ton budget perso redevient déclaratif. Ce qui reste est ce que la personne a validé pour le foyer :
   une avance (son montant, sa charge, sa date), sans le libellé de la banque ni le lien avec l'opération ; et un
   virement coché « Annoncé » reste annoncé.
 - **Mémoire.** Les opérations d'un compte perso sont gardées 1 an au plus (§ 17, B-C3), puis effacées ; débrancher
@@ -770,7 +800,7 @@ nécessaire pour poser le budget : le budget commun marche entièrement sans com
 | Une avance | celui qui l'a payée ; dite par l'autre, elle attend sa confirmation (§ 9) | la carte d'avance |
 | La décision du point : le reste (« Le reprendre », « Le garder en coussin », « Le déduire »), « Verser plus », la règle « Toujours pareil » | l'un ou l'autre | une proposition à accepter |
 | L'accès à la banque | celui qui l'a donné | les réglages |
-| Un compte perso | son titulaire seul | l'existence du compte et ses opérations, marquées de l'avatar du titulaire ; pas de bulle |
+| Un compte perso (le brancher, ranger et valider ses opérations, ses règles apprises) | son titulaire seul | l'existence du compte, ses opérations et son « Mon compte », en lecture seule, marquées de l'avatar du titulaire ; pas de bulle |
 
 **La première fois.** Quand l'un a posé le budget, l'autre le découvre à sa première ouverture : « **Sam a posé le
 budget.** Ta part : 372 € par mois. D'accord ? » avec « D'accord » et « Voir le détail » (ses revenus tels que Sam
@@ -802,7 +832,7 @@ avant » : cette marque reste à la tuile Cuisiner (« Aujourd'hui », § 4.5).
 | 4 | Ma part à confirmer, ou une proposition de l'autre à accepter (le reste du mois compris) | Ta part à confirmer (ou : Un changement à voir) |
 | 5 | Point du mois à faire (ou le reste du mois à décider) | Le point de novembre |
 | 6 | Mon virement à verser ou en retard | Ton virement : 691 € |
-| 7 | Opérations à ranger | 4 opérations à ranger |
+| 7 | Opérations à ranger (les miennes : le compte joint et mon compte perso) | 4 opérations à ranger |
 | 8 | La dernière lecture réussie du compte a plus de 24 heures | Banque pas à jour |
 | 9 | Le budget est posé et accepté, son premier mois n'a pas commencé | Commence le 1er décembre |
 | 10 | Sinon | 299 € pour finir novembre |
@@ -814,8 +844,8 @@ avant le premier mois il n'y a rien à finir.
 
 Deux colonnes et Popote ouverte à droite, comme sur l'accueil. À gauche : le bloc « Pour finir le mois », les
 virements, les postes. Au centre : « Les dernières opérations » en tableau (jour, libellé, étiquette, montant),
-les opérations à ranger en tête. « Mon compte » (§ 8.1) est un écran à part, avec le même tableau et l'avatar du
-titulaire en première colonne. La mise en place et la banque gardent leur colonne unique, centrée.
+les opérations à ranger en tête. « Mon compte » (§ 8.1) est un écran à part : par thème, le prévu, le dépensé et le reste, puis le même tableau
+que les dernières opérations, avec l'avatar du titulaire en première colonne. La mise en place et la banque gardent leur colonne unique, centrée.
 Popote répond aux questions du budget : « On a dépensé combien au resto ce mois-ci ? » rend « **118 € sur 200 €**,
 en 4 fois. Le plus gros : 41 €, samedi 7. » et le bouton « Voir les 4 opérations ».
 
@@ -826,13 +856,13 @@ et version explicites, rejouable sans doublon.
 
 | N° | Besoin |
 |---|---|
-| B1 | **L'état du budget**, en un appel : posé ou non, où en est la mise en place ; le mois ; s'il est en pause (§ 11.5) ; « pour finir le mois » (montant, par jour, solde comptable, opérations en attente, ce qui est réservé et pour quoi, coussin) ; quand le compte a été lu et si cette lecture a plus de 24 heures ; le virement de chacun (montant, état, date, « prévu » ou figé) ; la proposition en attente (§ 12.1) ; les avances du mois ; les postes (dépensé, prévu) ; les charges fixes (passées, total) ; le nombre d'opérations à ranger ; l'état de l'accès à la banque (date de fin, panne) ; la situation de la bulle (§ 6) ; l'état de la tuile (§ 13) ; le calendrier du virement (prévu, ou préparé le 29) ; ce qui est mis de côté (le reste à décider, à reprendre ou à déduire, les virements déjà reçus pour le mois suivant) ; s'il y a un compte perso branché et combien de questions m'y attendent. Les deux membres reçoivent le même contenu (B-C4). |
+| B1 | **L'état du budget**, en un appel : posé ou non, où en est la mise en place ; le mois ; s'il est en pause (§ 11.5) ; « pour finir le mois » (montant, par jour, solde comptable, opérations en attente, ce qui est réservé et pour quoi, coussin) ; quand le compte a été lu et si cette lecture a plus de 24 heures ; le virement de chacun (montant, état, date, « prévu » ou figé) ; la proposition en attente (§ 12.1) ; les avances du mois ; les postes (dépensé, prévu) ; les charges fixes (passées, total) ; le nombre d'opérations à ranger ; l'état de l'accès à la banque (date de fin, panne) ; la situation de la bulle (§ 6) ; l'état de la tuile (§ 13) ; le calendrier du virement (prévu, ou préparé le 29) ; ce qui est mis de côté (le reste à décider, à reprendre ou à déduire, les virements déjà reçus pour le mois suivant) ; s'il y a un compte perso branché et combien d'opérations m'y attendent (comptées dans le nombre d'opérations à ranger). Les deux membres reçoivent le même contenu (B-C4). |
 | B2 | **La mise en place** : lire et écrire le brouillon (revenus, charges par thème) ; la liste des thèmes, de leurs charges habituelles et des oublis fréquents (rendue par l'API, sans les charges déjà posées dans le foyer) ; les totaux « à deux » et par personne ; valider le budget. Un brouillon se reprend sur l'autre appareil ; il porte une version : une écriture sur une version périmée est refusée et rend le brouillon à jour, et valider exige la version du récapitulatif affiché. |
 | B3 | **Les charges** : ajouter, modifier, retirer, avec la périodicité, le mois d'échéance et à qui elle est (à deux, ou à l'un des membres ; l'un ou l'autre peut poser et changer toute charge du foyer) ; une charge dite deux fois, par l'un ou par l'autre (même identité : thème, pastille ou libellé, propriétaire), n'en fait qu'une. Après la mise en place, changer une charge à deux crée une proposition (B11). Effet au premier virement pas encore préparé (§ 4). |
 | B4 | **Le partage** : les règles avec leurs montants, leur somme et la part du salaire de chacun, calculés par le serveur (arrondis compris) ; le même calcul à la demande pour deux pourcentages choisis (« Autre »), dont la réponse redit les pourcentages calculés ; choisir. L'écran ne calcule aucun montant et ne valide que des montants rendus pour les pourcentages affichés. |
 | B5 | **La banque** : chercher une banque et sa caisse ; démarrer l'accord (crée une demande liée à la personne, à son foyer et à son adhésion, à durée courte et à usage unique ; rend l'adresse de la banque) ; échanger le jeton du retour contre une suite gardée côté serveur, puis reprendre la demande en cours après une reconnexion ou un rechargement ; lister les comptes (numéro masqué et référence opaque) ; choisir le compte ; l'avancement de la première lecture ; renouveler ; reprendre ; débrancher (coupe l'accès chez le prestataire et efface les données brutes ; l'historique validé reste) ; annuler les demandes et couper l'accès quand la personne quitte le foyer. Pour un compte perso : B15. Ni IBAN ni identifiant de la banque ne passent par l'écran ; rien n'est gardé des comptes non choisis ; l'historique d'avant le mois de la mise en place est effacé dès que les règles de libellé en sont tirées ; les demandes et leurs jetons sont effacés à leur expiration. |
 | B6 | **Lire maintenant** (« Actualiser ») : lance une lecture, rend son état ; refuse poliment pendant la pause de 10 minutes. |
-| B7 | **Les opérations à ranger** : la liste (identifiant, version, jour, libellé, montant et sens, étiquette proposée et sa nature, « en attente » comptées à part) ; les choix possibles (liste fermée, vérifiée par le serveur, selon le sens : § 8) ; corriger une étiquette, avec ou sans règle retenue ; valider une opération ou toutes celles montrées ; recorriger une opération validée tant que le point du mois ne l'est pas ; l'étiquette « Reprise du reste » (débit seulement). |
+| B7 | **Les opérations à ranger** : la liste (identifiant, version, jour, libellé, montant et sens, étiquette proposée et sa nature, « en attente » comptées à part) ; les choix possibles (liste fermée, vérifiée par le serveur, selon le sens : § 8) ; corriger une étiquette, avec ou sans règle retenue ; valider une opération ou toutes celles montrées ; recorriger une opération validée tant que le point du mois ne l'est pas ; l'étiquette « Reprise du reste » (débit seulement). Pour un compte perso, la liste est celle de son titulaire seul (B15). |
 | B8 | **Le virement** : dire « C'est fait » et « Pas encore fait » ; rappeler l'autre (un par jour, sans montant) ; répondre à « C'est le tien ? » (attribué quand les réponses s'accordent ; une attribution se corrige, avec son auteur et sa date) ; le rapprochement du virement depuis un compte perso (§ 7), fait par le serveur, avec sa question quand il n'est pas sûr ; accepter sa part la première fois (« D'accord »), corriger son revenu. |
 | B9 | **Dépense à la main et avance** : écrites par la validation d'un bloc de Popote ; une avance peut se répéter ; « Me rembourser plutôt » ; l'avance dite pour l'autre attend sa confirmation ; « pas deux fois » avant de noter ; le double paiement signalé après coup, les deux écritures gardées (« Payée deux fois ? ») ; annuler tant que le point du mois n'est pas validé. |
 | B10 | **Le point du mois** : proposé le 1er à l'heure du serveur, avec ou sans lecture de la banque, en disant de quand datent les chiffres ; prévu contre dépensé par poste, le reste ou le manque, le coussin au centime, les trois réponses du reste avec les parts de chacun, calculées par le serveur (arrondis compris) ; proposer une réponse, l'accepter, la refuser ; « Toujours pareil » ; la règle appliquée toute seule ; les sommes mises de côté jusqu'à reprise, déduction ou décision ; le calcul du virement préparé le 29, sans le reste ni les dépenses du mois ; changer la décision tant qu'elle peut l'être. |
@@ -840,7 +870,7 @@ et version explicites, rejouable sans doublon.
 | B12 | **Popote dans le Budget** : répondre sur les postes, les opérations, les virements ; proposer les blocs « dépense », « avance », « charge », « étiquette » ; mener aux écrans du budget. Le modèle ne reçoit des opérations que la date, le montant et le libellé nettoyé, encadrés comme des données, jamais dans la consigne ; il peut recevoir toutes les charges du foyer, celles de chacun comprises, et les opérations des comptes perso de l'un et de l'autre sous les mêmes règles (§ 8.1) ; les libellés ne sont pas écrits dans le journal des appels. À la voix, aucun montant n'est dit. |
 | B13 | **Les rappels du budget** (§ 16) : envoyés par le serveur ; aucun écran de ce plan n'en dépend. |
 | B14 | **Les opérations du mois** : « Les dernières opérations » (PC, § 14) et les opérations d'un poste (« Voir les 4 opérations »), avec leur étiquette et leur état. |
-| B15 | **Les comptes perso** : brancher (même parcours que B5, avec le choix d'un ou plusieurs comptes et un consentement par passage) et débrancher (efface toutes les opérations du compte tout de suite ; seul le titulaire) ; lister les opérations d'un titulaire, avec son avatar ; classer sans validation ; poser et recevoir « C'était pour le foyer ? » (la réponse « Oui » ouvre le bloc de B9) ; poser le rapprochement du virement (B8) ; garder 1 an au plus puis effacer ; ne rendre jamais ces opérations dans un calcul de B1 ni de B10. Le solde d'un compte perso n'est ni demandé ni gardé. |
+| B15 | **Les comptes perso** : brancher (même parcours que B5, avec le choix d'un ou plusieurs comptes et un consentement par passage) et débrancher (efface toutes les opérations du compte tout de suite ; seul le titulaire). **Le même mécanisme que le joint pour le budget perso du titulaire** : lister ses opérations à ranger (B7, mêmes états « estimé » et « validé » ; liste fermée selon le sens : ses charges « à moi », « Pas prévu », « C'était pour le foyer », « Mon virement vers le compte joint », « Autre »), corriger, valider (titulaire seul, refusé pour l'autre), règles apprises propres à ses comptes perso. **« Mon compte »** : par thème, prévu, dépensé (validé), reste, charges fixes attendues, « Pas prévu », rendus par le serveur pour un titulaire, lisibles de l'autre ; proposer et valider « Je l'ajoute à tes charges ? » (écrit une charge « à moi » par B3) ; poser « C'était pour le foyer ? » (la réponse « Oui » ouvre le bloc de B9) ; le rapprochement du virement (B8) ; garder 1 an au plus puis effacer ; ne rendre jamais ces opérations dans un agrégat du foyer (B1, B10). Le solde d'un compte perso n'est ni demandé ni gardé. |
 
 Les réponses du Budget ne sont jamais mises en cache : ni par le navigateur (`Cache-Control: no-store`), ni par le
 service worker de l'appli installée.
@@ -859,7 +889,7 @@ jamais dit : Popote l'affiche et dit « Je te l'affiche. » (« Aujourd'hui », 
 | Virement en retard | le 6, 9 h, une seule fois | Ton virement du mois n'est pas encore arrivé. On s'y met ? |
 | Rappel de l'autre | à sa demande | Sam te fait un petit signe : ton virement t'attend. |
 | Proposition de l'autre | quand l'autre propose un changement ou un choix pour le reste du mois | Sam te propose quelque chose : jette un œil ! |
-| Opérations à ranger | après la lecture du soir, s'il y en a (une question sur un compte perso comprise) | Quelques opérations t'attendent. Deux minutes, promis. |
+| Opérations à ranger | après la lecture du soir, s'il y en a sur le compte joint ou sur son propre compte perso (jamais sur celui de l'autre) | Quelques opérations t'attendent. Deux minutes, promis. |
 | Accès à la banque | 7 jours avant la fin, puis le jour même (pour chaque accès, un compte perso compris) | Ta banque va te redemander ton accord. Un petit tour chez elle ? |
 | Le point du mois | le 1er, après la lecture du matin | Le mois est dans la boîte : on fait le point ensemble ? |
 
@@ -869,7 +899,7 @@ Il n'y a qu'un rappel pour le reste du mois : celui du point. Aucune relance ne 
 
 Choix que le prototype ne tranche pas. Le 13/11/2026, le propriétaire a demandé de retenir ce que la spec suppose,
 qu'il relira ; B-C4 est tranché par lui. Le 14/11/2026 il a tranché B-C1, B-C2, B-C3 et B-C6, et demandé les rappels
-sans interrupteur de prénom (§ 16) ; B-C7, B-C11 à B-C15 sont les points que cette mise à jour suppose, qu'il relira.
+sans interrupteur de prénom (§ 16) ; B-C7, B-C11 à B-C17 sont les points que cette mise à jour suppose, qu'il relira.
 
 | N° | Point | Ce que la spec suppose |
 |---|---|---|
@@ -880,14 +910,16 @@ sans interrupteur de prénom (§ 16) ; B-C7, B-C11 à B-C15 sont les points que 
 | B-C5 | Arrondi des parts | à l'euro supérieur (§ 4) |
 | B-C6 | Jour du virement | **tranché le 14/11/2026** : calculé et affiché à partir du 29 (ou du dernier jour du mois s'il n'a pas de 29), attendu pour le 1er, « en retard » après le 5 ; pas de réglage |
 | B-C7 | Reconnaître un virement | par le montant attendu, puis le nom dans le libellé ; sinon Popote demande (§ 7) ; depuis un compte perso : sûr si un seul débit du montant exact tombe dans la fenêtre et que le crédit est lu ou que le libellé désigne le compte joint, sinon Popote demande (B-C15) |
-| B-C8 | Textes et états que le prototype ne joue pas | la question « à deux, à toi, ou à Léa ? », « Elle tombe quand, la prochaine fois ? », « loyer, ou crédit ? », « Aucune charge à deux. », « À vous de voir. », « Il manque 42 € », « dépassé de », les états « En retard », « Reçu en partie », « À confirmer », « En attente de Léa », « Pas encore fait », « C'est le tien ? », « Le virement de Sam », « Pas une dépense à deux », « Remboursement d'avance », « Sam a posé le budget. », « Sam dit que tu as payé… », « L'électricité est déjà passée », « Payée deux fois ? », « 1 virement reçu, à départager », « Je calcule… », « Moitié-moitié, ou autre ? », « Léa vient de changer le budget. », « Dans le coussin », « Les 60 € qui restent ? », « Le reprendre », « Le garder en coussin », « Le déduire », « Toujours pareil », « 60 € à décider », « Sam propose : », « Décembre se prépare », « Annoncé, vu sur ton compte perso », « C'était pour le foyer ? », « Un débit de 691 € est parti de ton compte perso. », « Voilà ce que je vois sur ton compte perso. », « Mon compte », « Reprise du reste », la bulle « Faire le point », la variante « s'est arrêté », le manque de fin de mois, le refus chez la banque, la confirmation « Léa verra toutes les opérations de ce compte. », « Léa verra les opérations de ce compte. » (compte perso), « Débrancher ta banque ? », « Débrancher ce compte ? », « Le budget est en pause. », « C'est proposé à Léa. », « Sam propose un changement. », « Léa a dit non », « Banque pas à jour », « Chiffres lus le… », les lignes « Avances » et « Ce que j'ai retenu » des réglages, les phrases de la tuile (§ 13), les rappels du § 16 : proposés par la spec |
+| B-C8 | Textes et états que le prototype ne joue pas | la question « à deux, à toi, ou à Léa ? », « Elle tombe quand, la prochaine fois ? », « loyer, ou crédit ? », « Aucune charge à deux. », « À vous de voir. », « Il manque 42 € », « dépassé de », les états « En retard », « Reçu en partie », « À confirmer », « En attente de Léa », « Pas encore fait », « C'est le tien ? », « Le virement de Sam », « Pas une dépense à deux », « Remboursement d'avance », « Sam a posé le budget. », « Sam dit que tu as payé… », « L'électricité est déjà passée », « Payée deux fois ? », « 1 virement reçu, à départager », « Je calcule… », « Moitié-moitié, ou autre ? », « Léa vient de changer le budget. », « Dans le coussin », « Les 60 € qui restent ? », « Le reprendre », « Le garder en coussin », « Le déduire », « Toujours pareil », « 60 € à décider », « Sam propose : », « Décembre se prépare », « Annoncé, vu sur ton compte perso », « C'était pour le foyer ? », « Un débit de 691 € est parti de ton compte perso. », « Voilà ton mois perso. », « Pas prévu », « Je l'ajoute à tes charges ? », « Non, juste cette fois », « Mon virement vers le compte joint », « Mon compte », « Reprise du reste », la bulle « Faire le point », la variante « s'est arrêté », le manque de fin de mois, le refus chez la banque, la confirmation « Léa verra toutes les opérations de ce compte. », « Léa verra les opérations de ce compte. » (compte perso), « Débrancher ta banque ? », « Débrancher ce compte ? », « Le budget est en pause. », « C'est proposé à Léa. », « Sam propose un changement. », « Léa a dit non », « Banque pas à jour », « Chiffres lus le… », les lignes « Avances » et « Ce que j'ai retenu » des réglages, les phrases de la tuile (§ 13), les rappels du § 16 : proposés par la spec |
 | B-C9 | Quand le budget commence | le 1er du mois qui suit l'accord de l'autre (§ 4) |
 | B-C10 | L'accord de l'autre | sa part et ses revenus sont à confirmer par lui avant tout virement ; ensuite, tout changement qui touche aux virements attend aussi son accord, la décision du point comprise (§ 12.1) |
-| B-C11 | Ranger les dépenses d'un compte perso | classées par Popote, marquées « estimé », sans validation ; seules les questions comptent (§ 8.1) |
+| B-C11 | Ranger les opérations d'un compte perso | comme le compte joint : Popote propose, le titulaire valide ou corrige, « estimé » puis « validé » ; seul lui valide (§ 8.1) |
 | B-C12 | Ce qui est mis de côté | le reste attend, mis de côté comme le coussin, jusqu'à la décision, la reprise ou la déduction ; un virement reçu avant le 1er l'est aussi jusqu'au 1er (§ 4) |
 | B-C13 | Quand le point se fait | le 1er du mois suivant, après la lecture du matin (avant : le dernier jour à 21 h), pour que le reste soit connu (§ 10) |
 | B-C14 | Quand un virement est figé | le 29 à 0 h, à sa préparation (avant : le 1er à 0 h), pour qu'on puisse le payer dès le 29 sans qu'il bouge (§ 4) |
 | B-C15 | Le détail du rapprochement perso | fenêtre du 29 au 5, un seul débit candidat, crédit lu dans les 3 jours ou libellé désignant le compte joint (§ 7) |
+| B-C16 | Ce que Popote apprend d'un compte perso | les règles d'étiquette apprises sur un compte perso valent pour ses comptes perso seulement, jamais pour le joint (§ 8.1) |
+| B-C17 | Corriger une opération perso validée | tant que le mois est ouvert, faute de point du mois pour le perso (§ 8.1) |
 
 Ce que le prototype montre autrement, et qui ne fait pas foi : le total « = 1 063 € » ne bouge pas quand on compare
 avec « Moitié-moitié » (c'est 1 064 €) ; le début du mois est joué un lundi 2 ; le point est proposé le dernier jour à
@@ -1004,8 +1036,8 @@ lieu le 1er ; le choix du compte montre une option « compte personnel » décoc
 26. *Quand* Sam débranche la banque (le compte joint), *alors* les opérations déjà rangées et les totaux des mois restent
     visibles de Léa.
 27. *Quand* Sam branche un compte perso, *alors* il suit le même parcours que le compte joint, la confirmation dit
-    « Léa verra les opérations de ce compte. », et ses opérations apparaissent chez Léa dans « Mon compte », marquées
-    de l'avatar de Sam ; sans aucun compte perso, tout le budget marche.
+    « Léa verra les opérations de ce compte. », et ses opérations apparaissent chez Léa dans « Mon compte », en lecture
+    seule, marquées de l'avatar de Sam ; sans aucun compte perso, tout le budget marche.
 28. *Quand* Léa cherche à renouveler ou à débrancher le compte perso de Sam, *alors* elle ne le peut pas ; *quand*
     Sam le débranche, *alors* toutes ses opérations disparaissent des deux écrans, et les avances qu'il avait validées
     restent, sans libellé de la banque.
@@ -1015,9 +1047,9 @@ lieu le 1er ; le choix du compte montre une option « compte personnel » décoc
     coche rien avant sa réponse.
 30. *Quand* une opération du compte perso de Sam ressemble à une dépense du foyer, *alors* Popote lui demande « C'était
     pour le foyer ? » ; « Oui » ouvre le récapitulatif d'une avance, rien n'est noté avant « Valider », et son
-    prochain virement baisse ; « Non » la classe en dépense perso.
-31. *Étant donné* des dépenses sur des comptes perso, *alors* aucune ne change un poste, « Pour finir le mois » ni un
-    virement (hors une avance validée).
+    prochain virement baisse ; « Non » la range parmi ses charges « à moi » ou « Pas prévu ».
+31. *Étant donné* des opérations validées sur des comptes perso, *alors* aucune ne change un poste du foyer, « Pour
+    finir le mois » ni un virement (hors une avance validée) ; elles ne comptent que dans « Mon compte ».
 32. *Quand* il reste de l'argent le 1er, *alors* Popote pose la question aux deux avec les trois réponses ; tant
     qu'ils n'ont pas répondu, la somme reste sur le compte (« 60 € à décider »), ne compte pas dans « Pour finir le
     mois », et aucune relance ne suit le rappel du point.
@@ -1029,3 +1061,15 @@ lieu le 1er ; le choix du compte montre une option « compte personnel » décoc
     mois du foyer restent.
 36. *Le 29*, le virement du mois suivant est calculé sans tenir compte du reste ni des dépenses du mois ; *quand* il
     est reçu le 30, *alors* « Pour finir novembre » ne monte pas.
+37. *Étant donné* des opérations à ranger sur le compte perso de Sam, *quand* il corrige une étiquette puis touche
+    « Tout valider », *alors* Popote dit ce qu'elle retient, les dépenses de ses thèmes dans « Mon compte » montent, le
+    budget commun ne change pas, et la règle apprise ne vaut que pour ses comptes perso.
+38. *Quand* Sam valide une opération « Pas prévu » et accepte « Je l'ajoute à tes charges ? » (récapitulatif, puis
+    « Valider »), *alors* la charge « à moi » est ajoutée, l'opération y est rangée et le « prévu » du thème monte ;
+    sans « Valider », ou avec « Non, juste cette fois », rien n'est ajouté.
+39. *Quand* Léa ouvre l'onglet de Sam dans « Mon compte », *alors* elle voit tout (prévu, dépensé, reste, opérations
+    avec l'avatar de Sam) mais n'a aucun bouton pour ranger, corriger, valider ou débrancher, et ses propres
+    opérations à ranger ne comptent jamais celles du compte perso de Sam.
+40. *Étant donné* des opérations à ranger sur le compte joint et sur le compte perso de Sam, *alors* le rappel du soir
+    part pour Sam, sans montant ; *étant donné* des opérations à ranger seulement sur le compte perso de Sam, *alors*
+    aucun rappel du soir ne part pour Léa.
