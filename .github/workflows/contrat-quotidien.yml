@@ -1,0 +1,14 @@
+name: Contrat quotidien
+# Une rupture du contrat de `popote-api` doit se voir sans attendre le prochain envoi sur `main` du front.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  contrat-amont:
+    uses: ./.github/workflows/contrat-amont.yml
+    permissions:
+      contents: read
+    with:
+      strict: true

@@ -12,3 +12,4 @@ playwright-report/
 
 # L'état local de `wrangler dev`.
 .wrangler/
+captures/
