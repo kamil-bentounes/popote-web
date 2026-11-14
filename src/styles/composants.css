@@ -64,9 +64,10 @@
   .pastille--rose { background: var(--color-rose-pale); }
   .pastille--lilas { background: var(--color-lilas-pale); }
 
-  /* Tampon : la récompense d'un geste (« Mangé ! », « C'est lancé ! »). Il arrive en tournant. */
+  /* Tampon : la récompense d'un geste (« Mangé ! », « C'est lancé ! »). Il arrive en tournant : `Stamp` (Motion, `variantesTampon`) ; écart au système, qui l'animait
+     par `@keyframes tampon`. L'inclinaison de 8 degrés est celle de son repos, et celle du mouvement réduit. */
   .tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-tampon); background: var(--color-tomate); color: var(--color-encre);
-    font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg); animation: tampon var(--duree-entree) var(--ease-rebond) both; }
+    font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg); }
 
   /* Cases du code à 6 chiffres */
   .cases { display: flex; justify-content: space-between; gap: 8px; }
@@ -119,7 +120,7 @@
   /* Feuille : monte du bas pour une saisie courte */
   .feuille { border-radius: var(--radius-feuille) var(--radius-feuille) 0 0; padding: 22px 18px 30px; animation: monte var(--duree-ecran) var(--ease-sortie) both; }
 
-  /* écart au système : `.entre` et `@keyframes entre` sont retirés. L'entrée d'écran est le composant `Enter` (Motion, `src/ui/mouvement.ts`). */
+  /* écart au système : `.entre` et `@keyframes entre` sont retirés. L'entrée d'écran est le composant `Enter` (Motion, `src/ui/mouvement.ts`), comme l'arrivée du tampon (`Stamp`). */
 
   /* Confettis : petits rectangles à contour, lancés par le script de référence */
   .confetti { position: absolute; width: 12px; height: 16px; border: var(--trait-fin) solid var(--color-encre); border-radius: var(--radius-confetti); pointer-events: none; }
@@ -185,7 +186,7 @@
   /* Mouvement réduit : plus rien ne bouge tout seul. Les états restent lisibles par leur dessin (voir la marmite). */
   @media (prefers-reduced-motion: reduce) {
     .soleil, .jauge > i, .cases[data-etat="faux"], .marmite svg, .marmite .yeux, .marmite .couvercle, .marmite .vapeur, .marmite .zzz, .marmite .ondes, .marmite .bouche-ouverte { animation: none !important; }
-    .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+    .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
     /* écart au système : `!important`, pour qu'un utilitaire (`transition-all`, couche supérieure) ne rende pas la transition. */
     .bouton, .jauge > i { transition: none !important; }
     .bouton[aria-busy="true"]::after { content: "…"; width: auto; height: auto; border: 0; animation: none; }
@@ -193,7 +194,6 @@
 }
 
 /* Hors couche : les animations. */
-@keyframes tampon { from { transform: rotate(-40deg) scale(0); } to { transform: rotate(8deg) scale(1); } }
 @keyframes tremble { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
 @keyframes defile { to { background-position: -28px 0; } }
 @keyframes remplit { from { width: 0; } to { width: 100%; } }

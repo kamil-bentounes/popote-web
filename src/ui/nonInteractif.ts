@@ -21,3 +21,9 @@ const estInteractif = (nom: string): boolean => GESTIONNAIRE.test(nom) || (ATTRI
 export function sansInteraction<T extends object>(attributs: T): Omit<T, Interactif> {
   return Object.fromEntries(Object.entries(attributs).filter(([nom]) => !estInteractif(nom))) as Omit<T, Interactif>
 }
+
+/** Retire de l'exécution ce que le type d'un décor ou d'un tampon refuse déjà (`children`, `style`…) : un appelant en JavaScript ne les y fait pas entrer. */
+export function sans<T extends object, K extends string>(attributs: T, motif: RegExp | readonly K[]): Omit<T, K> {
+  const retire = (nom: string) => (Array.isArray(motif) ? (motif as readonly string[]).includes(nom) : (motif as RegExp).test(nom))
+  return Object.fromEntries(Object.entries(attributs).filter(([nom]) => !retire(nom))) as Omit<T, K>
+}
