@@ -50,7 +50,7 @@ function Cadre({ etat, titreRef }: ContenuProps) {
   // Lu ici, non dans `EcranReveil` : la racine n'a pas besoin du fournisseur tant que l'écran n'est pas affiché.
   const reduit = useMouvementReduit()
   return (
-    <m.div {...variantesEcran(reduit)} className="fixed inset-0 z-[60] pt-[env(safe-area-inset-top)]">
+    <m.div {...variantesEcran(reduit)} className="fixed inset-0 z-[60] bg-ciel pt-[env(safe-area-inset-top)]">
       <ContenuReveil etat={etat} titreRef={titreRef} />
     </m.div>
   )

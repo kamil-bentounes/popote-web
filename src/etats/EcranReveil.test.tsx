@@ -163,6 +163,17 @@ describe('EcranReveil', () => {
     expect(document.getElementById('contenu')).toHaveFocus()
   })
 
+  it('rend le focus à #contenu quand l’élément d’avant est devenu inerte', async () => {
+    const essai = monte()
+    const avant = screen.getByRole('button', { name: 'Avant le réveil' })
+    avant.focus()
+    await ouvre(essai)
+    avant.setAttribute('inert', '')
+    await essai.fin('a')
+    await essai.avance(PRET_MS + AFFICHAGE_MIN_MS)
+    expect(document.getElementById('contenu')).toHaveFocus()
+  })
+
   it('ne vole pas le focus au premier rendu', () => {
     monte()
     expect(document.body).toHaveFocus()
@@ -194,6 +205,11 @@ describe('EcranReveil', () => {
   it('n’a aucune violation axe, au réveil comme au « prêt »', async () => {
     const essai = monte()
     await ouvre(essai)
+    vi.useRealTimers()
+    expect(await verifieAxe(document.getElementById('transverses')!)).toEqual([])
+    vi.useFakeTimers()
+    await essai.fin('a')
+    expect(screen.getByText(textes.pret)).toBeInTheDocument()
     vi.useRealTimers()
     expect(await verifieAxe(document.getElementById('transverses')!)).toEqual([])
   })

@@ -5,7 +5,8 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // `main.tsx` démarre l'appli au chargement du module : on ne peut pas l'importer. L'ordre de ses lignes est ce qui compte, on lit le texte.
-const source = readFileSync(resolve(process.cwd(), 'src/main.tsx'), 'utf8')
+// Sans ses commentaires : un `reveil.demarre()` cité dans un commentaire ne démarre rien.
+const source = readFileSync(resolve(process.cwd(), 'src/main.tsx'), 'utf8').replace(/\/\/.*$/gm, '')
 const rang = (motif: string) => source.indexOf(motif)
 
 describe('main.tsx', () => {

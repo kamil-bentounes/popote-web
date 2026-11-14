@@ -19,6 +19,7 @@ export function useFocusDuReveil(actif: boolean, titre: RefObject<HTMLElement | 
       return
     }
     const cible = dernier.current
+    dernier.current = null
     if (cible?.isConnected && !cible.closest('[inert]')) cible.focus()
     else document.getElementById('contenu')?.focus()
   }, [actif, titre])

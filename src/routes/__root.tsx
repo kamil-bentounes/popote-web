@@ -3,7 +3,7 @@ import { createRootRouteWithContext, HeadContent, Outlet, useRouterState } from 
 import { useEffect, useRef } from 'react'
 import { ErreurRoute } from '../etats/ErreurRoute'
 import { NonTrouvee } from '../etats/NonTrouvee'
-import { useReveil } from '../etats/reveil'
+import { useEnVeille } from '../etats/useEnVeille'
 import { Transverses } from '../etats/Transverses'
 import { navigation } from '../textes/navigation'
 
@@ -21,22 +21,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * cliqué (WCAG 2.4.3). On suit le chemin RÉSOLU (`resolvedLocation`) : `location` change dès le début
  * de la navigation, alors que l'ancien contenu est encore à l'écran quand un chargement est lent.
  */
-function useFocusAuChangementDeChemin(chemin: string | undefined) {
+function useFocusAuChangementDeChemin(chemin: string | undefined, enVeille: boolean) {
   const precedent = useRef<string | null>(null)
+  const enAttente = useRef(false)
   useEffect(() => {
     if (chemin === undefined) return
     if (precedent.current !== null && precedent.current !== chemin) {
-      document.getElementById('contenu')?.focus()
+      // Sous l'écran de réveil la coque est inerte : le focus n'y va pas. La navigation qui a réveillé l'API (un lien cliqué) se
+      // termine souvent là : on garde le focus pour l'instant où l'écran part, sans quoi il retournerait au lien cliqué.
+      if (enVeille) enAttente.current = true
+      else document.getElementById('contenu')?.focus()
     }
     precedent.current = chemin
-  }, [chemin])
+  }, [chemin, enVeille])
+  useEffect(() => {
+    // Cet effet vient après celui de l'écran (un enfant) : le focus qu'il y rend à l'élément d'avant est repris ici.
+    if (enVeille || !enAttente.current) return
+    enAttente.current = false
+    document.getElementById('contenu')?.focus()
+  }, [enVeille])
 }
 
 function Racine() {
   const chemin = useRouterState({ select: (etat) => etat.resolvedLocation?.pathname })
-  useFocusAuChangementDeChemin(chemin)
   // Tant que l'écran de réveil est là, rien de la coque (lien d'évitement compris) ne reçoit ni focus ni clic : il est hors de `#coque`.
-  const enVeille = useReveil().phase !== 'repos'
+  const enVeille = useEnVeille()
+  useFocusAuChangementDeChemin(chemin, enVeille)
   return (
     <>
       <HeadContent />
