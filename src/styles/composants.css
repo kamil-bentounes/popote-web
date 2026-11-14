@@ -26,6 +26,10 @@
   .champ input:focus-visible { box-shadow: var(--shadow-dur-petit), 0 0 0 11px var(--color-jaune); }
   .lien:focus-visible { border-radius: 8px; box-shadow: 0 0 0 11px var(--color-jaune); }
   .bouton:disabled { background: var(--color-lilas-pale); color: var(--color-gris); box-shadow: var(--shadow-enfonce); transform: translateY(var(--enfoncement)); cursor: not-allowed; }
+  /* écart au système : `pause` (F9) est un bouton `aria-disabled`, focalisable, qui prend l'aspect du désactivé ; occupé garde le sien. */
+  .bouton[aria-disabled="true"]:not([aria-busy="true"]) { background: var(--color-lilas-pale); color: var(--color-gris); box-shadow: var(--shadow-enfonce); transform: translateY(var(--enfoncement)); cursor: not-allowed; }
+  /* La règle ci-dessus (0,3,0) bat `.bouton:focus-visible` (0,2,0) : sans celle-ci, le bouton en pause focalisé perdrait son halo jaune. */
+  .bouton[aria-disabled="true"]:not([aria-busy="true"]):focus-visible { box-shadow: var(--shadow-enfonce), 0 0 0 11px var(--color-jaune); }
   .bouton--jaune { background: var(--color-jaune); }     /* envoyer, valider une proposition de Popote */
   .bouton--blanc { background: var(--color-papier); }    /* action secondaire */
   .bouton--danger { background: var(--color-tomate-fonce); color: var(--color-papier); }
@@ -43,7 +47,8 @@
 
   /* Champ */
   .champ { display: block; }
-  .champ > span { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle); }
+  /* écart au système : structure accessible, le libellé est un `<label for>` frère du champ (F9). */
+  .champ > label { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle); }
   .champ input { width: 100%; height: 58px; padding: 0 16px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-champ); background: var(--color-papier);
     font-family: var(--font-texte); font-weight: 800; font-size: var(--text-champ); color: var(--color-encre); box-shadow: var(--shadow-dur-petit); }
   .champ input::placeholder { color: var(--color-gris); }

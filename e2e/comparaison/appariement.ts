@@ -22,6 +22,11 @@ export interface SectionBanc {
   titre: string
   /** Le `h2` de la section de la référence ; sans lui, la section n'a pas de pendant. */
   reference?: string
+  /**
+   * Les légendes de la référence qu'un lot suivant portera (le début de la légende, comme `CasBanc.reference`) : la section est
+   * déjà là, mais F10 ou F11 y ajoutent leurs cas. Une déclaration périmée (légende inconnue, ambiguë ou déjà montrée) échoue.
+   */
+  reportees?: string[]
   cas: CasBanc[]
 }
 
@@ -107,8 +112,17 @@ export function apparie(reference: SectionReference[], banc: SectionBanc[]): App
         resultat.paires.push({ section: section.titre, legende: cas.legende, reference: une })
       }
     }
+    const reportees = new Set<number>()
+    for (const debut of section.reportees ?? []) {
+      const trouvees = candidates(cible.elements, debut)
+      const [une, ...autres] = trouvees
+      if (!une) resultat.erreurs.push(`la légende reportée « ${debut} » ne désigne aucune légende de la section « ${cible.titre} » de reference.html`)
+      else if (autres.length > 0) resultat.erreurs.push(`la légende reportée « ${debut} » désigne plusieurs légendes de « ${cible.titre} » : ${trouvees.map((t) => `« ${t.legende} »`).join(', ')}`)
+      else if (prises.has(une.rang)) resultat.erreurs.push(`la légende reportée « ${debut} » est déjà montrée par le banc (cas « ${prises.get(une.rang)} ») : retirer la déclaration`)
+      else reportees.add(une.rang)
+    }
     for (const element of cible.elements) {
-      if (!prises.has(element.rang)) {
+      if (!prises.has(element.rang) && !reportees.has(element.rang)) {
         resultat.erreurs.push(`la légende « ${element.legende} » de reference.html manque au banc (section « ${cible.titre} »)`)
       }
     }

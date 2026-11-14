@@ -70,6 +70,11 @@ describe('composants.css', () => {
     expect(lis('composants.css')).toMatch(new RegExp(`${ECHAPPE(selecteur)}\\s*\\{[^}]*0 0 0 11px var\\(--color-jaune\\)`))
   })
 
+  it('garde le halo jaune du bouton en pause : sa règle (0,3,0) bat celle du focus (0,2,0), qui le lui poserait', () => {
+    const selecteur = '.bouton[aria-disabled="true"]:not([aria-busy="true"]):focus-visible'
+    expect(lis('composants.css')).toMatch(new RegExp(`${ECHAPPE(selecteur)}\\s*\\{[^}]*0 0 0 11px var\\(--color-jaune\\)`))
+  })
+
   it('coupe, sous prefers-reduced-motion, chaque mouvement continu : soleil, jauge, tremblement des cases, marmite', () => {
     const coupes: string[] = []
     composants.walkAtRules('media', (media) => {
@@ -123,12 +128,18 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     '.cases:focus-within { border-radius: var(--radius-champ); box-shadow: 0 0 0 11px var(--color-jaune) }',
     '.avatar:focus-visible { box-shadow: var(--shadow-dur-petit), 0 0 0 11px var(--color-jaune) }',
     '.avatar--libre:focus-visible { box-shadow: 0 0 0 11px var(--color-jaune) }',
+    // `pause` (F9, le compte à rebours de F20) : le système n'a que `:disabled`, qui retire le bouton du clavier. Un bouton
+    // `aria-disabled` reste focalisable et prend l'aspect du désactivé ; occupé (`aria-busy`) garde le sien, avec son rond.
+    '.bouton[aria-disabled="true"]:not([aria-busy="true"]) { background: var(--color-lilas-pale); color: var(--color-gris); box-shadow: var(--shadow-enfonce); transform: translateY(var(--enfoncement)); cursor: not-allowed }',
+    '.bouton[aria-disabled="true"]:not([aria-busy="true"]):focus-visible { box-shadow: var(--shadow-enfonce), 0 0 0 11px var(--color-jaune) }', // la règle précédente (0,3,0) battrait l'anneau de `.bouton:focus-visible`
   ]
   // [avant, après] : lignes du système modifiées. `pulse` se nomme `pulse-ondes` : Tailwind a son propre @keyframes `pulse`, qui
   // écrase le nôtre au build ; la transition de la marmite et des boutons est coupée `!important` pour qu'un utilitaire ne la rende pas.
   const MODIFICATIONS: Array<[string, string]> = [
     ['@keyframes pulse { from { opacity: 0.45 } to { opacity: 1 } }', '@keyframes pulse-ondes { from { opacity: 0.45 } to { opacity: 1 } }'],
     ['.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse 0.7s ease-in-out infinite alternate }', '.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse-ondes 0.7s ease-in-out infinite alternate }'],
+    // Le libellé du champ est un vrai `<label for>` (F9) : le `<label>` n'enveloppe plus le champ ni son aide : le nom du champ est son libellé seul (revue 11).
+    ['.champ > span { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }', '.champ > label { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }'],
     ['@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none }', '@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none !important }'],
   ]
 

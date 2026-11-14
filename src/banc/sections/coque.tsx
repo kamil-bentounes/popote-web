@@ -10,7 +10,7 @@ export const section: Section = {
     {
       legende: 'Au clavier, au-dessus du soleil',
       rendu: (
-        <div className="scene" id="scene-evitement" style={{ position: 'relative', height: 220 }}>
+        <div className="scene scene--sonde" id="scene-evitement" style={{ position: 'relative', height: 220 }}>
           <a className="evitement" href="#cible-evitement" id="lien-evitement">Aller au contenu</a>
           <div className="soleil" aria-hidden="true" />
           <p id="cible-evitement" tabIndex={-1} style={{ position: 'relative', margin: '120px 18px 0' }}>Le contenu de la page.</p>
