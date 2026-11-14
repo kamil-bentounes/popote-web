@@ -116,7 +116,7 @@ quand elle crée) et une version explicite (`If-Match` ou champ `version`) quand
 | `PUT /shopping-lines/{line_key}/taken` | K8 | cocher : `{taken:{amount, unit}, version}` ; `DELETE …/taken` décocher ; `409 ligne_changee {list}` (« Léa vient de la changer ») |
 | `POST /shopping-lines` · `DELETE /shopping-lines/{line_key}` · `PUT …/recurring` | K8 | ajouter à la main, retirer, « le remettre à chaque fois » |
 | `POST /shopping-lines/{line_key}/not-found` · `POST …/at-home-outs` | K8 | « Pas trouvé » (trois choix), « Je n'en ai plus » |
-| `POST /cooking-sessions/{id}/shopping-completions` | K8 | « J'ai tout » : `{mode: have_them \| keep_them}` |
+| `POST /cooking-sessions/{id}/shopping-completions` | K8 | « J'ai fini » (spec v3) : `{mode: have_them \| keep_them \| remove}` |
 | `GET /cooking-sessions/{id}/dressing` · `PUT …/dressing` (`If-Match`) · `POST …/dressing/weighings` | K13 | partage, nombre, poids, valeurs, complément, diagnostic |
 | `POST /cooking-sessions/{id}/storages` | K14 | **« Tout ranger »**, une écriture, `{key, dressing_version, cooked_on, placements, pantry_corrections}` ; `409 dressage_change {dressing}` |
 | `GET …/cost-candidates` · `POST …/cost-links` · `POST /receipt-readings` · `POST /receipts` | K15 | coût réel |
@@ -449,3 +449,11 @@ end $$;
 --   select id from stock_item where household_id = v_household and food_id = v_food order by id for update;
 -- cuisiner_range_la_session (C7) : sessions actives → cook_dressing_recipe (par recipe_id) → stock_item (par id) → insert portion.
 ```
+
+### Alignement sur la spec v3 (14/11/2026, PR #83) — **prime aussi**
+
+1. **« Cuit le » : 3 jours en arrière au plus** (arbitrage du socle) : borne de C7 (`422`), de la proposition (jour de cuisson + 4 jours, déjà passé : pas de frigo) et des tests ; partout où ce plan disait 2.
+2. **Plafonds du mois : aucun chiffre dans le plan** : `PLAFONDS_DU_MOIS` (lecture, invention, ticket) vient de la **configuration serveur** (`instance_setting`) ; **K1 les rend** (`quotas: {limits, remaining, resets_on, blocking: null | "month" | "day"}`) ; le propriétaire (« je vais beaucoup l'utiliser ») dit les vrais chiffres **quand il aura tranché le fournisseur du modèle** : question posée à la session socle IA, valeur de repli des tests 40, 20, 30.
+3. **« J'ai fini »** remplace « J'ai tout » (C4) : trois choix pour les lignes restantes (`have_them`, `keep_them`, `remove`), le bouton est toujours actif, la session devient prête si aucun restant n'est un ingrédient qui compte, sinon la question de « Pas trouvé ».
+4. **Notifications** (réponse de la coordination) : prénoms et noms de plats **permis**, jamais un montant. Ce plan garde **le texte constant** du registre push (§ 5) : y mettre un prénom ou un plat demande la **variante avec contenu** du plan push (sa question 1 : colonne de contenu et gabarit) ; **ce n'est pas écrit ici**. Le critère 23 se lit : **aucun montant** ; le test de S9 exige l'absence de chiffre d'argent, plus l'absence de plat.
+5. **La voix de Popote en v1 est celle de l'appareil** (synthèse du navigateur) : **aucune route de synthèse vocale** dans ce plan ; `speakable: false` sur l'argent et le dressage reste la consigne donnée à l'écran.
