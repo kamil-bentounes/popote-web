@@ -16,3 +16,8 @@ section > h2 { font-size: var(--text-titre-m); margin-bottom: 18px; }
 .rangee { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 /* Le soleil de la sonde du lien d'évitement fait 700 px et déborde de sa scène ; axe lit sa boîte sans le rognage et juge « recouvert » (donc incomplet) le texte voisin. La marge le tient à distance des sections voisines (une scène à soleil d'un lot suivant en pose autant). */
 .scene--sonde { margin-block: 300px; }
+/* Bloc, pastille, avatar, bulle : la mise en page de `reference.html` (pastilles à 8 px, avatars à 14 px), en classes. */
+.carte-titre { font-size: var(--text-titre-s); margin: 2px 0 8px; }
+.avatars { display: flex; gap: 14px; }
+/* La queue de la bulle sort de 13 px à gauche de sa boîte : sans cette marge elle mordrait sur la colonne voisine. */
+.avec-queue { padding-left: 16px; }

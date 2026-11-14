@@ -17,7 +17,10 @@ const BALISES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
  */
 // Au téléphone et sous WebKit (390 px) : le texte du soleil et la légende du tampon ; au PC : le texte du soleil seul.
 const incompletsAdmis = (projet: string) => (projet === 'pc' ? 1 : 2)
-const REUSSITES_MIN = 125
+// 154 mesurés au PC (153 au téléphone) avec F12 : le bloc, les pastilles, les avatars et la bulle en ajoutent 21. Même marge qu'avant (8), pour WebKit, non joué en local.
+const REUSSITES_MIN = 145
+// Le plancher global ne voit pas la perte d'une section entière de F12 (la bulle seule : 7 sur 154). Un plancher par section, mesuré, le voit.
+const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 14, Bulle: 7 }
 
 async function mesure(page: Page, include: string) {
   const { violations, incomplete, passes } = await new AxeBuilder({ page }).include(include).withTags(BALISES).analyze()
@@ -36,15 +39,20 @@ for (const mouvement of ['no-preference', 'reduce'] as const) {
     const violations: string[] = []
     let incomplets = 0
     let reussites = 0
+    const parSection: Record<string, number> = {}
     for (const titre of titres) {
       const mesures = await mesure(page, `[data-section="${titre}"]`)
       violations.push(...mesures.violations.map((v) => `${titre} : ${v.id} (${v.nodes.map((n) => n.target.join(' ')).join(' ; ')})`))
       incomplets += mesures.incompletsContraste
       reussites += mesures.reussitesContraste
+      parSection[titre] = mesures.reussitesContraste
     }
     expect(violations).toEqual([])
     expect(incomplets, 'contrastes qu’axe ne tranche pas : voir incompletsAdmis').toBeLessThanOrEqual(incompletsAdmis(info.project.name))
     expect(reussites, 'contrastes mesurés et réussis').toBeGreaterThanOrEqual(REUSSITES_MIN)
+    for (const [titre, minimum] of Object.entries(REUSSITES_PAR_SECTION)) {
+      expect(parSection[titre] ?? 0, `contrastes réussis de la section « ${titre} »`).toBeGreaterThanOrEqual(minimum)
+    }
   })
 }
 
