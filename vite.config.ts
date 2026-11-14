@@ -1,10 +1,13 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+const page = (nom: string) => fileURLToPath(new URL(nom, import.meta.url))
+
+export default defineConfig(({ mode }) => ({
   plugins: [
     // La doc exige le plugin du routeur AVANT `react()`. Le test voisin des routes n'est pas une route (le motif vise son nom exact : une vraie route `x.test.tsx` resterait une route).
     tanstackRouter({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '^routes\\.test\\.tsx$' }),
@@ -46,6 +49,9 @@ export default defineConfig({
     // Une police sous 4 096 octets serait incorporée en `data:font/woff2`, que la CSP (`font-src 'self'`) refuse
     // en silence : `fredoka-latin-ext.woff2` en fait 4 576, à 480 octets de la limite. Rien n'est incorporé.
     assetsInlineLimit: 0,
+    // Le banc est une seconde entrée, construite seulement en mode `banc` (`npm run build:banc`) : un build normal n'a que
+    // `index.html`, et `scripts/verifie-build.mjs` refuse un `banc.html` sans `--banc`.
+    ...(mode === 'banc' && { rollupOptions: { input: { main: page('index.html'), banc: page('banc.html') } } }),
   },
   test: {
     // Trois projets qui héritent de la configuration racine (`extends` vaut `true` par défaut).
@@ -59,7 +65,7 @@ export default defineConfig({
         },
       },
       { test: { name: 'relais', environment: 'node', include: ['relais/**/*.test.ts'] } },
-      { test: { name: 'scripts', environment: 'node', include: ['scripts/**/*.test.{ts,mjs}'] } },
+      { test: { name: 'scripts', environment: 'node', include: ['scripts/**/*.test.{ts,mjs}', 'e2e/**/*.test.ts'] } },
     ],
   },
-})
+}))
