@@ -86,9 +86,58 @@ jobs:
           # La version par défaut de l'action (8.24.3) ignore les [[allowlists]] de .gitleaks.toml ;
           # même version qu'en local.
           GITLEAKS_VERSION: "8.30.1"
+  contrat:
+    # Le client généré est celui du contrat, et le contrat est la copie exacte d'un commit de `main` de `popote-api`.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Le client et la liste des routes protégées sont ceux du contrat
+        run: npm run contrat:verifie
+      - name: La copie est celle du commit de AMONT, et AMONT est sur main
+        run: node scripts/sync-contrat.mjs --verifie
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # lecture seule ; ne part qu'à l'API de comparaison
+  contrat-amont:
+    # `popote-api` a-t-elle rompu son contrat depuis la copie du front ? Strict sur `main` et au quotidien ;
+    # sur une demande de fusion, un avertissement : une rupture d'amont ne bloque pas une PR sans rapport.
+    # Volontairement HORS de `resultat` : c'est l'API qui a bougé, le front reste cohérent avec SA copie
+    # (que `contrat` garantit), et bloquer le déploiement du front n'y changerait rien.
+    uses: ./.github/workflows/contrat-amont.yml
+    permissions:
+      contents: read
+    with:
+      strict: ${{ github.event_name != 'pull_request' }}
+  resultat:
+    # Le seul contrôle à exiger par la règle de branche. Tout job qui s'ajoute à `needs` y est compté.
+    if: always()
+    needs: [front, banc, secrets, contrat]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Tous les contrôles ont réussi
+        env:
+          RESULTATS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for resultat in $RESULTATS; do
+            if [ "$resultat" != success ]; then
+              echo "::error::un contrôle n'a pas réussi ($RESULTATS)"
+              exit 1
+            fi
+          done
   deploie-essai:
     # Déploiement de l'essai (essai.notre-popote.fr) : seulement après un envoi sur main dont tous les contrôles sont verts.
-    needs: [front, banc, secrets]
+    needs: [resultat]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
