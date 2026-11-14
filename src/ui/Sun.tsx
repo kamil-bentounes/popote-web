@@ -1,10 +1,10 @@
 import type { HTMLAttributes } from 'react'
 import { classes } from './classes'
-import { sansInteraction, type Interactif } from './nonInteractif'
+import { sans, sansInteraction, type Interactif } from './nonInteractif'
 
 export type SunVariant = 'ciel' | 'rose'
 
-export type SunProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | 'children' | 'aria-hidden'> & {
+export type SunProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | 'children' | 'style' | 'aria-hidden'> & {
   /** Jaune par défaut (les écrans de moment fort) ; `ciel` pour l'attente et la voix, `rose` pour la fête. */
   variant?: SunVariant
 }
@@ -16,5 +16,6 @@ export type SunProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | 'childr
  * d'évitement ou tout contrôle posé au-dessus doit être positionné lui aussi, sinon le soleil le recouvre.
  */
 export function Sun({ variant, className, ...reste }: SunProps) {
-  return <div {...sansInteraction(reste)} aria-hidden="true" className={classes('soleil', variant && `soleil--${variant}`, className)} />
+  // `variant` hors de la liste ne rend aucune classe de teinte : seul `ciel` ou `rose` s'écrit.
+  return <div {...sans(sansInteraction(reste), ['children', 'style'])} aria-hidden="true" className={classes('soleil', (variant === 'ciel' || variant === 'rose') && `soleil--${variant}`, className)} />
 }

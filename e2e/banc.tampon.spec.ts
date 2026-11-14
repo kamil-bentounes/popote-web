@@ -9,8 +9,8 @@ interface Pose {
   depart: { opacite: number; echelle: number; angle: number }
   /** Quand il a annoncé son arrivée, en ms après le clic. */
   arrivee: number
-  /** Le premier état relevé en route (échelle entre 2 % et 80 %) : à l'échelle nulle l'angle n'existe plus, la matrice est nulle. */
-  enRoute?: { opacite: number; echelle: number; angle: number }
+  /** Les états relevés en route (échelle entre 2 % et 95 %) : à l'échelle nulle l'angle n'existe plus, la matrice est nulle. */
+  enRoute: Array<{ opacite: number; echelle: number; angle: number }>
   fin: { opacite: number; echelle: number; angle: number }
 }
 
@@ -26,7 +26,7 @@ async function pose(page: Page): Promise<Pose> {
     }
     let depart: Pose['depart'] | undefined
     let arrivee = Number.NaN
-    let enRoute: Pose['enRoute']
+    const enRoute: Pose['enRoute'] = []
     let debut = 0
     const observateur = new MutationObserver((lots) => {
       for (const lot of lots) {
@@ -46,7 +46,7 @@ async function pose(page: Page): Promise<Pose> {
     while (Number.isNaN(arrivee) && performance.now() < fin) {
       await new Promise((suite) => requestAnimationFrame(suite))
       const etat = lit(section.querySelector('.tampon')!)
-      if (enRoute === undefined && etat.echelle > 0.02 && etat.echelle < 0.8) enRoute = etat
+      if (etat.echelle > 0.02 && etat.echelle < 0.95) enRoute.push(etat)
     }
     observateur.disconnect()
     return { depart: depart!, arrivee, enRoute, fin: lit(section.querySelector('.tampon')!) }
@@ -58,8 +58,9 @@ test('le tampon part de l’échelle nulle, grandit en tournant depuis l’autre
   const { depart, enRoute, arrivee, fin } = await pose(page)
   // « À peine commencé », non « exactement au départ » : WebKit lance déjà l'animation quand on lit (voir F14a).
   expect(depart.echelle, 'rapetissé au départ').toBeLessThan(0.5)
-  expect(enRoute, 'une image où il grandit encore').toBeDefined()
-  expect(enRoute!.angle, 'en route, il est encore penché dans l’autre sens').toBeLessThan(0)
+  expect(enRoute.length, 'au moins une image où il grandit encore').toBeGreaterThan(0)
+  // L'échelle et l'angle suivent la même courbe : de -40 à 8 degrés pendant que l'échelle va de 0 à 1. Un tampon qui grandit sans tourner échoue ici.
+  for (const { echelle, angle } of enRoute) expect(angle, `angle à l’échelle ${echelle.toFixed(2)}`).toBeCloseTo(-40 + 48 * echelle, -1)
   expect(Number.isFinite(arrivee), 'il annonce son arrivée').toBe(true)
   expect(arrivee, 'il met le temps du jeton (550 ms)').toBeGreaterThan(450)
   expect(arrivee).toBeLessThan(1500)

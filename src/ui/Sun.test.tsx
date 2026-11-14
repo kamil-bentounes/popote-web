@@ -42,6 +42,15 @@ describe('Sun', () => {
     expect(conteneur.firstElementChild).not.toHaveAttribute('tabindex')
   })
 
+  it('ignore à l’exécution du texte, un style et une teinte inconnue : un décor est muet et sans style propre', () => {
+    const interdits = { children: 'texte', style: { color: 'red' } } as object
+    const { container } = render(<Sun {...interdits} variant={'foo' as 'ciel'} />)
+    const soleil = container.firstElementChild as HTMLElement
+    expect(soleil).toBeEmptyDOMElement()
+    expect(soleil.style.color).toBe('')
+    expect(soleil.className).toBe('soleil')
+  })
+
   it('n’a aucune violation axe', async () => {
     const { container } = render(<main><h1>Ce lien a expiré</h1><Sun variant="ciel" /><Ground /></main>)
     expect(await verifieAxe(container)).toEqual([])
@@ -56,6 +65,13 @@ describe('Ground', () => {
     expect(sol).toHaveAttribute('aria-hidden', 'true')
     expect(sol).not.toHaveAttribute('tabindex')
     expect(sol).toBeEmptyDOMElement()
+  })
+
+  it('ignore à l’exécution du texte et un style', () => {
+    const interdits = { children: 'texte', style: { color: 'red' } } as object
+    const { container } = render(<Ground {...interdits} />)
+    expect(container.firstElementChild).toBeEmptyDOMElement()
+    expect((container.firstElementChild as HTMLElement).style.color).toBe('')
   })
 
   it('ignore à l’exécution un rôle, un `tabindex` ou un `aria-hidden` contraire', () => {

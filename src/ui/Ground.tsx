@@ -1,8 +1,8 @@
 import type { HTMLAttributes } from 'react'
 import { classes } from './classes'
-import { sansInteraction, type Interactif } from './nonInteractif'
+import { sans, sansInteraction, type Interactif } from './nonInteractif'
 
-export type GroundProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | 'children' | 'aria-hidden'>
+export type GroundProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | 'children' | 'style' | 'aria-hidden'>
 
 /**
  * Le sol du système (`.sol`) : la bande crème, au contour d'encre, qui recouvre le bas du soleil. Décoratif comme lui : caché des
@@ -10,5 +10,5 @@ export type GroundProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | 'chi
  * il se place après le soleil dans le DOM, donc au-dessus, et ce qu'un écran pose sur lui est positionné aussi.
  */
 export function Ground({ className, ...reste }: GroundProps) {
-  return <div {...sansInteraction(reste)} aria-hidden="true" className={classes('sol', className)} />
+  return <div {...sans(sansInteraction(reste), ['children', 'style'])} aria-hidden="true" className={classes('sol', className)} />
 }
