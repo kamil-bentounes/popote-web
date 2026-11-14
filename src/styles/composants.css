@@ -119,7 +119,6 @@
   /* Feuille : monte du bas pour une saisie courte */
   .feuille { border-radius: var(--radius-feuille) var(--radius-feuille) 0 0; padding: 22px 18px 30px; animation: monte var(--duree-ecran) var(--ease-sortie) both; }
 
-  /* Entrée d'écran : chaque élément rebondit en place, 70 ms après le précédent (--rang = sa place) */
   /* écart au système : `.entre` et `@keyframes entre` sont retirés. L'entrée d'écran est le composant `Enter` (Motion, `src/ui/mouvement.ts`). */
 
   /* Confettis : petits rectangles à contour, lancés par le script de référence */

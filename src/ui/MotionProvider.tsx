@@ -4,7 +4,8 @@ import { ContexteMouvementReduit, usePreferenceMouvementReduit } from './useMouv
 
 /**
  * Le fournisseur de Motion, posé une fois à la racine de l'appli et du banc. Tout composant animé écrit `m.*` (`import * as m from
- * 'motion/react-m'`), jamais `motion.*` : `strict` fait lever un `motion` égaré, qui embarquerait la bibliothèque entière
+ * 'motion/react-m'`), jamais `motion.*` : `strict` fait lever un `motion` égaré (en développement et en test seulement : en production, la règle de lint
+ * `no-restricted-imports` de `.oxlintrc.json` est la garde), qui embarquerait la bibliothèque entière
  * (~43 ko) au lieu de ~5 ko, plus ~24 ko de fonctions d'animation du DOM chargées ici une fois.
  *
  * Écart au plan : `reducedMotion` n'est pas « user » mais la valeur que ce fournisseur calcule lui-même (la préférence du

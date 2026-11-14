@@ -48,7 +48,7 @@ describe('variantesEntree', () => {
     expect(transition.ease).toEqual([0.34, 1.56, 0.64, 1])
   })
 
-  it('au-delà du rang maximal, les éléments arrivent ensemble (l’entrée reste sous la seconde)', () => {
+  it('au-delà du rang maximal, les éléments arrivent ensemble (l’entrée entière reste sous 1,2 s)', () => {
     const dernier = variantesEntree(RANG_MAX, false).transition.delay
     expect(variantesEntree(RANG_MAX + 25, false).transition.delay).toBe(dernier)
     expect(dernier + DUREES.entree / 1000).toBeLessThan(1.2)

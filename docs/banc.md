@@ -26,7 +26,7 @@ bibliothèques système (`npx playwright install-deps`) : sans elles, `--project
   la légende de la référence appariée, les deux images, les dimensions, « ÉCART » et un fond rouge au-delà de 2 px dans un sens) ; la CI le dépose en artefact `comparaison`.
 - `banc.entree.spec.ts` : l'entrée d'écran (`Enter`) en Chromium : départ invisible, rapetissé et plus bas, arrivée dans l'ordre des rangs (70 ms
   d'écart), et, sous `prefers-reduced-motion`, ni déplacement ni agrandissement. `Enter` pose `data-entree="en-cours"` puis `"arrive"` : `attendLeRepos`
-  l'attend avant toute mesure (mi-fondu, un texte a un faux contraste pour axe).
+  l'attend avant toute mesure (précaution : un texte mi-fondu fausserait le contraste d'axe ; aucun test ne le prouve, les 550 ms sont déjà écoulées quand axe passe).
 - `banc.base.spec.ts` : le lien d'évitement reste au-dessus d'un `.soleil` (`elementFromPoint`) ; l'anneau de focus de chaque
   composant (encre de 4 px, halo jaune de 11 px) est mesuré tel que Chromium le dessine.
 

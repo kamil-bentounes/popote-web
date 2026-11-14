@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { verifieAxe } from '../test/axe'
 import { Enter } from './Enter'
 import { MotionProvider } from './MotionProvider'
+import * as mouvement from './mouvement'
 
 const dansLeFournisseur = (arbre: React.ReactNode, reduit = false) => render(<MotionProvider reduit={reduit}>{arbre}</MotionProvider>)
 
@@ -37,6 +38,19 @@ describe('Enter', () => {
   it('annonce son arrivée (`data-entree`), que l’écran et les tests peuvent attendre', async () => {
     const { container } = dansLeFournisseur(<Enter rang={3}>Seul</Enter>)
     await waitFor(() => expect(container.firstElementChild).toHaveAttribute('data-entree', 'arrive'))
+  })
+
+  // Le mouvement lui-même se prouve dans Chromium (`e2e/banc.entree.spec.ts`) ; ici, que `Enter` donne à la politique le rang reçu et la
+  // préférence du fournisseur, sans les altérer (un rang décalé ferait attendre le premier élément, qui porte le LCP).
+  it.each([
+    [0, false],
+    [3, false],
+    [3, true],
+  ])('demande à la politique le rang %i en mouvement réduit : %s', (rang, reduit) => {
+    const variantes = vi.spyOn(mouvement, 'variantesEntree')
+    dansLeFournisseur(<Enter rang={rang}>Seul</Enter>, reduit)
+    expect(variantes).toHaveBeenCalledWith(rang, reduit)
+    variantes.mockRestore()
   })
 
   it('refuse un rang invalide', () => {

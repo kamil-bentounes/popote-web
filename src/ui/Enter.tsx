@@ -18,6 +18,9 @@ export interface EnterProps {
  * Un élément d'écran qui arrive en rebondissant (règle 6 du système). Le mouvement réduit, les durées et les courbes
  * viennent de `mouvement.ts`. `data-entree` passe de `en-cours` à `arrive` quand le mouvement est fini : un test, ou
  * un écran qui doit attendre que tout soit posé, peut l'attendre au lieu de deviner une durée.
+ *
+ * Limites voulues : seul `className` est transmis (ni `id`, ni `aria-*`, ni `ref` : l'élément est un habillage, ce qu'il enveloppe
+ * porte le sens) ; et le style posé par Motion (`opacity`, `transform`) bat toute classe : n'y mettre ni opacité ni `transform`.
  */
 export function Enter({ rang, as = 'div', className, children }: EnterProps) {
   const reduit = useMouvementReduit()
