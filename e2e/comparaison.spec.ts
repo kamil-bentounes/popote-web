@@ -114,6 +114,6 @@ test('chaque cas du banc est capturé à côté de la même section de reference
 
   expect(vide, 'captures vides ou introuvables').toEqual([])
   // Le plancher ne monte pas seul : on nomme les sections qui doivent être comparées (chaque lot ajoute la sienne ici s'il le veut).
-  expect([...new Set(paires.map((p) => p.section))]).toEqual(expect.arrayContaining(['Couleurs', 'Typographie']))
-  expect(paires.length, 'cas appariés').toBeGreaterThanOrEqual(16)
+  expect([...new Set(paires.map((p) => p.section))]).toEqual(expect.arrayContaining(['Couleurs', 'Typographie', 'Bloc, pastille, tampon, avatar']))
+  expect(paires.length, 'cas appariés').toBeGreaterThanOrEqual(18)
 })
