@@ -55,3 +55,8 @@ tient alors à la relecture.
 ## L'API
 
 Le front ne parle qu'à `/api` (voir `popote-api/docs/normes-api.md`).
+
+Tout appel passe par la couche `src/api/` (F5a) : `lit(client.GET(...))` rend les données ou lève `ErreurApi`,
+`TropDeDemandes` ou `ErreurReseau` ; `litVide` sert les routes sans corps. Une écriture qui crée ou déclenche un effet
+porte `nouvelleCle()` (le contrat la rend obligatoire au type) et, à la reprise, **la même** clé. Les états
+transverses (réveil, limite, réseau, session) s'abonnent à `evenements` de `src/api/evenements.ts`.
