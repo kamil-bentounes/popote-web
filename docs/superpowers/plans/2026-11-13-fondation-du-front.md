@@ -1422,6 +1422,28 @@ La relecture du parcours « Entrer » a montré trois points que F5a et F18 à F
 | A2 | F5a (`erreurs.ts`) et F19 (`ErreurEcran`) | `ErreurApi` : `status`, `code`, `title`, `detail`, … ; l'écran montre `title` et `detail` | `ErreurApi` garde **`type`** (l'URI du problème, RFC 9457) **et `code` si l'API le rend**. L'écran choisit son texte **d'après `type`** (phrase du catalogue `src/textes/`, repli par classe de statut puis phrase générique), **jamais d'après `detail`, qui n'est jamais affiché** (ni `message`, ni la pile). La référence (`instance`) reste affichée. Tests : un problem+json `500` dont le `detail` est un texte piège (mot anglais, détail technique) n'affiche **aucun** mot de ce `detail` et montre la phrase de son `type` ; un `type` inconnu donne la phrase de sa classe de statut ; mutation : afficher `detail` (casse) |
 | A3 | F18, F19, F20, F21 | chacun pose ses phrases dans son catalogue ; rien n'interdit à un parcours d'en écrire d'autres | **F18 à F21 sont la seule source des textes des états communs** : réveil, perte de réseau, `429`, `5xx` (et erreur générique), session expirée (`src/textes/reveil.ts`, `etats.ts`, `limite.ts`, `reseau.ts`, `session.ts`). Un parcours qui rencontre l'un de ces états rend le composant correspondant et **ne redéfinit pas** sa phrase ; une erreur propre au parcours (un champ refusé, un code faux) reste dans son propre catalogue |
 
+### Constats de F4 (revues adverses de la PR de F4, 13/11/2026) : ils priment sur le texte de F4
+
+- **13 chemins, pas 12** : la copie épinglée (`popote-api@cda4b61`) compte 13 chemins, 16 opérations, dont 10 protégées (`login-codes` a
+  été ajouté après le relevé du plan). Ce nombre bouge : ne pas l'écrire dans le code ni dans un test (les tests ne comptent que des
+  routes nommées).
+- **`oasdiff breaking` laisse passer une route dépréciée puis retirée** (avec ou sans date de fin ; rejoué : code 0, même avec
+  `--deprecation-days-stable 36500`) et une **protection qui change** (`info`, code 0). `scripts/compare-contrats.mjs` les refuse : toute
+  opération retirée, toute route dont la protection change (la liste des routes protégées serait périmée). Le job `contrat-amont` joue les deux.
+- **Codes de `contrat-amont.sh`** : 1 = rupture, 2 = amont injoignable ou absent (rien n'a été comparé) ; l'annotation d'une demande de
+  fusion les distingue. `git ls-remote` a un délai (30 s), pas d'invite, un SHA validé à chaque essai.
+- **« Octet à octet » était inexact** : la copie et sa vérification passent par `normalise` (LF, un seul saut de ligne final). La comparaison
+  est exacte aux fins de ligne près ; le texte de F4 et `docs/contrat.md` le disent.
+- **Durcissements de `sync-contrat.mjs`** : aucune redirection suivie (`redirect: 'error'`, plus de `--location`), contrat limité à 1 Mio,
+  version `3.1.x` stricte, refus d'écrire à travers un lien symbolique, nouvelle tentative sur 403 et 429 (limite de débit), message
+  distinct pour un jeton refusé (401), `per_page=1` sur la comparaison. Un chemin décrit par `$ref` est refusé, non ignoré.
+- **Le test de la CI joue le script de `resultat`** tel qu'il est écrit dans `ci.yml`, et vérifie `continue-on-error: ${{ !inputs.strict }}`,
+  les deux étapes de `contrat` et le `if` de `deploie-essai` : les mutations correspondantes cassent un test.
+- **Risque accepté** : une panne de `api.github.com` ou de `raw.githubusercontent.com` met `contrat`, donc `resultat`, au rouge sur toute
+  demande de fusion (trois essais, puis rouge : jamais vert par défaut). Un nouvel essai de la CI suffit.
+- **Le contrôle quotidien peut s'éteindre** : GitHub désactive les workflows planifiés d'un dépôt public après 60 jours sans activité
+  (écrit dans `docs/contrat.md`). Les élargissements d'énumération (`WARN` d'oasdiff, vert même en strict) se voient au `tsc -b` après `contrat:sync`.
+
 ### Constats de F6 (revues adverses de la PR de F6, 13/11/2026) : ils priment sur le texte de F6
 
 - **La garde du build lit avec de vrais analyseurs** (parse5, postcss, postcss-value-parser, acorn, déclarés en versions exactes), non avec
@@ -1507,6 +1529,35 @@ Typographie portent une `cle`, sans `reference`.
 - **WebKit n'a pas tourné en local** (bibliothèques système absentes, `sudo` demandé) : le projet `iphone` ne se joue qu'en CI. **Premier passage (rouge, constaté) : WebKit applique `upgrade-insecure-requests` aux sous-ressources en
   `http://127.0.0.1`** (« TLS handshake » sur chaque fichier ; Chromium épargne l'adresse locale) : le banc est donc servi avec la CSP de `wrangler.jsonc` **sans** cette directive (`--var CSP:`, lue dans le fichier par
   `playwright.config.ts`, comme le prévoyaient les constats de F1 pour F22) ; sur l'essai, en https, elle n'a pas d'effet. Le nom de la directive du style injecté (`style-src` ou `style-src-elem`) est accepté sous les deux formes.
+
+### Constats de F8b (la comparaison avec `reference.html`, 13/11/2026) : ils priment sur le texte de F8
+
+- **Ce que F8b livre** : `e2e/comparaison.spec.ts` (un test par projet), `e2e/comparaison/appariement.ts` (l'appariement, fonction pure), `rendu-index.ts` (l'index), `ecrit-index.ts` (la commande qui réunit les `donnees.json` des projets en
+  `captures/comparaison/index.html`, que la CI dépose en artefact `comparaison`). **Écarts au plan** : le code est en TypeScript (le plan disait `index.mjs` et `scripts/capture-index.test.mjs`) : un module `.mjs` importé d'un test
+  TypeScript n'a pas de types, et Node 22.18 et plus lit le TypeScript sans option ; ses tests sont `e2e/comparaison/*.test.ts` (le projet `scripts` de Vitest les inclut). L'index est écrit après les tests par une commande, non par
+  chaque projet : trois projets en parallèle ne peuvent pas se partager un fichier.
+- **Règles d'appariement** : le début d'une légende se compare sans casse ni espaces multiples, mais mot pour mot ; **l'égalité exacte l'emporte sur le début** (« tomate » désigne « tomate », non « tomate foncée » : sans cela cinq
+  couleurs étaient ambiguës) ; un début qui désigne zéro ou plusieurs légendes, deux cas de même légende, deux cas qui désignent la même légende, une légende de la référence absente du banc **dans une section déjà portée** : le test échoue.
+  Une section de la référence que le banc n'a pas encore n'échoue pas (l'index la nomme) : **on porte une section en entier** (F9 porte tout « Bouton », F12 tout « Bloc, pastille, tampon, avatar »…). Un cas ou une section sans `reference`
+  est signalé « sans pendant », jamais une erreur.
+- **`cle` disparaît de `Cas`** : une pastille de couleur a pour légende son texte, un bloc seul sans `<small>` (Typographie) celle du `h2` de sa section ; les deux passent par `reference`. La référence est lue **dans le navigateur, après exécution de la
+  page** (les légendes de la marmite sont générées par son script) : `.cas` et sa `<small>`, sinon `.nuance`, sinon le `.bloc` seul.
+- **`colonne` sur `Section`** : la référence donne à chaque grille sa largeur minimale de colonne (150 px les couleurs, 160 les marmites, 320 les scènes, 230 par défaut ; la typographie n'a pas de grille). Sans elle, le banc rendait les couleurs à 248 px
+  au lieu de 160 : 17 lignes sur 32 portaient un écart rouge. Chaque lot de composants la déclare pour sa section (`colonne: 160`, `320`, ou `'pleine'`).
+- **Premier constat de la comparaison, à corriger hors de F8b : le texte du banc est 3,1 % plus grand que celui de la référence.** Cause (mesurée : 60 px contre 61,875 px pour `--text-titre-xl`) : la référence pose `font-size: var(--text-texte)`
+  (16,5 px) sur `.jeu`, donc sur `body`, et les tailles des jetons sont en `rem` ; F7 a fait de `.jeu` la règle `html` de `base.css`, ce qui fait de 16,5 px le `rem` de toute l'appli, donc **toutes les tailles en `rem` (titres, texte, notes) grandissent de 3,1 %**
+  (et `--spacing` de Tailwind). Le test de F7 (`css.test.ts`, `html { font-size: var(--text-texte) }`) l'exige en l'état. Correction : `font-size` sur `body`, `html` garde le reste ; le test change avec. Visible dans l'index sur « Fredoka et Nunito »
+  (écart de 5 à 6 px de hauteur, repère rouge). Les autres écarts de dimension se lisent dans l'index de la CI.
+- **Ce que les revues ont durci** : la légende d'un `.cas` est sa `<small>` **enfant direct** (`:scope > small`) : le premier `.cas` de « Bloc, pastille, tampon, avatar » a une `<small>` dans son bloc, avant sa vraie légende ; l'apostrophe typographique
+  (`’`) vaut l'apostrophe droite (la référence écrit « d'écran », le banc peut écrire « d’écran ») ; une section de la référence sans aucune légende (sa page a mal tourné) et deux sections de même titre sont des erreurs ; l'appariement faux
+  s'annonce avant toute capture (deux cas de même légende rendaient un sélecteur ambigu : erreur Playwright au lieu du diagnostic) ; une capture vide ou introuvable est nommée en 5 s, non en 30 s sans nom ; les polices de la page de référence
+  doivent toutes se charger (sinon de faux écarts, sans signal) ; le délai du test est de 180 s (deux captures par cas, WebKit lent) ; l'index écrit « ÉCART » (la couleur seule ne suffit pas) et la légende de la référence appariée (deux `reference`
+  croisées passent l'appariement, l'œil les voit). **Non prouvé** : le `:scope > small` n'a pas de cas qui le distingue avant que F12 porte la section « Bloc… ».
+- **WebKit (constaté en CI au premier passage)** : `animations: 'disabled'` s'y réalise en injectant une feuille de style, que la CSP en `enforce` du banc refuse (une violation `style-src-elem` par capture) : la garde, qui ne distingue pas l'outil de
+  la page, faisait échouer le test. `comparaison.spec.ts` passe donc `bypassCSP: true` ; la CSP reste gardée par les autres specs sur le même banc. La page `file://` de la référence et ses polices se chargent bien dans WebKit (le contrôle des polices passe).
+  Tout test futur qui capture avec `animations: 'disabled'` sur le banc doit en faire autant.
+- **Captures** : `animations: 'disabled'` (les animations CSS finies vont à leur état final, les infinies reviennent à leur début, des deux côtés) et `?fige` (Motion à son état final) ; l'état de repos de F14 et suivants se compare donc, non leur mouvement. La page de
+  référence s'ouvre dans une seconde page du même contexte, **non surveillée** par la garde : ses erreurs ne font pas échouer le test (elle a ses scripts et styles en ligne, hors de notre CSP).
 
 ---
 

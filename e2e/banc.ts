@@ -1,8 +1,11 @@
 import type { Page } from '@playwright/test'
 
-/** Ouvre le banc SANS `?fige` (voir `src/banc/main.tsx`), polices chargées et animations finies : axe mesure un état posé. */
-export async function ouvreLeBanc(page: Page): Promise<void> {
-  await page.goto('/banc')
+/**
+ * Ouvre le banc, polices chargées et animations finies : on mesure un état posé. SANS `?fige` par défaut (voir
+ * `src/banc/main.tsx`) : seule la comparaison le passe, `skipAnimations` cachant ce que Motion injecte à l'exécution.
+ */
+export async function ouvreLeBanc(page: Page, chemin = '/banc'): Promise<void> {
+  await page.goto(chemin)
   await page.locator('[data-section]').first().waitFor()
   // Deux images d'abord : `fonts.ready` résout avant que la mise en page ait demandé les polices utilisées.
   await page.evaluate(() => new Promise((fini) => requestAnimationFrame(() => requestAnimationFrame(fini))))

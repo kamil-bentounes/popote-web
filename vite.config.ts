@@ -65,7 +65,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
       { test: { name: 'relais', environment: 'node', include: ['relais/**/*.test.ts'] } },
-      { test: { name: 'scripts', environment: 'node', include: ['scripts/**/*.test.{ts,mjs}'] } },
+      { test: { name: 'scripts', environment: 'node', include: ['scripts/**/*.test.{ts,mjs}', 'e2e/**/*.test.ts'] } },
     ],
   },
 }))
