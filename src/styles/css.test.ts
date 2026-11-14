@@ -80,7 +80,7 @@ describe('composants.css', () => {
     composants.walkAtRules('media', (media) => {
       if (/prefers-reduced-motion:\s*reduce/.test(media.params)) media.walkRules((r) => void coupes.push(...r.selectors))
     })
-    const attendus = ['.soleil', '.jauge > i', '.cases[data-etat="faux"]', '.marmite svg', '.marmite .yeux', '.entre', '.tampon', '.feuille']
+    const attendus = ['.soleil', '.jauge > i', '.cases[data-etat="faux"]', '.marmite svg', '.marmite .yeux', '.tampon', '.feuille']
     expect(attendus.filter((attendu) => !coupes.includes(attendu))).toEqual([])
   })
 
@@ -122,6 +122,9 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     ...systeme.filter((l) => l.startsWith('@font-face')), // dans polices.css
     '.jeu { background: var(--color-creme); color: var(--color-encre); font-family: var(--font-texte); font-weight: 700; font-size: var(--text-texte); line-height: 1.35 }', // devient html et body (base.css) : la taille sur body, pas sur html, pour que `rem` reste 16 px
     '.jeu *, .jeu *::before, .jeu *::after { box-sizing: border-box }', // doublon du preflight
+    // L'entrée d'écran passe par Motion (`Enter`, `mouvement.ts`) : la règle CSS et ses images clés n'existent plus (D11 : pas d'animation en double).
+    '.entre { animation: entre var(--duree-entree) var(--ease-rebond) both; animation-delay: calc(var(--rang, 0) * var(--decalage-entree)) }',
+    '@keyframes entre { from { opacity: 0; transform: translateY(36px) scale(0.92) } to { opacity: 1; transform: none } }',
   ]
   const AJOUTS = [
     '.cases:focus-within, .avatar:focus-visible { outline: 4px solid var(--color-encre); outline-offset: 3px }',
@@ -140,6 +143,8 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     ['.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse 0.7s ease-in-out infinite alternate }', '.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse-ondes 0.7s ease-in-out infinite alternate }'],
     // Le libellé du champ est un vrai `<label for>` (F9) : le `<label>` n'enveloppe plus le champ ni son aide : le nom du champ est son libellé seul (revue 11).
     ['.champ > span { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }', '.champ > label { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }'],
+    // `.entre` n'existe plus (voir RETRAITS) : le mouvement réduit de l'entrée est la politique de `mouvement.ts`.
+    ['@media (prefers-reduced-motion: reduce) :: .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }', '@media (prefers-reduced-motion: reduce) :: .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }'],
     ['@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none }', '@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none !important }'],
   ]
 

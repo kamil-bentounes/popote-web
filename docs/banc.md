@@ -24,6 +24,9 @@ bibliothèques système (`npx playwright install-deps`) : sans elles, `--project
   Le test échoue seulement si l'appariement est faux ou si une capture est vide, jamais sur un écart de pixels : la session de design juge.
   `node --experimental-strip-types e2e/comparaison/ecrit-index.ts captures/comparaison` (Node 22.18 ou plus) en tire `index.html` (une ligne par cas,
   la légende de la référence appariée, les deux images, les dimensions, « ÉCART » et un fond rouge au-delà de 2 px dans un sens) ; la CI le dépose en artefact `comparaison`.
+- `banc.entree.spec.ts` : l'entrée d'écran (`Enter`) en Chromium : départ invisible, rapetissé et plus bas, arrivée dans l'ordre des rangs (70 ms
+  d'écart), et, sous `prefers-reduced-motion`, ni déplacement ni agrandissement. `Enter` pose `data-entree="en-cours"` puis `"arrive"` : `attendLeRepos`
+  l'attend avant toute mesure (mi-fondu, un texte a un faux contraste pour axe).
 - `banc.base.spec.ts` : le lien d'évitement reste au-dessus d'un `.soleil` (`elementFromPoint`) ; l'anneau de focus de chaque
   composant (encre de 4 px, halo jaune de 11 px) est mesuré tel que Chromium le dessine.
 

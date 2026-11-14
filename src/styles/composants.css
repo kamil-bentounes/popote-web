@@ -120,7 +120,7 @@
   .feuille { border-radius: var(--radius-feuille) var(--radius-feuille) 0 0; padding: 22px 18px 30px; animation: monte var(--duree-ecran) var(--ease-sortie) both; }
 
   /* Entrée d'écran : chaque élément rebondit en place, 70 ms après le précédent (--rang = sa place) */
-  .entre { animation: entre var(--duree-entree) var(--ease-rebond) both; animation-delay: calc(var(--rang, 0) * var(--decalage-entree)); }
+  /* écart au système : `.entre` et `@keyframes entre` sont retirés. L'entrée d'écran est le composant `Enter` (Motion, `src/ui/mouvement.ts`). */
 
   /* Confettis : petits rectangles à contour, lancés par le script de référence */
   .confetti { position: absolute; width: 12px; height: 16px; border: var(--trait-fin) solid var(--color-encre); border-radius: var(--radius-confetti); pointer-events: none; }
@@ -173,7 +173,7 @@
   /* Mouvement réduit : plus rien ne bouge tout seul. Les états restent lisibles par leur dessin (voir la marmite). */
   @media (prefers-reduced-motion: reduce) {
     .soleil, .jauge > i, .cases[data-etat="faux"], .marmite svg, .marmite .yeux, .marmite .couvercle, .marmite .vapeur, .marmite .zzz, .marmite .ondes, .marmite .bouche-ouverte { animation: none !important; }
-    .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+    .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
     /* écart au système : `!important`, pour qu'un utilitaire (`transition-all`, couche supérieure) ne rende pas la transition. */
     .bouton, .jauge > i { transition: none !important; }
     .bouton[aria-busy="true"]::after { content: "…"; width: auto; height: auto; border: 0; animation: none; }
@@ -187,7 +187,6 @@
 @keyframes remplit { from { width: 0; } to { width: 100%; } }
 @keyframes tourne { to { transform: rotate(360deg); } }
 @keyframes monte { from { transform: translateY(105%); } to { transform: translateY(0); } }
-@keyframes entre { from { opacity: 0; transform: translateY(36px) scale(0.92); } to { opacity: 1; transform: none; } }
 @keyframes cligne { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
 @keyframes respire { 50% { transform: scale(1.03, 0.97); } }
 @keyframes flotte { to { transform: translate(6px, -8px); } }

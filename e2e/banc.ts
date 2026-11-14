@@ -16,9 +16,11 @@ export async function ouvreLeBanc(page: Page, chemin = '/banc'): Promise<void> {
 /**
  * Attend la fin des animations et des transitions finies (le halo d'un bouton y passe 90 ms) : on mesure un état posé.
  * Une animation annulée en route ou mise en pause ne bloque ni ne fait échouer l'attente. Les animations que Motion pilote
- * par JavaScript n'y figurent pas : les sections qui en ont attendent leur propre fin.
+ * par JavaScript n'y figurent pas : `Enter` annonce la fin de la sienne par `data-entree="arrive"`, que l'attente guette aussi
+ * (mi-fondu, un texte a un faux contraste pour axe). Les autres sections animées par Motion attendent leur propre fin.
  */
 export async function attendLeRepos(page: Page): Promise<void> {
+  await page.waitForFunction(() => document.querySelector('[data-entree="en-cours"]') === null)
   await page.evaluate(() =>
     Promise.allSettled(
       document.getAnimations()
