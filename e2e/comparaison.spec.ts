@@ -10,6 +10,11 @@ import { expect, test } from './garde.ts'
 const RACINE = resolve(import.meta.dirname, '..')
 const REFERENCE = pathToFileURL(resolve(RACINE, '.design/systeme/reference.html')).href
 
+// WebKit applique `animations: 'disabled'` en injectant une feuille de style : la CSP en `enforce` du banc la refuse (constaté en
+// CI, une violation par capture), et la garde, qui ne distingue pas l'outil de la page, fait échouer le test. Ce test ne garde pas
+// la CSP (garde.spec.ts, banc.axe.spec.ts et les autres le font sur le même banc, sans captures) : il la contourne.
+test.use({ bypassCSP: true })
+
 /*
  * Chaque cas du banc est capturé à côté de la même section de `reference.html`, pour que la session de design juge. Aucune
  * comparaison de pixels ne fait échouer le test (un pixel change à chaque espacement) : il échoue seulement si l'appariement

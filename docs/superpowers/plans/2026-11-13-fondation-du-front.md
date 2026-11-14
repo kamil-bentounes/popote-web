@@ -1530,7 +1530,10 @@ Typographie portent une `cle`, sans `reference`.
   (`’`) vaut l'apostrophe droite (la référence écrit « d'écran », le banc peut écrire « d’écran ») ; une section de la référence sans aucune légende (sa page a mal tourné) et deux sections de même titre sont des erreurs ; l'appariement faux
   s'annonce avant toute capture (deux cas de même légende rendaient un sélecteur ambigu : erreur Playwright au lieu du diagnostic) ; une capture vide ou introuvable est nommée en 5 s, non en 30 s sans nom ; les polices de la page de référence
   doivent toutes se charger (sinon de faux écarts, sans signal) ; le délai du test est de 180 s (deux captures par cas, WebKit lent) ; l'index écrit « ÉCART » (la couleur seule ne suffit pas) et la légende de la référence appariée (deux `reference`
-  croisées passent l'appariement, l'œil les voit). **Non prouvé** : WebKit n'a pas joué ce test en local (voir la PR pour la CI) ; le `:scope > small` n'a pas de cas qui le distingue avant que F12 porte la section « Bloc… ».
+  croisées passent l'appariement, l'œil les voit). **Non prouvé** : le `:scope > small` n'a pas de cas qui le distingue avant que F12 porte la section « Bloc… ».
+- **WebKit (constaté en CI au premier passage)** : `animations: 'disabled'` s'y réalise en injectant une feuille de style, que la CSP en `enforce` du banc refuse (une violation `style-src-elem` par capture) : la garde, qui ne distingue pas l'outil de
+  la page, faisait échouer le test. `comparaison.spec.ts` passe donc `bypassCSP: true` ; la CSP reste gardée par les autres specs sur le même banc. La page `file://` de la référence et ses polices se chargent bien dans WebKit (le contrôle des polices passe).
+  Tout test futur qui capture avec `animations: 'disabled'` sur le banc doit en faire autant.
 - **Captures** : `animations: 'disabled'` (les animations CSS finies vont à leur état final, les infinies reviennent à leur début, des deux côtés) et `?fige` (Motion à son état final) ; l'état de repos de F14 et suivants se compare donc, non leur mouvement. La page de
   référence s'ouvre dans une seconde page du même contexte, **non surveillée** par la garde : ses erreurs ne font pas échouer le test (elle a ses scripts et styles en ligne, hors de notre CSP).
 
