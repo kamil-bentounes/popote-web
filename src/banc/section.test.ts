@@ -38,4 +38,13 @@ describe('fusionne', () => {
   it('un titre explicite l’emporte sur la référence', () => {
     expect(titreDe({ reference: 'Couleurs', titre: 'Nuances', cas: [] })).toBe('Nuances')
   })
+
+  it('réunit les légendes reportées des fichiers qui désignent le même titre', () => {
+    const [bouton] = fusionne([
+      { reference: 'Bouton', reportees: ['À maintenir'], cas: [cas('Principal')] },
+      { reference: 'Bouton', reportees: ['Autre'], cas: [cas('Jaune')] },
+      { reference: 'Bouton', cas: [cas('Blanc')] },
+    ])
+    expect(bouton?.reportees).toEqual(['À maintenir', 'Autre'])
+  })
 })

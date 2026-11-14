@@ -8,12 +8,16 @@ const BALISES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 /*
  * Axe ne tranche pas toujours : un fond en dégradé ou un recouvrement rend le contraste « incomplet » (ni réussi ni violé).
  * Un test qui ne lit que les violations resterait vert si un contraste cessait d'être mesuré : on compte donc aussi les
- * réussites et on borne les incomplets. Admis aujourd'hui, tous dans la scène du soleil (un décor de 700 px dont axe lit la
- * boîte sans le rognage de la scène) : le titre de la section, le texte posé sur le soleil (dégradé), sa légende, et le titre
- * de la section qui suit. À relever seulement avec une raison écrite ; ces paires se jugent à l'œil.
+ * réussites et on borne les incomplets. Admis aujourd'hui, deux au plus, que l'on juge à l'œil : le texte posé sur le soleil de la
+ * sonde du lien d'évitement (un dégradé), et, au téléphone seulement, la légende du tampon de la sonde des paires (cause non établie : le tampon
+ * tourne, et c'est son voisinage qu'axe juge recouvert). Le soleil, de 700 px, déborde aussi de sa scène, et axe lit sa boîte sans le rognage : le texte
+ * voisin lui paraissait « recouvert » (le titre et la légende de la scène ; F9 a vu l'aide et la légende du champ, juste au-dessus).
+ * La scène a donc une marge (`.scene--sonde`, `banc.css`) qui tient le soleil à distance de tout autre texte, et la borne est
+ * redescendue de 4 à 2. À relever seulement avec une raison écrite.
  */
-const INCOMPLETS_ADMIS = 4
-const REUSSITES_MIN = 90
+// Au téléphone et sous WebKit (390 px) : le texte du soleil et la légende du tampon ; au PC : le texte du soleil seul.
+const incompletsAdmis = (projet: string) => (projet === 'pc' ? 1 : 2)
+const REUSSITES_MIN = 125
 
 async function mesure(page: Page, include: string) {
   const { violations, incomplete, passes } = await new AxeBuilder({ page }).include(include).withTags(BALISES).analyze()
@@ -24,7 +28,7 @@ async function mesure(page: Page, include: string) {
 // Le contraste est inclus : c'est ici, dans un vrai navigateur, qu'il se mesure (happy-dom n'a pas de mise en page). Deux
 // passes : avec et sans mouvement réduit, qui change ce que le système dessine (`composants.css`, fin du fichier).
 for (const mouvement of ['no-preference', 'reduce'] as const) {
-  test(`axe ne trouve aucune violation WCAG A et AA dans chaque section, et mesure le contraste (mouvement : ${mouvement})`, async ({ page }) => {
+  test(`axe ne trouve aucune violation WCAG A et AA dans chaque section, et mesure le contraste (mouvement : ${mouvement})`, async ({ page }, info) => {
     await page.emulateMedia({ reducedMotion: mouvement })
     await ouvreLeBanc(page)
     const titres = await titresDesSections(page)
@@ -39,7 +43,7 @@ for (const mouvement of ['no-preference', 'reduce'] as const) {
       reussites += mesures.reussitesContraste
     }
     expect(violations).toEqual([])
-    expect(incomplets, 'contrastes qu’axe ne tranche pas : voir INCOMPLETS_ADMIS').toBeLessThanOrEqual(INCOMPLETS_ADMIS)
+    expect(incomplets, 'contrastes qu’axe ne tranche pas : voir incompletsAdmis').toBeLessThanOrEqual(incompletsAdmis(info.project.name))
     expect(reussites, 'contrastes mesurés et réussis').toBeGreaterThanOrEqual(REUSSITES_MIN)
   })
 }

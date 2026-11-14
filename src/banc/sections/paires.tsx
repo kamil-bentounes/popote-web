@@ -20,17 +20,17 @@ export const section: Section = {
     cas('Lien de danger, erreur sur crème', <button type="button" className="lien lien--danger">Quitter Popote</button>),
     cas('Champ et son aide', (
       <>
-        <label className="champ"><span>Ton e-mail</span><input type="email" placeholder="toi@exemple.fr" aria-describedby="aide-paire" /></label>
+        <div className="champ"><label htmlFor="champ-paire-1">Ton e-mail</label><input id="champ-paire-1" type="email" placeholder="toi@exemple.fr" aria-describedby="aide-paire" /></div>
         <small id="aide-paire">Une aide, en gris sur crème</small>
       </>
     )),
     cas('Champ en erreur', (
       <>
-        <label className="champ" data-erreur><span>Ton e-mail</span><input type="email" defaultValue="lea@exemple" aria-invalid="true" aria-describedby="erreur-paire" /></label>
+        <div className="champ" data-erreur><label htmlFor="champ-paire-2">Ton e-mail</label><input id="champ-paire-2" type="email" defaultValue="lea@exemple" aria-invalid="true" aria-describedby="erreur-paire" /></div>
         <small className="erreur" id="erreur-paire" role="alert">Il manque la fin de l’adresse.</small>
       </>
     )),
-    cas('Champ désactivé', <label className="champ"><span>Ton prénom</span><input type="text" defaultValue="Léa" disabled /></label>),
+    cas('Champ désactivé', <div className="champ"><label htmlFor="champ-paire-3">Ton prénom</label><input id="champ-paire-3" type="text" defaultValue="Léa" disabled /></div>),
     cas('Pastilles', (
       <div className="pastilles">
         <span className="pastille">C’est toi</span><span className="pastille pastille--menthe">Invitée</span>
