@@ -1,8 +1,9 @@
 /* La base de l'appli, dans `@layer base` (sous les composants et les utilitaires). Remplace `coque.css` de F3. */
 @layer base {
-  /* La racine : le fond couvre tout l'écran, même sous la barre d'état d'un téléphone ; la police, la graisse, la taille et
+  /* La racine : le fond couvre tout l'écran, même sous la barre d'état d'un téléphone ; la police, la graisse et
      l'interligne sont ce qu'était `.jeu` dans le système (la police se pose ici, sur `html`, pour que tout en hérite,
-     même hors du corps). */
+     même hors du corps). PAS de `font-size` ici : la taille de la racine fixe le `rem`, et dans le système `.jeu` n'est
+     pas `html` (`rem` y vaut 16 px) ; la poser sur `html` ferait grossir de 3,1 % tout ce qui est en `rem`. */
   html {
     background: var(--color-creme);
     color: var(--color-encre);
@@ -10,13 +11,13 @@
     -webkit-text-size-adjust: 100%;
     font-family: var(--font-texte);
     font-weight: 700;
-    font-size: var(--text-texte);
     line-height: 1.35;
   }
 
-  /* Le corps : la hauteur de l'écran et la zone sûre des téléphones (`viewport-fit=cover` dans index.html). Les marges sont
-     déjà nulles (preflight), qui ferme aussi `[hidden]` (même contre `.bouton` en `inline-flex`). */
+  /* Le corps : la taille du texte courant (16,5 px, comme `.jeu`), la hauteur de l'écran et la zone sûre des téléphones
+     (`viewport-fit=cover` dans index.html). Les marges sont déjà nulles (preflight), qui ferme aussi `[hidden]` (même contre `.bouton` en `inline-flex`). */
   body {
+    font-size: var(--text-texte);
     min-height: 100dvh;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     background: var(--color-creme);
