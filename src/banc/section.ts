@@ -25,6 +25,12 @@ export type Section = {
    * Sans cela, la comparaison mesurerait des cas plus larges ou plus étroits que ceux de la référence.
    */
   colonne?: number | 'pleine'
+  /**
+   * Les légendes de `reference.html` (début de légende, comme `Cas.reference`) que le banc ne montre pas encore parce qu'un lot
+   * suivant les porte : « À maintenir » (F10), les cases du code (F11). Le lot qui ajoute le cas retire la déclaration : une
+   * déclaration que le banc contredit fait échouer la comparaison (`e2e/comparaison/appariement.ts`).
+   */
+  reportees?: string[]
 } & (
   | { reference: string; titre?: string }
   | { titre: string; reference?: undefined }
@@ -39,6 +45,7 @@ export interface SectionFusionnee {
   titre: string
   reference?: string
   colonne?: number | 'pleine'
+  reportees?: string[]
   cas: Cas[]
 }
 
@@ -51,6 +58,7 @@ export function fusionne(sections: Section[]): SectionFusionnee[] {
       titre,
       reference: section.reference ?? deja?.reference,
       colonne: section.colonne ?? deja?.colonne,
+      reportees: section.reportees || deja?.reportees ? [...(deja?.reportees ?? []), ...(section.reportees ?? [])] : undefined,
       cas: [...(deja?.cas ?? []), ...section.cas],
     })
   }

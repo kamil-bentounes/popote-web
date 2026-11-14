@@ -62,6 +62,7 @@ test('chaque cas du banc est capturé à côté de la même section de reference
     sections.map((s) => ({
       titre: s.getAttribute('data-section') ?? '',
       reference: s.getAttribute('data-reference') ?? undefined,
+      reportees: JSON.parse(s.getAttribute('data-reportees') ?? 'null') ?? undefined,
       cas: [...s.querySelectorAll('[data-cas]')].map((c) => ({
         legende: c.getAttribute('data-cas') ?? '',
         reference: c.getAttribute('data-reference') ?? undefined,

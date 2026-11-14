@@ -9,7 +9,7 @@ export const section: Section = {
   titre: 'Anneaux de focus',
   cas: [
     { legende: 'Bouton', rendu: <button type="button" className="bouton">Continuer</button> },
-    { legende: 'Champ', rendu: <label className="champ"><span>Ton e-mail</span><input type="email" /></label> },
+    { legende: 'Champ', rendu: <div className="champ"><label htmlFor="champ-focus">Ton e-mail</label><input id="champ-focus" type="email" /></div> },
     { legende: 'Lien', rendu: <button type="button" className="lien">Annuler</button> },
     {
       legende: 'Cases du code',

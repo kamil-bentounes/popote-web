@@ -36,6 +36,8 @@ Un fichier de `src/banc/sections/` exporte `section: Section` (`src/banc/section
 référence, ou `'pleine'` pour un bloc seul : sans elle, la comparaison mesure des cas plus larges ou plus étroits), et des `cas` : `legende`, `rendu`, et `reference`, le
 **début** de la légende de la référence (sans casse ni espaces multiples ; l'égalité exacte l'emporte ; il doit désigner une seule
 légende, sinon la comparaison échoue ; sans lui, le cas est signalé « sans pendant »). Une légende de la référence que le banc n'a pas
-encore, dans une section déjà portée, fait échouer la comparaison : on porte une section en entier. Aucune liste à éditer : le banc
+encore, dans une section déjà portée, fait échouer la comparaison : on porte une section en entier. Quand un autre lot porte le reste,
+la section le dit par `reportees` (les débuts de légende à venir : « À maintenir » pour F10, les cases du code pour F11) ; le lot qui ajoute
+le cas **retire** la déclaration, et une déclaration que le banc contredit échoue. Aucune liste à éditer : le banc
 charge le dossier par `import.meta.glob`. Plusieurs fichiers de même titre sont fusionnés (le titre est `reference`, sauf `titre` explicite).
 Pas de `style=` dans le HTML ; le prop `style` de React est admis, avec des `var(--…)`. Aucune donnée réelle : « Léa », `@exemple.fr`.

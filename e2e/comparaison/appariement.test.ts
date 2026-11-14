@@ -89,6 +89,31 @@ describe('apparie', () => {
     expect(paires.map((p) => p.reference.legende)).toEqual(['tomate foncée', 'tomate'])
   })
 
+  it('accepte une légende que le banc remet à un lot suivant (`reportees`), et elle reste hors des paires', () => {
+    const avecDeux: SectionReference[] = [{ titre: 'Bouton', elements: [
+      { legende: 'Principal, au repos', genre: 'cas', rang: 0 },
+      { legende: 'À maintenir 2 s, au doigt', genre: 'cas', rang: 1 },
+    ] }]
+    const { erreurs, paires } = apparie(avecDeux, [{ titre: 'Bouton', reference: 'Bouton', reportees: ['À maintenir'], cas: [{ legende: 'Principal', reference: 'Principal' }] }])
+    expect(erreurs).toEqual([])
+    expect(paires.map((p) => p.reference.rang)).toEqual([0])
+    // Sans la déclaration, la même section échoue : la légende manque.
+    const sans = apparie(avecDeux, [{ titre: 'Bouton', reference: 'Bouton', cas: [{ legende: 'Principal', reference: 'Principal' }] }])
+    expect(sans.erreurs.join('\n')).toMatch(/« À maintenir 2 s, au doigt » de reference.html manque au banc/)
+  })
+
+  it('refuse une légende reportée qui n’existe pas, qui en désigne plusieurs, ou que le banc montre déjà (déclaration périmée)', () => {
+    const deux: SectionReference[] = [{ titre: 'Bouton', elements: [
+      { legende: 'Principal, au repos', genre: 'cas', rang: 0 },
+      { legende: 'Principal, occupé', genre: 'cas', rang: 1 },
+    ] }]
+    const cas = [{ legende: 'Principal', reference: 'Principal, au repos' }]
+    const erreurs = (reportees: string[]) => apparie(deux, [{ titre: 'Bouton', reference: 'Bouton', reportees, cas }]).erreurs.join('\n')
+    expect(erreurs(['Fantôme'])).toMatch(/reportée « Fantôme » ne désigne aucune légende/)
+    expect(erreurs(['Principal'])).toMatch(/reportée « Principal » désigne plusieurs légendes/)
+    expect(erreurs(['Principal, au repos'])).toMatch(/reportée « Principal, au repos » est déjà montrée par le banc/)
+  })
+
   it('refuse une section de la référence sans aucune légende (sa page a mal tourné), et deux sections de même titre', () => {
     const vide: SectionReference[] = [{ titre: 'La marmite', elements: [] }, { titre: 'Bouton', elements: [] }, { titre: 'bouton', elements: [] }]
     const { erreurs } = apparie(vide, [
