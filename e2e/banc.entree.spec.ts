@@ -65,10 +65,10 @@ test('en mouvement réduit, rien ne se déplace ni ne grandit : l’opacité seu
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await ouvreLeBanc(page)
   const { depart, arrivees } = await rejoue(page)
-  for (const { opacity, transform } of depart) {
-    expect(opacity).toBe('0')
-    expect(transform).toBe('none')
-  }
+  // Pas d'assertion sur l'opacité de départ : l'animation dure 1 ms, et WebKit en rend déjà l'état final quand on lit le style (constaté en CI, 1 au lieu de 0).
+  // Ce qui compte ici est qu'aucune transformation n'ait jamais existé.
+  expect(depart).toHaveLength(4)
+  for (const { transform } of depart) expect(transform).toBe('none')
   expect(arrivees.every(Number.isFinite)).toBe(true)
   // Sans retard par rang : le quatrième arrive avec le premier, à une image près.
   expect(arrivees[3]! - arrivees[0]!).toBeLessThan(120)
