@@ -11,7 +11,10 @@ import { erreurs as textes } from '../textes/erreurs'
 // L'adresse par défaut du client est l'origine de la page : sous happy-dom, `http://localhost:3000`.
 const serveur = setupServer()
 beforeAll(() => serveur.listen({ onUnhandledFrame: 'error' }))
-afterEach(() => serveur.resetHandlers())
+afterEach(() => {
+  serveur.resetHandlers()
+  vi.restoreAllMocks()
+})
 afterAll(() => serveur.close())
 
 const MOI = { id: 'p1', email: 'lea@exemple.fr', display_name: 'Léa', household: null }
@@ -31,10 +34,12 @@ describe('en-têtes et réglages de toute requête', () => {
   it('porte X-Popote-Client: web, credentials same-origin et cache no-store, même pour une écriture', async () => {
     // happy-dom ne rend ni `cache` ni `credentials` sur une `Request` : on lit ce que le client lui donne à construire.
     const construites: { entetes: Headers; credentials?: string; cache?: string }[] = []
+    const reconstruites: (keyof RequestInit)[][] = []
     class RequeteEspion extends Request {
       constructor(entree: RequestInfo | URL, init?: RequestInit) {
         super(entree, init)
         if (typeof entree === 'string') construites.push({ entetes: new Headers(init?.headers), credentials: init?.credentials, cache: init?.cache })
+        else reconstruites.push(Object.keys(init ?? {}) as (keyof RequestInit)[])
       }
     }
     vi.stubGlobal('Request', RequeteEspion)
@@ -46,11 +51,34 @@ describe('en-têtes et réglages de toute requête', () => {
       vi.unstubAllGlobals()
     }
     expect(construites).toHaveLength(2)
+    // Le délai ne refait pas la requête d'openapi-fetch : il lui ajoute un signal, rien d'autre (corps, cache, credentials hérités).
+    expect(reconstruites).toEqual([['signal'], ['signal']])
     for (const requete of construites) {
       expect(requete.entetes.get('X-Popote-Client')).toBe('web')
       expect(requete.credentials).toBe('same-origin')
       expect(requete.cache).toBe('no-store')
     }
+  })
+
+  it('le corps JSON d’une écriture arrive intact', async () => {
+    let recu: unknown
+    serveur.use(
+      http.post('http://localhost:3000/api/v1/login-codes', async ({ request }) => {
+        recu = await request.json()
+        return HttpResponse.json({ expires_in: 600 }, { status: 202 })
+      }),
+    )
+    const { client } = creeEssai()
+    await client.POST('/api/v1/login-codes', { body: { email: 'lea@exemple.fr' } })
+    expect(recu).toEqual({ email: 'lea@exemple.fr' })
+  })
+
+  it('n’emploie pas AbortSignal.any, absent des navigateurs plus anciens que Chrome 116 et Safari 17.4', async () => {
+    vi.spyOn(AbortSignal, 'any').mockImplementation(() => {
+      throw new TypeError('AbortSignal.any is not a function')
+    })
+    serveur.use(http.get(URL_MOI, () => HttpResponse.json(MOI)))
+    expect(await lit(creeEssai().client.GET('/api/v1/me'))).toEqual(MOI)
   })
 
   it('envoie l’Idempotency-Key entre guillemets, et ne compile pas sans elle', async () => {
@@ -127,15 +155,16 @@ describe('lit et litVide', () => {
   it('une 204 est un succès de litVide, une 200 illisible est une erreur inattendue sans le texte reçu', async () => {
     serveur.use(
       http.delete(URL_MOI, () => new HttpResponse(null, { status: 204 })),
-      http.get(URL_MOI, () => new HttpResponse('<html>page de proxy</html>', { status: 200, headers: { 'Content-Type': 'application/json' } })),
+      http.get(URL_MOI, () => new HttpResponse('<html>SECRET-de-proxy</html>', { status: 200, headers: { 'Content-Type': 'application/json' } })),
     )
     const { client } = creeEssai()
     await expect(litVide(client.DELETE('/api/v1/me'))).resolves.toBeUndefined()
     const erreur = (await lit(client.GET('/api/v1/me')).catch((e: unknown) => e)) as ErreurApi
     expect(erreur).toBeInstanceOf(ErreurApi)
     expect(erreur).toMatchObject({ status: 0, title: textes.inattendu })
+    // La cause garde sa nature, mais pas le message de `JSON.parse`, qui cite le début du corps (« Unexpected token '<', "<html>SECR… »).
     expect(erreur.cause).toBeInstanceOf(SyntaxError)
-    expect(JSON.stringify(erreur) + erreur.message).not.toContain('proxy')
+    expect(String((erreur.cause as Error).message) + erreur.message + JSON.stringify(erreur)).not.toMatch(/html|SECRET|proxy/)
   })
 
   it('lit refuse une réponse réussie sans corps, litVide refuse une erreur', async () => {
@@ -167,17 +196,68 @@ describe('échecs sans réponse', () => {
     expect(vus.find((v) => v.nom === 'requete:fin')?.donnees).toMatchObject({ issue: 'delai' })
   })
 
-  it('un AbortSignal annule : l’annulation remonte telle quelle, sans passer pour une panne du réseau', async () => {
-    serveur.use(http.get(URL_MOI, async () => { await delay('infinite') }))
+  it('un AbortSignal annule en vol : l’annulation remonte telle quelle, sans passer pour une panne du réseau', async () => {
+    let arrivee = () => {}
+    const arrive = new Promise<void>((resolu) => (arrivee = resolu))
+    serveur.use(http.get(URL_MOI, async () => { arrivee(); await delay('infinite') }))
     const { client, vus, noms } = creeEssai()
     const controle = new AbortController()
-    const appel = lit(client.GET('/api/v1/me', { signal: controle.signal }))
+    const appel = lit(client.GET('/api/v1/me', { signal: controle.signal })).catch((e: unknown) => e)
+    await arrive
     controle.abort()
-    const erreur = await appel.catch((e: unknown) => e)
+    const erreur = await appel
     expect(erreur).not.toBeInstanceOf(ErreurReseau)
     expect(erreur).toMatchObject({ name: 'AbortError' })
     expect(noms()).toEqual(['requete:debut', 'requete:fin'])
     expect(vus.find((v) => v.nom === 'requete:fin')?.donnees).toMatchObject({ issue: 'annulee' })
+  })
+
+  it('un signal déjà annulé n’envoie rien et remonte l’annulation', async () => {
+    const controle = new AbortController()
+    controle.abort()
+    const erreur = await lit(creeEssai().client.GET('/api/v1/me', { signal: controle.signal })).catch((e: unknown) => e)
+    expect(erreur).toMatchObject({ name: 'AbortError' })
+  })
+
+  describe('pendant la lecture du corps, déjà après les en-têtes', () => {
+    const corpsCoupe = () => new ReadableStream({ start: (c) => { c.enqueue(new TextEncoder().encode('{"id":')); c.error(new TypeError('network error')) } })
+
+    it('une coupure est une ErreurReseau, et la requête finit en coupure, jamais en réponse', async () => {
+      const { client, vus } = creeEssai({ fetch: () => Promise.resolve(new Response(corpsCoupe(), { status: 200, headers: { 'Content-Type': 'application/json' } })) })
+      const erreur = await lit(client.GET('/api/v1/me')).catch((e: unknown) => e)
+      expect(erreur).toMatchObject({ name: 'ErreurReseau', nature: 'coupure' })
+      expect(vus.map((v) => v.donnees).filter((d) => 'issue' in d).map((d) => 'issue' in d && d.issue)).toEqual(['coupure'])
+      expect(vus.map((v) => v.nom)).toContain('reseau:erreur')
+    })
+
+    it('un corps qui n’arrive jamais est un délai dépassé', async () => {
+      const lenteur = (requete: Request) =>
+        Promise.resolve(new Response(new ReadableStream({ start: (c) => requete.signal.addEventListener('abort', () => c.error(requete.signal.reason)) }), { status: 200 }))
+      const { client } = creeEssai({ fetch: lenteur, delaiMs: 20 })
+      await expect(lit(client.GET('/api/v1/me'))).rejects.toMatchObject({ name: 'ErreurReseau', nature: 'delai' })
+    })
+  })
+
+  describe('délai par défaut', () => {
+    afterEach(() => vi.useRealTimers())
+
+    it('n’abandonne pas de minuteur derrière une requête terminée', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      await lit(creeEssai({ fetch: () => Promise.resolve(Response.json(MOI)) }).client.GET('/api/v1/me'))
+      expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it('coupe à 35 s, pas avant', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const sansReponse = (requete: Request) => new Promise<Response>((_, rejette) => requete.signal.addEventListener('abort', () => rejette(requete.signal.reason)))
+      const appel = lit(creeEssai({ fetch: sansReponse }).client.GET('/api/v1/me')).catch((e: unknown) => e)
+      let fini = false
+      void appel.then(() => (fini = true))
+      await vi.advanceTimersByTimeAsync(34_999)
+      expect(fini).toBe(false)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(await appel).toMatchObject({ name: 'ErreurReseau', nature: 'delai' })
+    })
   })
 })
 
@@ -197,6 +277,21 @@ describe('événements', () => {
     expect(d2).toMatchObject({ methode: 'DELETE', chemin: '/api/v1/me/invitations/{id}' })
     expect(f2).toMatchObject({ id: d2?.id, issue: 'reponse', statut: 409 })
     expect(d1?.id).not.toBe(d2?.id)
+  })
+
+  it.each([500, 503])('une réponse %i ferme aussi la requête (sinon F18 la compterait en cours pour toujours)', async (statut) => {
+    serveur.use(http.get(URL_MOI, () => new HttpResponse(null, { status: statut })))
+    const { client, noms, vus } = creeEssai()
+    await client.GET('/api/v1/me')
+    expect(noms()).toEqual(['requete:debut', 'requete:fin'])
+    expect(vus[1]?.donnees).toMatchObject({ issue: 'reponse', statut })
+  })
+
+  it('émet limite avec le Retry-After lu, 10 s à défaut', async () => {
+    serveur.use(http.get(URL_MOI, () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })))
+    const { client, vus } = creeEssai()
+    await client.GET('/api/v1/me')
+    expect(vus.find((v) => v.nom === 'limite')?.donnees).toMatchObject({ retryApresS: 30 })
   })
 
   it('émet limite (avec le temps d’attente) sur une 429 et non-authentifie sur une 401', async () => {

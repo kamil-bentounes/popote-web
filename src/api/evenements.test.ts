@@ -1,5 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { creeEmetteur } from './evenements'
+
+afterEach(() => vi.restoreAllMocks())
 
 const limite = { chemin: '/api/v1/me', methode: 'GET', retryApresS: 30 }
 
@@ -34,6 +36,29 @@ describe('creeEmetteur', () => {
     expect(tardif).not.toHaveBeenCalled()
     emetteur.emet('limite', limite)
     expect(tardif).toHaveBeenCalledOnce()
+  })
+
+  it('la même fonction abonnée deux fois est deux abonnements : se désabonner de l’un laisse l’autre', () => {
+    const emetteur = creeEmetteur()
+    const ecouteur = vi.fn<() => void>()
+    const retire = emetteur.sur('limite', ecouteur)
+    emetteur.sur('limite', ecouteur)
+    retire()
+    emetteur.emet('limite', limite)
+    expect(ecouteur).toHaveBeenCalledOnce()
+  })
+
+  it('sans signalement injecté, l’erreur d’un abonné est relancée hors de l’appel, jamais avalée', () => {
+    const planifies: (() => void)[] = []
+    vi.spyOn(globalThis, 'queueMicrotask').mockImplementation((tache) => void planifies.push(tache))
+    const panne = new Error('abonné défaillant')
+    const emetteur = creeEmetteur()
+    emetteur.sur('limite', () => {
+      throw panne
+    })
+    expect(() => emetteur.emet('limite', limite)).not.toThrow()
+    expect(planifies).toHaveLength(1)
+    expect(() => planifies[0]?.()).toThrow(panne)
   })
 
   it('un abonné qui échoue est signalé et ne prive pas les autres', () => {

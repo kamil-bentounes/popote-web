@@ -4,13 +4,14 @@ import { depuisReponse, ErreurApi } from './erreurs'
 type Resultat<Donnees> = { data?: Donnees; error?: unknown; response: Response }
 
 // openapi-fetch lève un `SyntaxError` quand une réponse réussie n'est pas du JSON (page d'un proxy ou d'un portail) : aucune
-// réponse exploitable, donc le statut 0, et le texte reçu n'est pas gardé. Le reste (réseau, annulation) a déjà son type.
+// réponse exploitable, donc le statut 0. Le message de `JSON.parse` cite le début du corps : la cause est réécrite sans lui.
+// Le reste (réseau, délai, annulation) a déjà son type : le client lit le corps avant de rendre la main (`avecDelai`).
 async function attends<Donnees>(promesse: Promise<Resultat<Donnees>>): Promise<Resultat<Donnees>> {
   try {
     return await promesse
-  } catch (cause) {
-    if (cause instanceof SyntaxError) throw new ErreurApi({ status: 0, title: textes.inattendu }, { cause })
-    throw cause
+  } catch (erreur) {
+    if (erreur instanceof SyntaxError) throw new ErreurApi({ status: 0, title: textes.inattendu }, { cause: new SyntaxError('corps de réponse illisible') })
+    throw erreur
   }
 }
 

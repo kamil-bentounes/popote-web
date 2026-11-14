@@ -9,8 +9,9 @@ const RETRY_APRES_MAX_S = 86_400
 const RETRY_APRES_REPLI_S = 10
 
 const SECONDES_ENTIERES = /^\d+$/
-// Une date HTTP (IMF-fixdate, RFC 850 ou asctime) commence par un nom de jour : écarte « -5 » ou « 1e3 » que `Date.parse` lirait.
-const DATE_HTTP = /^[A-Za-z]{3}/
+// Seule la forme actuelle d'une date HTTP (IMF-fixdate, RFC 9110 § 5.6.7) : `Date.parse` lirait « May 5 » ou « -5 », et une date
+// sans fuseau (asctime) en heure locale. L'API ne pose que des secondes ; la date est une tolérance.
+const DATE_HTTP = /^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/
 
 function borne(secondes: number): number {
   return Math.min(Math.max(Math.ceil(secondes), RETRY_APRES_MIN_S), RETRY_APRES_MAX_S)
@@ -114,7 +115,8 @@ function lisErreursDeChamp(valeur: unknown): ErreurDeChamp[] | undefined {
     const [nom, lieu] = estObjet(entree.parameter) ? [texteBorne(entree.parameter.name), texteBorne(entree.parameter.in)] : []
     const champ: ErreurDeChamp = {
       message,
-      pointer: texteBorne(entree.pointer) ?? null,
+      // La racine du corps s'écrit `""` (RFC 6901) : une chaîne vide est un pointeur, non l'absence de pointeur.
+      pointer: typeof entree.pointer === 'string' && entree.pointer.length <= TEXTE_MAX ? entree.pointer : null,
       parameter: nom !== undefined && lieu !== undefined ? { name: nom, in: lieu } : null,
     }
     return [champ]

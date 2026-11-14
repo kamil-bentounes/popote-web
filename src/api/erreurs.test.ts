@@ -55,6 +55,22 @@ describe('depuisReponse, corps problem+json', () => {
     expect(erreur.title).toBe(textes.serveur)
   })
 
+  it('accepte le pointeur de la racine (chaîne vide, RFC 6901) : l’erreur porte sur tout le corps', () => {
+    const erreur = depuisReponse(reponse(422, { 'Content-Type': PROBLEME }), { errors: [{ pointer: '', message: 'Corps refusé.' }] })
+    expect(erreur.errors).toEqual([{ message: 'Corps refusé.', pointer: '', parameter: null }])
+  })
+
+  it('reconnaît le type de contenu sans tenir compte de la casse, et borne à 100 les erreurs de champ', () => {
+    const errors = Array.from({ length: 150 }, (_, i) => ({ pointer: `/c${i}`, message: 'Refusé.' }))
+    const erreur = depuisReponse(reponse(422, { 'Content-Type': 'Application/Problem+JSON' }), { title: 'Données invalides', errors })
+    expect(erreur.title).toBe('Données invalides')
+    expect(erreur.errors).toHaveLength(100)
+  })
+
+  it('reprend X-Request-Id quand le problem+json n’a pas d’instance', () => {
+    expect(depuisReponse(reponse(500, { 'Content-Type': PROBLEME, 'X-Request-Id': 'abc123' }), { title: 'x' }).instance).toBe('abc123')
+  })
+
   it.each([['une phrase'], [null], [[1, 2]], [42]])('un corps problem+json qui n’est pas un objet (%j) donne l’erreur générique', (corps) => {
     expect(depuisReponse(reponse(500, { 'Content-Type': PROBLEME }), corps).title).toBe(textes.serveur)
   })
@@ -83,6 +99,7 @@ describe('depuisReponse, tout autre corps', () => {
   it('donne un titre propre à la classe de statut : serveur, délai, inattendu', () => {
     expect(depuisReponse(reponse(503), '').title).toBe(textes.serveur)
     expect(depuisReponse(reponse(504), '').title).toBe(textes.delai)
+    expect(depuisReponse(reponse(408), '').title).toBe(textes.delai)
     expect(depuisReponse(reponse(404), '').title).toBe(textes.inattendu)
   })
 
@@ -109,7 +126,11 @@ describe('Retry-After', () => {
     expect(lisRetryApres(valeur, maintenant)).toBe(attendu)
   })
 
-  it.each([['-5'], ['abc'], ['1.5'], ['1e3'], [''], ['5 secondes'], [null]])('%j est absent ou illisible', (valeur) => {
+  it('arrondit au-dessus : 89,5 s d’attente se lisent 90 s, jamais 89', () => {
+    expect(lisRetryApres('Wed, 21 Oct 2015 07:29:30 GMT', () => maintenant() + 500)).toBe(90)
+  })
+
+  it.each([['-5'], ['abc'], ['1.5'], ['1e3'], [''], ['5 secondes'], ['May 5'], ['Sun Nov  6 08:49:37 1994'], [null]])('%j est absent ou illisible', (valeur) => {
     expect(lisRetryApres(valeur, maintenant)).toBeUndefined()
   })
 
@@ -131,7 +152,19 @@ describe('Retry-After', () => {
   })
 })
 
+describe('ErreurApi', () => {
+  it('a pour message le statut et le code s’il y en a un, jamais un texte reçu', () => {
+    expect(new ErreurApi({ status: 500, title: 'x' }).message).toBe('HTTP 500')
+    expect(new ErreurApi({ status: 503, title: 'x', code: 'base_indisponible' }).message).toBe('HTTP 503 base_indisponible')
+  })
+})
+
 describe('ErreurReseau', () => {
+  it('a une phrase propre à sa nature', () => {
+    expect(new ErreurReseau('coupure', { cause: null }).message).toBe(textes.reseau)
+    expect(new ErreurReseau('delai', { cause: null }).message).toBe(textes.delai)
+  })
+
   it('garde la cause et dit si c’est une coupure ou un délai', () => {
     const cause = new TypeError('Failed to fetch')
     const erreur = new ErreurReseau('delai', { cause })

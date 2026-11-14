@@ -4,6 +4,7 @@ import { evenements, type Emetteur } from './evenements'
 import type { paths } from './schema'
 
 // Le relais coupe à 30 s et l'API répond avant, à 25 s : on attend un peu plus pour recevoir leur réponse plutôt que couper avant eux.
+// Une route plus lente (appel au modèle) aura son client, avec son `delaiMs`.
 const DELAI_MS = 35_000
 
 type Options = {
@@ -14,11 +15,36 @@ type Options = {
   emetteur?: Emetteur
 }
 
-const estDelai = (erreur: unknown) => typeof erreur === 'object' && erreur !== null && 'name' in erreur && erreur.name === 'TimeoutError'
-
+/**
+ * Borne la requête dans le temps, et lit le corps avant de rendre la réponse : une coupure ou un délai pendant cette lecture est
+ * alors une erreur du `fetch` (donc de `onError`, typée), non une erreur brute levée plus tard par `response.json()`.
+ * Les signaux sont chaînés à la main : `AbortSignal.any` manque avant Chrome 116 et Safari 17.4, et `fetch` ne rend pas
+ * toujours `TimeoutError` pour un signal expiré, d'où l'indicateur `delaiDepasse`.
+ */
 function avecDelai(base: Options['fetch'], delaiMs: number): (requete: Request) => Promise<Response> {
-  return (requete) =>
-    (base ?? globalThis.fetch)(new Request(requete, { signal: AbortSignal.any([requete.signal, AbortSignal.timeout(delaiMs)]) }))
+  return async (requete) => {
+    const controle = new AbortController()
+    let delaiDepasse = false
+    const relayeAnnulation = () => controle.abort(requete.signal.reason)
+    if (requete.signal.aborted) relayeAnnulation()
+    else requete.signal.addEventListener('abort', relayeAnnulation, { once: true })
+    const minuteur = setTimeout(() => {
+      delaiDepasse = true
+      controle.abort(new DOMException('Délai dépassé', 'TimeoutError'))
+    }, delaiMs)
+    try {
+      const reponse = await (base ?? globalThis.fetch)(new Request(requete, { signal: controle.signal }))
+      const octets = await reponse.arrayBuffer()
+      // Un corps vide reste `null` : `204` et `304` n'admettent pas de corps.
+      return new Response(octets.byteLength > 0 ? octets : null, { status: reponse.status, statusText: reponse.statusText, headers: reponse.headers })
+    } catch (cause) {
+      if (delaiDepasse && !requete.signal.aborted) throw new ErreurReseau('delai', { cause })
+      throw cause
+    } finally {
+      clearTimeout(minuteur)
+      requete.signal.removeEventListener('abort', relayeAnnulation)
+    }
+  }
 }
 
 function creeIntergiciel(emetteur: Emetteur): Middleware {
@@ -39,10 +65,10 @@ function creeIntergiciel(emetteur: Emetteur): Middleware {
         emetteur.emet('requete:fin', { id, ...route, issue: 'annulee' })
         return undefined
       }
-      const nature = estDelai(error) ? 'delai' : 'coupure'
-      emetteur.emet('requete:fin', { id, ...route, issue: nature })
-      emetteur.emet('reseau:erreur', { ...route, nature })
-      return new ErreurReseau(nature, { cause: error })
+      const erreurReseau = error instanceof ErreurReseau ? error : new ErreurReseau('coupure', { cause: error })
+      emetteur.emet('requete:fin', { id, ...route, issue: erreurReseau.nature })
+      emetteur.emet('reseau:erreur', { ...route, nature: erreurReseau.nature })
+      return erreurReseau
     },
   }
 }

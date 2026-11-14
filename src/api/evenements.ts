@@ -27,8 +27,10 @@ export function creeEmetteur(signale: (erreur: unknown) => void = relance) {
   const de = <N extends keyof Evenements>(nom: N) => ecouteurs[nom] as Set<Ecouteur<N>>
   return {
     sur<N extends keyof Evenements>(nom: N, ecouteur: Ecouteur<N>): () => void {
-      de(nom).add(ecouteur)
-      return () => void de(nom).delete(ecouteur)
+      // Une enveloppe par abonnement : la même fonction abonnée deux fois reste deux abonnements, que le `Set` ne fusionne pas.
+      const abonnement: Ecouteur<N> = (donnees) => ecouteur(donnees)
+      de(nom).add(abonnement)
+      return () => void de(nom).delete(abonnement)
     },
     emet<N extends keyof Evenements>(nom: N, donnees: Evenements[N]): void {
       for (const ecouteur of [...de(nom)]) {
