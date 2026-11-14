@@ -16,6 +16,8 @@ const REFERENCE = pathToFileURL(resolve(RACINE, '.design/systeme/reference.html'
  * est faux (légende absente, ambiguë, en double) ou si une capture est vide. `ecrit-index.ts` en tire `captures/comparaison/index.html`.
  */
 test('chaque cas du banc est capturé à côté de la même section de reference.html', async ({ page, context }, info) => {
+  // Deux captures par cas : le temps croît avec les lots de composants (F9 à F17), WebKit est le plus lent.
+  test.setTimeout(180_000)
   const projet = info.project.name
   const dossier = resolve(RACINE, 'captures/comparaison', projet)
   await rm(dossier, { recursive: true, force: true })
@@ -24,7 +26,12 @@ test('chaque cas du banc est capturé à côté de la même section de reference
   // La page de référence : ses légendes se lisent APRÈS exécution de la page (celles de la marmite sont générées par son script).
   const pageReference = await context.newPage()
   await pageReference.goto(REFERENCE)
-  await pageReference.evaluate(() => document.fonts.ready)
+  // Aucune police de la référence ne doit manquer : une police de repli ferait de faux écarts, sans signal.
+  const policesManquantes = await pageReference.evaluate(async () => {
+    const essais = await Promise.allSettled([...document.fonts].map((police) => police.load()))
+    return essais.filter((essai) => essai.status === 'rejected').length
+  })
+  expect(policesManquantes, 'polices de reference.html qui ne se chargent pas').toBe(0)
   const sectionsReference: SectionReference[] = await pageReference.evaluate(() => {
     let rang = 0
     const marque = (element: Element, legende: string, genre: 'cas' | 'nuance' | 'bloc') => {
@@ -36,7 +43,7 @@ test('chaque cas du banc est capturé à côté de la même section de reference
       const cas = [...section.querySelectorAll('.cas')]
       const nuances = [...section.querySelectorAll('.nuance')]
       const elements = cas.length > 0
-        ? cas.map((c) => marque(c, c.querySelector('small')?.textContent?.trim() ?? '', 'cas'))
+        ? cas.map((c) => marque(c, c.querySelector(':scope > small')?.textContent?.trim() ?? '', 'cas'))
         : nuances.length > 0
           ? nuances.map((n) => marque(n, n.textContent?.trim() ?? '', 'nuance'))
           : [...section.querySelectorAll(':scope > .bloc')].map((b) => marque(b, titre, 'bloc'))
@@ -58,16 +65,26 @@ test('chaque cas du banc est capturé à côté de la même section de reference
   )
 
   const { paires, erreurs, sansPendant, nonPortees } = apparie(sectionsReference, sectionsBanc)
-  const genreDe = new Map(sectionsReference.flatMap((s) => s.elements).map((e) => [e.rang, e.genre]))
   const donnees: DonneesProjet = { projet, paires: [], sansPendant, nonPortees }
+  const ecritDonnees = () => writeFile(resolve(dossier, 'donnees.json'), `${JSON.stringify(donnees, null, 2)}\n`)
+  // Un appariement faux se dit avant toute capture : deux cas de même légende rendraient d'ailleurs un sélecteur ambigu.
+  if (erreurs.length > 0) await ecritDonnees()
+  expect(erreurs, 'appariement des cas du banc et des légendes de reference.html').toEqual([])
+  const genreDe = new Map(sectionsReference.flatMap((s) => s.elements).map((e) => [e.rang, e.genre]))
   const vide: string[] = []
   const dejaVus = new Set<string>()
 
+  // Playwright attend qu'un élément soit visible avant de le capturer : un cas vide serait un délai de 30 s sans nom. Court ici, et nommé.
   const capture = async (cible: Locator, fichier: string): Promise<Mesure> => {
-    const image = await cible.screenshot({ animations: 'disabled', path: resolve(dossier, fichier) })
-    const boite = await cible.boundingBox()
-    if (image.length === 0 || !boite || boite.width === 0 || boite.height === 0) vide.push(fichier)
-    return { largeur: boite?.width ?? 0, hauteur: boite?.height ?? 0, image: fichier }
+    try {
+      await cible.screenshot({ animations: 'disabled', path: resolve(dossier, fichier), timeout: 5_000 })
+      const boite = await cible.boundingBox()
+      if (!boite || boite.width < 2 || boite.height < 2) vide.push(fichier)
+      return { largeur: boite?.width ?? 0, hauteur: boite?.height ?? 0, image: fichier }
+    } catch {
+      vide.push(fichier)
+      return { largeur: 0, hauteur: 0, image: fichier }
+    }
   }
 
   for (const paire of paires) {
@@ -80,15 +97,17 @@ test('chaque cas du banc est capturé à côté de la même section de reference
     donnees.paires.push({
       section: paire.section,
       legende: paire.legende,
+      legendeReference: paire.reference.legende,
       reference: await capture(pageReference.locator(`[data-cmp="${paire.reference.rang}"]`), `${nom}.reference.png`),
       banc: await capture(cibleBanc, `${nom}.banc.png`),
     })
   }
 
-  // Écrit avant les assertions : l'index existe aussi quand l'appariement échoue, c'est là qu'on regarde pourquoi.
-  await writeFile(resolve(dossier, 'donnees.json'), `${JSON.stringify(donnees, null, 2)}\n`)
+  // Écrit avant les assertions : l'index existe aussi quand une capture est vide, c'est là qu'on regarde pourquoi.
+  await ecritDonnees()
 
-  expect(erreurs, 'appariement des cas du banc et des légendes de reference.html').toEqual([])
-  expect(vide, 'captures vides').toEqual([])
-  expect(paires.length, 'cas appariés (Couleurs et Typographie au moins)').toBeGreaterThanOrEqual(16)
+  expect(vide, 'captures vides ou introuvables').toEqual([])
+  // Le plancher ne monte pas seul : on nomme les sections qui doivent être comparées (chaque lot ajoute la sienne ici s'il le veut).
+  expect([...new Set(paires.map((p) => p.section))]).toEqual(expect.arrayContaining(['Couleurs', 'Typographie']))
+  expect(paires.length, 'cas appariés').toBeGreaterThanOrEqual(16)
 })

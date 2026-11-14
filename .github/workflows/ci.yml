@@ -62,8 +62,8 @@ jobs:
           BANC_CONSTRUIT: "1" # le serveur des tests sert le `dist` contrôlé ci-dessus
       # La comparaison avec reference.html : une ligne par cas, les deux captures côte à côte (e2e/comparaison.spec.ts).
       - name: Index de la comparaison
-        if: always()
-        run: node e2e/comparaison/ecrit-index.ts captures/comparaison
+        if: ${{ always() && hashFiles('captures/comparaison/*/donnees.json') != '' }}
+        run: node --experimental-strip-types e2e/comparaison/ecrit-index.ts captures/comparaison
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

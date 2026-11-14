@@ -4,7 +4,7 @@ import { renduIndex, type DonneesProjet } from './rendu-index.ts'
 const mesure = (largeur: number, hauteur: number) => ({ largeur, hauteur, image: 'x.png' })
 const donnees = (...ecarts: Array<[number, number]>): DonneesProjet => ({
   projet: 'pc',
-  paires: ecarts.map(([dl, dh], i) => ({ section: 'Bouton', legende: `Cas ${i}`, reference: mesure(200, 60), banc: mesure(200 + dl, 60 + dh) })),
+  paires: ecarts.map(([dl, dh], i) => ({ section: 'Bouton', legende: `Cas ${i}`, legendeReference: 'Principal, au repos', reference: mesure(200, 60), banc: mesure(200 + dl, 60 + dh) })),
   sansPendant: [],
   nonPortees: ['La marmite'],
 })
@@ -23,12 +23,20 @@ describe('renduIndex', () => {
     expect(renduIndex([donnees([-3, 0])])).toContain('class="paire ecart"')
   })
 
-  it('échappe le HTML des légendes, et nomme les sections pas encore portées', () => {
+  it('écrit « écart » en toutes lettres sur une ligne qui dépasse (la couleur seule ne suffit pas), et la légende de la référence appariée', () => {
+    const html = renduIndex([donnees([0, 0], [0, 5])])
+    expect(html.match(/ÉCART/g)).toHaveLength(1)
+    expect(html.match(/Principal, au repos/g)).toHaveLength(2)
+  })
+
+  it('échappe le HTML de tout texte (légende, section, projet, listes), et nomme les sections pas encore portées', () => {
     const d = donnees([0, 0])
-    d.paires[0]!.legende = '<script>alert(1)</script>'
+    const piege = '<img src=x onerror=1>'
+    Object.assign(d.paires[0]!, { legende: piege, section: piege, legendeReference: piege })
+    Object.assign(d, { projet: piege, sansPendant: [piege], nonPortees: ['La marmite', piege] })
     const html = renduIndex([d])
-    expect(html).not.toContain('<script>')
-    expect(html).toContain('&lt;script&gt;')
+    expect(html).not.toContain('<img src=x')
+    expect(html).toContain('&lt;img src=x')
     expect(html).toContain('La marmite')
   })
 })

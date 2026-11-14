@@ -29,6 +29,12 @@ describe('fusionne', () => {
     expect(sansPendant?.reference).toBeUndefined()
   })
 
+  it('fusionne la largeur de colonne : la première déclarée reste, un fichier qui n’en dit rien ne l’efface pas', () => {
+    const [couleurs] = fusionne([{ reference: 'Couleurs', colonne: 150, cas: [] }, { reference: 'Couleurs', cas: [] }])
+    expect(couleurs?.colonne).toBe(150)
+    expect(fusionne([{ reference: 'Typographie', colonne: 'pleine', cas: [] }])[0]?.colonne).toBe('pleine')
+  })
+
   it('un titre explicite l’emporte sur la référence', () => {
     expect(titreDe({ reference: 'Couleurs', titre: 'Nuances', cas: [] })).toBe('Nuances')
   })

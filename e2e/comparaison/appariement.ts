@@ -41,8 +41,9 @@ export interface Appariement {
   nonPortees: string[]
 }
 
-/** Sans casse ni espaces multiples : les mots, eux, comptent. */
-export const normalise = (texte: string): string => texte.normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase()
+/** Sans casse, sans espaces multiples, apostrophe typographique ou droite : les mots, eux, comptent. */
+export const normalise = (texte: string): string =>
+  texte.normalize('NFC').replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim().toLowerCase()
 
 /** Un nom de fichier : sans accent ni ponctuation, jamais vide. */
 export function slug(texte: string): string {
@@ -73,6 +74,14 @@ export function apparie(reference: SectionReference[], banc: SectionBanc[]): App
       continue
     }
     portees.add(cible.titre)
+    if (reference.filter((r) => normalise(r.titre) === normalise(cible.titre)).length > 1) {
+      resultat.erreurs.push(`plusieurs sections de reference.html s’appellent « ${cible.titre} »`)
+      continue
+    }
+    if (cible.elements.length === 0) {
+      resultat.erreurs.push(`la section « ${cible.titre} » de reference.html n’a aucune légende (la page a-t-elle bien tourné ?)`)
+      continue
+    }
 
     const vues = new Set<string>()
     const prises = new Map<number, string>()

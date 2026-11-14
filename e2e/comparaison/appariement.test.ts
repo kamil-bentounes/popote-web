@@ -20,6 +20,12 @@ describe('normalise', () => {
   })
 })
 
+describe('normalise (apostrophes)', () => {
+  it('replie l’apostrophe typographique : la référence écrit « d\'écran », le banc peut écrire « d’écran »', () => {
+    expect(normalise('Décor, entrée d’écran')).toBe(normalise("Décor, entrée d'écran"))
+  })
+})
+
 describe('slug', () => {
   it('rend un nom de fichier sans accent ni ponctuation, jamais vide', () => {
     expect(slug('Décor, bulle, entrée d’écran')).toBe('decor-bulle-entree-d-ecran')
@@ -81,5 +87,15 @@ describe('apparie', () => {
       { legende: 'foncée', reference: 'tomate foncée' }, { legende: 'franche', reference: 'tomate' },
     ] }])
     expect(paires.map((p) => p.reference.legende)).toEqual(['tomate foncée', 'tomate'])
+  })
+
+  it('refuse une section de la référence sans aucune légende (sa page a mal tourné), et deux sections de même titre', () => {
+    const vide: SectionReference[] = [{ titre: 'La marmite', elements: [] }, { titre: 'Bouton', elements: [] }, { titre: 'bouton', elements: [] }]
+    const { erreurs } = apparie(vide, [
+      { titre: 'La marmite', reference: 'La marmite', cas: [] },
+      { titre: 'Bouton', reference: 'Bouton', cas: [] },
+    ])
+    expect(erreurs.join('\n')).toMatch(/section « La marmite » de reference.html n’a aucune légende/)
+    expect(erreurs.join('\n')).toMatch(/plusieurs sections de reference.html s’appellent « Bouton »/)
   })
 })

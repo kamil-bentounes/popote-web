@@ -1,4 +1,4 @@
-// Usage : node e2e/comparaison/ecrit-index.ts <dossier>   (Node 22.18 et plus lit le TypeScript sans option)
+// Usage : node --experimental-strip-types e2e/comparaison/ecrit-index.ts <dossier>   (Node 22.18 ou plus lit le TypeScript sans l'option)
 // Réunit les `donnees.json` de chaque projet Playwright en `<dossier>/index.html`, déposé en artefact par la CI.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -9,7 +9,14 @@ if (!dossier) {
   console.error('Usage : node e2e/comparaison/ecrit-index.ts <dossier>')
   process.exit(1)
 }
-const donnees: DonneesProjet[] = readdirSync(dossier, { withFileTypes: true })
+let entrees
+try {
+  entrees = readdirSync(dossier, { withFileTypes: true })
+} catch {
+  console.error(`${dossier} n'existe pas : les tests n'ont rien capturé`)
+  process.exit(1)
+}
+const donnees: DonneesProjet[] = entrees
   .filter((entree) => entree.isDirectory())
   .map((entree) => join(dossier, entree.name, 'donnees.json'))
   .flatMap((fichier) => {
@@ -25,4 +32,4 @@ if (donnees.length === 0) {
   process.exit(1)
 }
 writeFileSync(join(dossier, 'index.html'), renduIndex(donnees))
-console.log(`${join(dossier, 'index.html')} : ${donnees.reduce((n, d) => n + d.paires.length, 0)} cas, ${donnees.length} projets`)
+console.log(`${join(dossier, 'index.html')} : ${donnees.reduce((n, d) => n + d.paires.length, 0)} cas, projets : ${donnees.map((d) => d.projet).join(', ')}`)

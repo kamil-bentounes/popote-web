@@ -8,6 +8,8 @@ export interface Mesure {
 export interface PaireCapturee {
   section: string
   legende: string
+  /** La légende de la référence que le cas désigne : deux `reference` croisées passent l'appariement, l'œil les voit ici. */
+  legendeReference: string
   reference: Mesure
   banc: Mesure
 }
@@ -33,7 +35,7 @@ const ecarte = (p: PaireCapturee): boolean =>
 function ligne(projet: string, p: PaireCapturee): string {
   const image = (m: Mesure, cote: string) => `<img src="${echappe(`${projet}/${m.image}`)}" alt="${cote} : ${echappe(p.legende)}" loading="lazy">`
   return `<tr class="paire${ecarte(p) ? ' ecart' : ''}">
-<th scope="row">${echappe(p.section)}<br>${echappe(p.legende)}</th>
+<th scope="row">${ecarte(p) ? '<strong>ÉCART</strong><br>' : ''}${echappe(p.section)}<br>${echappe(p.legende)}<br><small>référence : ${echappe(p.legendeReference)}</small></th>
 <td>${image(p.reference, 'référence')}<br>référence ${taille(p.reference)}</td>
 <td>${image(p.banc, 'banc')}<br>banc ${taille(p.banc)}</td>
 </tr>`
@@ -67,7 +69,7 @@ body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #999; padding: 8px; vertical-align: top; text-align: left; }
 img { max-width: 100%; height: auto; background: #eee; }
-tr.ecart { outline: 3px solid red; outline-offset: -3px; }
+tr.ecart { outline: 3px solid red; outline-offset: -3px; background: #fdd; }
 </style>
 </head>
 <body>

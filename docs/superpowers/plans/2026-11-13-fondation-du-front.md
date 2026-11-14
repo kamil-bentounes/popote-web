@@ -1526,6 +1526,11 @@ Typographie portent une `cle`, sans `reference`.
   (16,5 px) sur `.jeu`, donc sur `body`, et les tailles des jetons sont en `rem` ; F7 a fait de `.jeu` la règle `html` de `base.css`, ce qui fait de 16,5 px le `rem` de toute l'appli, donc **toutes les tailles en `rem` (titres, texte, notes) grandissent de 3,1 %**
   (et `--spacing` de Tailwind). Le test de F7 (`css.test.ts`, `html { font-size: var(--text-texte) }`) l'exige en l'état. Correction : `font-size` sur `body`, `html` garde le reste ; le test change avec. Visible dans l'index sur « Fredoka et Nunito »
   (écart de 5 à 6 px de hauteur, repère rouge). Les autres écarts de dimension se lisent dans l'index de la CI.
+- **Ce que les revues ont durci** : la légende d'un `.cas` est sa `<small>` **enfant direct** (`:scope > small`) : le premier `.cas` de « Bloc, pastille, tampon, avatar » a une `<small>` dans son bloc, avant sa vraie légende ; l'apostrophe typographique
+  (`’`) vaut l'apostrophe droite (la référence écrit « d'écran », le banc peut écrire « d’écran ») ; une section de la référence sans aucune légende (sa page a mal tourné) et deux sections de même titre sont des erreurs ; l'appariement faux
+  s'annonce avant toute capture (deux cas de même légende rendaient un sélecteur ambigu : erreur Playwright au lieu du diagnostic) ; une capture vide ou introuvable est nommée en 5 s, non en 30 s sans nom ; les polices de la page de référence
+  doivent toutes se charger (sinon de faux écarts, sans signal) ; le délai du test est de 180 s (deux captures par cas, WebKit lent) ; l'index écrit « ÉCART » (la couleur seule ne suffit pas) et la légende de la référence appariée (deux `reference`
+  croisées passent l'appariement, l'œil les voit). **Non prouvé** : WebKit n'a pas joué ce test en local (voir la PR pour la CI) ; le `:scope > small` n'a pas de cas qui le distingue avant que F12 porte la section « Bloc… ».
 - **Captures** : `animations: 'disabled'` (les animations CSS finies vont à leur état final, les infinies reviennent à leur début, des deux côtés) et `?fige` (Motion à son état final) ; l'état de repos de F14 et suivants se compare donc, non leur mouvement. La page de
   référence s'ouvre dans une seconde page du même contexte, **non surveillée** par la garde : ses erreurs ne font pas échouer le test (elle a ses scripts et styles en ligne, hors de notre CSP).
 
