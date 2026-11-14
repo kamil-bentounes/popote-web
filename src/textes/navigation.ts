@@ -4,6 +4,8 @@ export const navigation = {
   allerAuContenu: 'Aller au contenu',
   titreEntrer: 'Entrer · Popote',
   titreAccueil: 'Popote',
+  titreAccueilConnecte: 'Accueil · Popote',
+  accueil: 'Accueil',
   titreIntrouvable: 'Page introuvable · Popote',
   entrerAttente: 'Popote revient bientôt',
   introuvable: 'Page introuvable',
