@@ -11,9 +11,10 @@ const NUANCES: Array<[string, string, boolean]> = [
 
 export const section: Section = {
   reference: 'Couleurs',
+  colonne: 150,
   cas: NUANCES.map(([jeton, legende, clair]) => ({
     legende,
-    cle: jeton,
+    reference: legende, // la pastille de la référence a pour légende son texte
     rendu: (
       <div className="nuance" style={{ background: `var(--color-${jeton})`, color: clair ? 'var(--color-papier)' : undefined }}>
         {legende}
