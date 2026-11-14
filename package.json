@@ -58,6 +58,9 @@
   "overrides": {
     "openapi-typescript": {
       "typescript": "$typescript"
+    },
+    "workbox-build": {
+      "glob": "14.0.4"
     }
   }
 }
