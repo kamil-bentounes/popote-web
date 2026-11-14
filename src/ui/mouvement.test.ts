@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { COURBES, DUREES, RANG_MAX, variantesEntree, variantesTampon } from './mouvement'
+import { COURBES, DUREES, RANG_MAX, variantesEntree, variantesJauge, variantesRemplissage, variantesTampon } from './mouvement'
 
 const jetons = readFileSync(resolve(process.cwd(), 'src/styles/jetons.css'), 'utf8')
 const jeton = (nom: string): string => {
@@ -89,5 +89,52 @@ describe('variantesTampon', () => {
     expect(initial.opacity).toBe(0)
     expect(animate.opacity).toBe(1)
     expect(transition.duration).toBe(0.001)
+  })
+})
+
+describe('mouvement : les durées de la jauge et du suivi sont celles du système', () => {
+  // Ces deux durées ne sont pas des jetons : elles sont écrites dans les règles de `composants.css` du système (la transition de
+  // `.jauge > i`, l'animation `remplit`), que le portage a retirées au profit de Motion.
+  const systeme = readFileSync(resolve(process.cwd(), '.design/systeme/composants.css'), 'utf8')
+
+  it('DUREES.jauge vaut la transition de `.jauge > i` (0,9 s) et sa courbe est le rebond', () => {
+    expect(systeme).toMatch(/\.jauge > i \{[^}]*transition: width 0\.9s var\(--ease-rebond\)/)
+    expect(DUREES.jauge).toBe(900)
+  })
+
+  it('DUREES.remplissage vaut l’animation `remplit` du suivi (0,6 s), à la courbe de sortie', () => {
+    expect(systeme).toMatch(/animation: remplit 0\.6s var\(--ease-sortie\)/)
+    expect(DUREES.remplissage).toBe(600)
+  })
+})
+
+describe('variantesJauge', () => {
+  it('part de zéro et arrive à la part demandée, en 0,9 s avec la courbe rebond', () => {
+    const { initial, animate, transition } = variantesJauge(64, false)
+    expect(initial).toEqual({ '--part': '0%' })
+    expect(animate).toEqual({ '--part': '64%' })
+    expect(transition.duration).toBe(0.9)
+    expect(transition.ease).toEqual([0.34, 1.56, 0.64, 1])
+  })
+
+  it('en mouvement réduit : la part est posée en 1 ms, sans courbe qui déborde', () => {
+    const { animate, transition } = variantesJauge(64, true)
+    expect(animate).toEqual({ '--part': '64%' })
+    expect(transition.duration).toBe(0.001)
+    expect(transition.ease).toBeUndefined()
+  })
+})
+
+describe('variantesRemplissage', () => {
+  it('remplit l’étape de 0 à 100 % en 0,6 s avec la courbe de sortie', () => {
+    const { initial, animate, transition } = variantesRemplissage(false)
+    expect(initial).toEqual({ width: '0%' })
+    expect(animate).toEqual({ width: '100%' })
+    expect(transition.duration).toBe(0.6)
+    expect(transition.ease).toEqual([0.22, 1, 0.36, 1])
+  })
+
+  it('en mouvement réduit : l’étape est pleine en 1 ms', () => {
+    expect(variantesRemplissage(true).transition.duration).toBe(0.001)
   })
 })

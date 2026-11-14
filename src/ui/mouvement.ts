@@ -13,6 +13,8 @@ export const DUREES = {
   decalageEntree: 70, // `--decalage-entree` : l'écart entre deux éléments d'un écran
   ecran: 500, // `--duree-ecran` : un écran ou une feuille qui monte
   appui: 90, // `--duree-appui` : un bouton qui s'enfonce
+  jauge: 900, // la transition de `.jauge > i` du système (pas un jeton) : un test la relit dans `composants.css` du système
+  remplissage: 600, // l'animation `remplit` du suivi du système (pas un jeton), relue de même
 } as const
 
 /** Les courbes des jetons, au format de Motion (quatre nombres d'une Bézier cubique). */
@@ -77,4 +79,36 @@ export function variantesTampon(reduit: boolean): MouvementTampon {
     animate: { rotate: 8, scale: 1 },
     transition: { duration: enSecondes(DUREES.entree), ease: COURBES.rebond },
   }
+}
+
+export interface MouvementJauge {
+  initial: { '--part': string }
+  animate: { '--part': string }
+  transition: { duration: number; ease?: Courbe }
+}
+
+/**
+ * Le remplissage d'une jauge : `--part` va de 0 à la part demandée en 0,9 s avec la courbe rebond (la transition de `width` du
+ * système, que ceci remplace : Motion sait dire quand elle finit, et c'est alors que les rayures s'arrêtent). `part` est déjà bornée
+ * (`borneLaPart`). En mouvement réduit la part est posée en 1 ms, sans courbe qui déborde.
+ */
+export function variantesJauge(part: number, reduit: boolean): MouvementJauge {
+  const initial = { '--part': '0%' }
+  const animate = { '--part': `${part}%` }
+  if (reduit) return { initial, animate, transition: { duration: DUREE_REDUITE } }
+  return { initial, animate, transition: { duration: enSecondes(DUREES.jauge), ease: COURBES.rebond } }
+}
+
+export interface MouvementRemplissage {
+  initial: { width: string }
+  animate: { width: string }
+  transition: { duration: number; ease?: Courbe }
+}
+
+/** Une étape de suivi qui se remplit, de 0 à 100 % en 0,6 s (les `@keyframes remplit` du système, que ceci remplace). */
+export function variantesRemplissage(reduit: boolean): MouvementRemplissage {
+  const initial = { width: '0%' }
+  const animate = { width: '100%' }
+  if (reduit) return { initial, animate, transition: { duration: DUREE_REDUITE } }
+  return { initial, animate, transition: { duration: enSecondes(DUREES.remplissage), ease: COURBES.sortie } }
 }
