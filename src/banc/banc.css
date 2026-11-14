@@ -21,3 +21,7 @@ section > h2 { font-size: var(--text-titre-m); margin-bottom: 18px; }
 .avatars { display: flex; gap: 14px; }
 /* La queue de la bulle sort de 13 px à gauche de sa boîte : sans cette marge elle mordrait sur la colonne voisine. */
 .avec-queue { padding-left: 16px; }
+/* La marmite : les sauts de la joie la font monter de 38 px, la grille de la référence lui laisse 40 px de marge en haut. */
+[data-section="La marmite"] .grille { padding-top: 40px; }
+[data-section="La marmite"] .cas { align-items: center; } /* la référence centre la marmite et sa légende */
+.marmite-centre { display: flex; flex-direction: column; align-items: center; gap: 12px; }
