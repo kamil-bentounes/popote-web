@@ -84,6 +84,19 @@ describe('composants.css', () => {
     expect(attendus.filter((attendu) => !coupes.includes(attendu))).toEqual([])
   })
 
+  it('les rayures de la jauge ne défilent que sous `[data-anime]` : la barre au repos n’a aucune animation (WCAG 2.2.2)', () => {
+    const declarations = (selecteur: string) => {
+      const trouvees: string[] = []
+      composants.walkRules((r) => {
+        // Les règles de la couche seulement : sous `prefers-reduced-motion`, `.jauge > i` figure dans la liste de ce qu'on coupe.
+        if (r.parent?.type === 'atrule' && (r.parent as AtRule).name === 'layer' && r.selectors.includes(selecteur)) r.walkDecls((d) => void trouvees.push(`${d.prop}: ${d.value}`))
+      })
+      return trouvees.join('; ')
+    }
+    expect(declarations('.jauge > i')).not.toMatch(/animation/)
+    expect(declarations('.jauge > i[data-anime]')).toMatch(/animation:\s*defile 1\.4s linear infinite/)
+  })
+
   it('les sept états de la marmite existent', () => {
     const texte = lis('composants.css')
     for (const etat of ['sommeil', 'ecoute', 'reflexion', 'parole', 'joie', 'inquiet']) expect(texte).toContain(`[data-etat="${etat}"]`)
@@ -127,8 +140,18 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     '@keyframes entre { from { opacity: 0; transform: translateY(36px) scale(0.92) } to { opacity: 1; transform: none } }',
     // L'arrivée du tampon passe par Motion aussi (`Stamp`, `variantesTampon`) : ses images clés n'existent plus.
     '@keyframes tampon { from { transform: rotate(-40deg) scale(0) } to { transform: rotate(8deg) scale(1) } }',
+    // Le remplissage d'une étape de suivi passe par Motion aussi (`Steps`, `variantesRemplissage`) : un vrai élément, plus un `::after` animé.
+    '.suivi div[data-fait] i::after { content: ""; display: block; height: 100%; background: var(--color-menthe); animation: remplit 0.6s var(--ease-sortie) both }',
+    '@keyframes remplit { from { width: 0 } to { width: 100% } }',
   ]
   const AJOUTS = [
+    // La jauge (F13) : ses rayures ne défilent que le temps du remplissage (`data-anime`, posé par `Gauge`), et le remplissage est Motion.
+    '.jauge > i[data-anime] { animation: defile 1.4s linear infinite }',
+    // Le suivi (F13) : le remplissage d'une étape est un élément, et une étape faite montre une coche (jamais la couleur seule).
+    '.suivi .suivi-remplit { display: block; height: 100%; background: var(--color-menthe) }',
+    '.suivi .icone { display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: -2px }',
+    // Les signes SVG (F13), qui remplacent les glyphes ✕ ✓ → : couleur et taille viennent du contexte.
+    '.icone { flex: none; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round }',
     '.cases:focus-within, .avatar:focus-visible { outline: 4px solid var(--color-encre); outline-offset: 3px }',
     '.cases:focus-within { border-radius: var(--radius-champ); box-shadow: 0 0 0 11px var(--color-jaune) }',
     '.avatar:focus-visible { box-shadow: var(--shadow-dur-petit), 0 0 0 11px var(--color-jaune) }',
@@ -158,8 +181,14 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     ['.champ > span { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }', '.champ > label { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }'],
     // `.tampon` n'a plus d'animation CSS (voir RETRAITS) : son mouvement réduit est celui de `variantesTampon`. Son inclinaison de repos (8 degrés) reste.
     ['.tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-tampon); background: var(--color-tomate); color: var(--color-encre); font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg); animation: tampon var(--duree-entree) var(--ease-rebond) both }', '.tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-tampon); background: var(--color-tomate); color: var(--color-encre); font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg) }'],
-    // `.entre` n'existe plus, ni l'animation de `.tampon` (voir RETRAITS) : le mouvement réduit de l'entrée et du tampon est la politique de `mouvement.ts`.
-    ['@media (prefers-reduced-motion: reduce) :: .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }', '@media (prefers-reduced-motion: reduce) :: .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }'],
+    // La jauge (F13) : plus d'animation continue ni de transition de `width` sur la barre elle-même ; `Gauge` joue le remplissage (Motion) et pose `data-anime` (voir AJOUTS).
+    ['.jauge > i { display: block; height: 100%; width: var(--part, 0%); border-right: 3px solid var(--color-encre); background: repeating-linear-gradient(-55deg, var(--color-tomate) 0 10px, var(--color-tomate-clair) 10px 20px); background-size: 200% 100%; animation: defile 1.4s linear infinite; transition: width 0.9s var(--ease-rebond) }', '.jauge > i { display: block; height: 100%; width: var(--part, 0%); border-right: 3px solid var(--color-encre); background: repeating-linear-gradient(-55deg, var(--color-tomate) 0 10px, var(--color-tomate-clair) 10px 20px); background-size: 200% 100% }'],
+    // Le suivi (F13) : une `<ol>` de `<li>` (le nombre d'étapes se lit), remise à zéro comme une liste ; les colonnes suivent le nombre d'étapes, non « 3 ».
+    ['.suivi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px }', '.suivi { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; list-style: none; padding: 0; margin: 0 }'],
+    ['.suivi > div { text-align: center; font-size: var(--text-pastille); color: var(--color-gris) }', '.suivi > li { text-align: center; font-size: var(--text-pastille); color: var(--color-gris) }'],
+    ['.suivi > div[data-fait] { color: var(--color-encre) }', '.suivi > li[data-fait] { color: var(--color-encre) }'],
+    // `.entre` n'existe plus, ni l'animation de `.tampon` (voir RETRAITS) : le mouvement réduit de l'entrée et du tampon est la politique de `mouvement.ts`, celui du remplissage d'une étape aussi (F13).
+    ['@media (prefers-reduced-motion: reduce) :: .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }', '@media (prefers-reduced-motion: reduce) :: .feuille { animation-duration: 1ms !important; animation-delay: 0ms !important }'],
     ['@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none }', '@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none !important }'],
   ]
 

@@ -6,12 +6,11 @@ import { Stamp } from '../../ui/Stamp'
 
 /**
  * La section « Bloc, pastille, tampon, avatar » de `reference.html`. F12 porte les pastilles et les avatars, F14b le bloc avec son
- * tampon ; les trois autres légendes de la section sont déclarées : la jauge, le suivi et la ligne d'effet (F13). Le tampon qui
+ * tampon, F13 la jauge, le suivi et la ligne d'effet (`jauge.tsx`, `suivi.tsx`, `effet.tsx`, fusionnés ici par le banc). Le tampon qui
  * arrive, rejouable, est dans `tampon.tsx`.
  */
 export const section: Section = {
   reference: 'Bloc, pastille, tampon, avatar',
-  reportees: ['Jauges', 'Suivi', 'Lignes d’effet'],
   cas: [
     {
       legende: 'Bloc avec pastilles et tampon',

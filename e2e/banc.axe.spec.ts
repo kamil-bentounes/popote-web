@@ -23,10 +23,12 @@ const incompletsAdmis = (projet: string) => (projet === 'pc' ? 1 : 2)
 // F18 : l'écran de réveil en montre trois (les trois moments où la marmite dort).
 const INCOMPLETS_PAR_SECTION: Record<string, number> = { 'La marmite': 1, 'Écran de réveil': 3 }
 // 187 mesurés au PC (186 au téléphone) avec F14b et F17 : le décor en ajoute 10, le tampon qui arrive 4, le tampon du bloc 1, la marmite 10 (162 et 161 avec F14a). Même marge qu'avant (9), pour WebKit, non joué en local.
-const REUSSITES_MIN = 177
+// F13 : le bloc de la référence passe de 15 à 36 contrastes (le suivi, les lignes d'effet), « Icônes » en ajoute 2 et « Jauge qui se remplit » 4 : 227 mesurés au PC, 226 au téléphone ; même marge (9).
+const REUSSITES_MIN = 217
 // Le plancher global ne voit pas la perte d'une section entière de F12 (la bulle seule : 7 sur 154 ; l'entrée d'écran, mesurée une fois ses éléments posés : 7 ; le décor : 10 sur 187). Un plancher par section, mesuré, le voit.
+// F13 : le bloc de la référence porte maintenant le suivi (étapes, lues par axe) et les lignes d'effet ; « Icônes » et « Jauge qui se remplit » n'ont que des légendes (les barres et les signes ne sont pas du texte pour axe : le plancher prouve qu'il les lit encore).
 // Le décor : titre et note de chaque scène, sur le sol (jamais sur le dégradé du soleil, que `incompletsAdmis` ne laisse pas passer).
-const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 15, Bulle: 7, 'Entrée d’écran': 7, Décor: 10, Tampon: 4, 'La marmite': 10, 'Écran de réveil': 12 }
+const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 36, Bulle: 7, 'Entrée d’écran': 7, Décor: 10, Tampon: 4, 'La marmite': 10, 'Écran de réveil': 12, Icônes: 2, 'Jauge qui se remplit': 4 }
 
 async function mesure(page: Page, include: string) {
   const { violations, incomplete, passes } = await new AxeBuilder({ page }).include(include).withTags(BALISES).analyze()

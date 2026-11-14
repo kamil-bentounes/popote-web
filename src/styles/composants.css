@@ -91,20 +91,27 @@
   /* Jauge : énergie, protéines, budget */
   .jauge { height: 22px; border: 3px solid var(--color-encre); border-radius: var(--radius-pastille); background: var(--color-papier); overflow: hidden; }
   .jauge > i { display: block; height: 100%; width: var(--part, 0%); border-right: 3px solid var(--color-encre);
-    background: repeating-linear-gradient(-55deg, var(--color-tomate) 0 10px, var(--color-tomate-clair) 10px 20px); background-size: 200% 100%; animation: defile 1.4s linear infinite; transition: width 0.9s var(--ease-rebond); }
+    background: repeating-linear-gradient(-55deg, var(--color-tomate) 0 10px, var(--color-tomate-clair) 10px 20px); background-size: 200% 100%; }
+  /* écart au système : le remplissage de la jauge est le composant `Gauge` (Motion, `variantesJauge`), qui pose `data-anime` le temps du remplissage ; les rayures ne défilent que pendant ce temps (WCAG 2.2.2). */
+  .jauge > i[data-anime] { animation: defile 1.4s linear infinite; }
   .jauge--ciel > i { background-image: repeating-linear-gradient(-55deg, var(--color-ciel) 0 10px, var(--color-ciel-clair) 10px 20px); }
 
   /* Suivi en étapes (invitation : envoyée, ouverte, arrivée) */
-  .suivi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .suivi > div { text-align: center; font-size: var(--text-pastille); color: var(--color-gris); }
-  .suivi > div[data-fait] { color: var(--color-encre); }
+  /* écart au système : structure sémantique. Le suivi est une `<ol>` d'éléments `<li>` (le nombre d'étapes se lit), remise à zéro comme une liste ; les colonnes suivent le nombre d'étapes. */
+  .suivi { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; list-style: none; padding: 0; margin: 0; }
+  .suivi > li { text-align: center; font-size: var(--text-pastille); color: var(--color-gris); }
+  .suivi > li[data-fait] { color: var(--color-encre); }
   .suivi i { display: block; height: 14px; margin-bottom: 5px; border: 3px solid var(--color-encre); border-radius: var(--radius-pastille); background: var(--color-papier); overflow: hidden; }
-  .suivi div[data-fait] i::after { content: ""; display: block; height: 100%; background: var(--color-menthe); animation: remplit 0.6s var(--ease-sortie) both; }
+  /* écart au système : le remplissage d'une étape est un vrai élément, joué par Motion (`Steps`, `variantesRemplissage`) ; la coche est ajoutée (jamais la couleur seule ; `display` rendu en ligne : le preflight de Tailwind pose `svg { display: block }`, qui mettrait la coche seule sur sa ligne). */
+  .suivi .suivi-remplit { display: block; height: 100%; background: var(--color-menthe); }
+  .suivi .icone { display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: -2px; }
 
   /* Ligne d'effet : ce qui disparaît, ce qui reste, ce qui change. Le signe change avec la couleur. */
   .effet { display: flex; align-items: center; gap: 12px; padding: 10px 0; font-size: var(--text-effet); line-height: 1.25; }
   .effet + .effet { border-top: var(--trait-fin) solid var(--color-filet); }
   .effet > i { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid var(--color-encre); border-radius: var(--radius-tampon); }
+  /* ajout : les signes SVG (`src/ui/icones.tsx`), qui remplacent les glyphes ✕ ✓ → ; la couleur et la taille viennent du contexte (`.effet`, `.suivi`). */
+  .icone { flex: none; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   .effet > i svg { width: 18px; height: 18px; fill: none; stroke: var(--color-encre); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   .effet[data-sens="perd"] > i { background: var(--color-tomate-pale); }
   .effet[data-sens="reste"] > i { background: var(--color-menthe-pale); }
@@ -186,7 +193,7 @@
   /* Mouvement réduit : plus rien ne bouge tout seul. Les états restent lisibles par leur dessin (voir la marmite). */
   @media (prefers-reduced-motion: reduce) {
     .soleil, .jauge > i, .cases[data-etat="faux"], .marmite svg, .marmite .yeux, .marmite .couvercle, .marmite .vapeur, .marmite .zzz, .marmite .ondes, .marmite .bouche-ouverte { animation: none !important; }
-    .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+    .feuille { animation-duration: 1ms !important; animation-delay: 0ms !important; }
     /* écart au système : `!important`, pour qu'un utilitaire (`transition-all`, couche supérieure) ne rende pas la transition. */
     .bouton, .jauge > i { transition: none !important; }
     .bouton[aria-busy="true"]::after { content: "…"; width: auto; height: auto; border: 0; animation: none; }
@@ -196,7 +203,6 @@
 /* Hors couche : les animations. */
 @keyframes tremble { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
 @keyframes defile { to { background-position: -28px 0; } }
-@keyframes remplit { from { width: 0; } to { width: 100%; } }
 @keyframes tourne { to { transform: rotate(360deg); } }
 @keyframes monte { from { transform: translateY(105%); } to { transform: translateY(0); } }
 @keyframes cligne { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
