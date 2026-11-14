@@ -135,6 +135,17 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     // `aria-disabled` reste focalisable et prend l'aspect du désactivé ; occupé (`aria-busy`) garde le sien, avec son rond.
     '.bouton[aria-disabled="true"]:not([aria-busy="true"]) { background: var(--color-lilas-pale); color: var(--color-gris); box-shadow: var(--shadow-enfonce); transform: translateY(var(--enfoncement)); cursor: not-allowed }',
     '.bouton[aria-disabled="true"]:not([aria-busy="true"]):focus-visible { box-shadow: var(--shadow-enfonce), 0 0 0 11px var(--color-jaune) }', // la règle précédente (0,3,0) battrait l'anneau de `.bouton:focus-visible`
+    // La marmite (F17) : le système colore son SVG par `style="…"`, que la CSP refuse ; le dessin pose des classes qui lisent les mêmes jetons.
+    '.marmite .m-trait-encre { stroke: var(--color-encre) }',
+    '.marmite .m-trait-gris { stroke: var(--color-gris) }',
+    '.marmite .m-trait-papier { stroke: var(--color-papier) }',
+    '.marmite .m-fond-encre { fill: var(--color-encre) }',
+    '.marmite .m-fond-tomate { fill: var(--color-tomate) }',
+    '.marmite .m-fond-papier { fill: var(--color-papier) }',
+    '.marmite .m-fond-rose { fill: var(--color-rose) }',
+    '.marmite .m-fond-jaune { fill: var(--color-jaune) }',
+    '.marmite .m-fond-ciel { fill: var(--color-ciel) }',
+    '.marmite .zzz { font-family: var(--font-titre) }',
   ]
   // [avant, après] : lignes du système modifiées. `pulse` se nomme `pulse-ondes` : Tailwind a son propre @keyframes `pulse`, qui
   // écrase le nôtre au build ; la transition de la marmite et des boutons est coupée `!important` pour qu'un utilitaire ne la rende pas.
