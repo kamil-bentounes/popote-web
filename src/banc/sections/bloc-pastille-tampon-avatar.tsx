@@ -2,27 +2,27 @@ import type { Section } from '../section'
 import { Avatar } from '../../ui/Avatar'
 import { Badge } from '../../ui/Badge'
 import { Block } from '../../ui/Block'
+import { Stamp } from '../../ui/Stamp'
 
 /**
- * La section « Bloc, pastille, tampon, avatar » de `reference.html`. F12 porte le bloc, les pastilles et les avatars ; les
- * trois autres légendes de la section sont déclarées : la jauge, le suivi et la ligne d'effet (F13), le bloc avec son tampon (F14,
- * dans son propre fichier `tampon.tsx`, qui retire la déclaration).
+ * La section « Bloc, pastille, tampon, avatar » de `reference.html`. F12 porte les pastilles et les avatars, F14b le bloc avec son
+ * tampon ; les trois autres légendes de la section sont déclarées : la jauge, le suivi et la ligne d'effet (F13). Le tampon qui
+ * arrive, rejouable, est dans `tampon.tsx`.
  */
 export const section: Section = {
   reference: 'Bloc, pastille, tampon, avatar',
-  reportees: ['Bloc avec pastilles et tampon', 'Jauges', 'Suivi', 'Lignes d’effet'],
+  reportees: ['Jauges', 'Suivi', 'Lignes d’effet'],
   cas: [
-    // Sans pendant : le même bloc que celui de la référence, sans son tampon (le tampon est celui de F14).
     {
-      legende: 'Bloc avec pastilles, sans le tampon',
+      legende: 'Bloc avec pastilles et tampon',
+      reference: 'Bloc avec pastilles et tampon',
       rendu: (
-        <Block className="carte">
+        // Les pastilles sont en ligne, séparées d'une espace, comme dans la référence (et non en `.pastilles`, une rangée flex) : la hauteur du bloc en dépend.
+        <Block className="relative p-4">
+          <Stamp className="absolute right-[10px] top-[-16px]">Mangé !</Stamp>
           <small className="texte-doux">Ce soir, pour vous deux</small>
           <div className="titre carte-titre">Lasagnes saumon-poireaux</div>
-          <div className="pastilles">
-            <Badge>512 kcal</Badge>
-            <Badge tone="menthe">42 g prot.</Badge>
-          </div>
+          <Badge>512 kcal</Badge> <Badge tone="menthe">42 g prot.</Badge>
         </Block>
       ),
     },

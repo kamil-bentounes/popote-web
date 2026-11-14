@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { COURBES, DUREES, RANG_MAX, variantesEntree } from './mouvement'
+import { COURBES, DUREES, RANG_MAX, variantesEntree, variantesTampon } from './mouvement'
 
 const jetons = readFileSync(resolve(process.cwd(), 'src/styles/jetons.css'), 'utf8')
 const jeton = (nom: string): string => {
@@ -67,5 +67,27 @@ describe('variantesEntree', () => {
       expect(transition.duration).toBe(0.001)
       expect(transition.delay).toBe(0)
     })
+  })
+})
+
+describe('variantesTampon', () => {
+  it('part invisible (échelle nulle), penché de -40 degrés, et arrive à 8 degrés, à l’échelle, en 550 ms avec la courbe rebond', () => {
+    const { initial, animate, transition } = variantesTampon(false)
+    expect(initial).toEqual({ rotate: -40, scale: 0 })
+    expect(animate).toEqual({ rotate: 8, scale: 1 })
+    expect(transition.duration).toBe(0.55)
+    expect(transition.ease).toEqual([0.34, 1.56, 0.64, 1])
+  })
+
+  it('arrive avec la même durée que l’entrée d’écran (jeton --duree-entree)', () => {
+    expect(variantesTampon(false).transition.duration).toBe(variantesEntree(0, false).transition.duration)
+  })
+
+  it('en mouvement réduit : ni rotate, ni scale, seulement l’opacité, en 1 ms', () => {
+    const { initial, animate, transition } = variantesTampon(true)
+    for (const etat of [initial, animate]) expect(Object.keys(etat)).toEqual(['opacity'])
+    expect(initial.opacity).toBe(0)
+    expect(animate.opacity).toBe(1)
+    expect(transition.duration).toBe(0.001)
   })
 })

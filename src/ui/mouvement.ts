@@ -57,3 +57,24 @@ export function variantesEntree(rang: number, reduit: boolean): MouvementEntree 
     },
   }
 }
+
+export interface MouvementTampon {
+  initial: { opacity?: number; rotate?: number; scale?: number }
+  animate: { opacity?: number; rotate?: number; scale?: number }
+  transition: { duration: number; ease?: Courbe }
+}
+
+/**
+ * L'arrivée d'un tampon : il vient du néant (échelle nulle), penché à -40 degrés, et se pose à 8 degrés en rebondissant (les
+ * `@keyframes tampon` du système, que ceci remplace). Il se pose sans autre retard : c'est le geste qui le déclenche, non un
+ * rang d'écran. En mouvement réduit il apparaît seulement ; son inclinaison de repos (8 degrés) est celle de `.tampon`, qui n'est
+ * pas un mouvement.
+ */
+export function variantesTampon(reduit: boolean): MouvementTampon {
+  if (reduit) return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: DUREE_REDUITE } }
+  return {
+    initial: { rotate: -40, scale: 0 },
+    animate: { rotate: 8, scale: 1 },
+    transition: { duration: enSecondes(DUREES.entree), ease: COURBES.rebond },
+  }
+}

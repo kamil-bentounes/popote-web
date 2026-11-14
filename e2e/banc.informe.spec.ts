@@ -30,10 +30,10 @@ test('le « + » de la place libre tient 4,5:1 sur son fond, tel que Chromium le
   expect(rapport(couleur, fond)).toBeGreaterThanOrEqual(4.5)
 })
 
-test('la pastille, l’avatar et la bulle ne se touchent pas : aucun n’est un contrôle, aucun n’entre dans l’ordre du clavier', async ({ page }) => {
+test('la pastille, le tampon, l’avatar et la bulle ne se touchent pas : aucun n’est un contrôle, aucun n’entre dans l’ordre du clavier', async ({ page }) => {
   await ouvreLeBanc(page)
   // Les sections des composants seulement : « Anneaux de focus » montre des avatars qui SONT des boutons (le halo de F7).
-  const informent = page.locator(`${SECTION} :is(.pastille, .avatar), [data-section="Bulle"] .bulle`)
+  const informent = page.locator(`${SECTION} :is(.pastille, .avatar, .tampon), [data-section="Bulle"] .bulle`)
   expect(await informent.count(), 'le banc montre des pastilles, des avatars et des bulles').toBeGreaterThanOrEqual(12)
   const fautifs = await informent.evaluateAll((noeuds, controles) => {
     return noeuds
