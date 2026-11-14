@@ -4,8 +4,8 @@
 .page h1 { font-size: var(--text-titre-xl); }
 section { margin-top: 48px; }
 section > h2 { font-size: var(--text-titre-m); margin-bottom: 18px; }
-.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: 22px 18px; align-items: start; }
-.grille--etroite { grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); }
+.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--colonne, 230px), 100%), 1fr)); gap: 22px 18px; align-items: start; }
+.grille--pleine { grid-template-columns: 1fr; }
 .cas { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .cas > small { font-size: var(--text-note); color: var(--color-gris); }
 .nuance { height: 64px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-petit); display: grid; place-items: center; font-size: 0.84rem; }

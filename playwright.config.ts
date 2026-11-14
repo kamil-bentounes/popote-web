@@ -22,6 +22,7 @@ if (!CSP_SANS_AMELIORATION.includes("script-src 'self'")) throw new Error('CSP i
  */
 export default defineConfig({
   testDir: 'e2e',
+  testMatch: '**/*.spec.ts', // les `*.test.ts` de `e2e/` sont ceux de Vitest (fonctions pures)
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0, // un test instable se corrige, il ne se rejoue pas

@@ -1,0 +1,6 @@
+# Fichiers générés ou verrous : masqués dans les diffs de GitHub et exclus du compte de lignes d'une demande de fusion.
+package-lock.json linguist-generated
+src/routeTree.gen.ts linguist-generated
+src/api/schema.d.ts linguist-generated
+src/api/routes-protegees.ts linguist-generated
+contrat/openapi.json linguist-generated
