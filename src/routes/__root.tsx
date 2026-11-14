@@ -3,6 +3,7 @@ import { createRootRouteWithContext, HeadContent, Outlet, useRouterState } from 
 import { useEffect, useRef } from 'react'
 import { ErreurRoute } from '../etats/ErreurRoute'
 import { NonTrouvee } from '../etats/NonTrouvee'
+import { useReveil } from '../etats/reveil'
 import { Transverses } from '../etats/Transverses'
 import { navigation } from '../textes/navigation'
 
@@ -34,10 +35,12 @@ function useFocusAuChangementDeChemin(chemin: string | undefined) {
 function Racine() {
   const chemin = useRouterState({ select: (etat) => etat.resolvedLocation?.pathname })
   useFocusAuChangementDeChemin(chemin)
+  // Tant que l'écran de réveil est là, rien de la coque (lien d'évitement compris) ne reçoit ni focus ni clic : il est hors de `#coque`.
+  const enVeille = useReveil().phase !== 'repos'
   return (
     <>
       <HeadContent />
-      <div id="coque">
+      <div id="coque" inert={enVeille}>
         <a
           className="evitement"
           href="#contenu"
