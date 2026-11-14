@@ -25,9 +25,12 @@ Reprises du § 8 de la [spec du socle](superpowers/specs/2026-11-12-socle-design
 Tirées des règles d'exécution du [plan de la fondation](superpowers/plans/2026-11-13-fondation-du-front.md) ; elles valent
 pour toute la vie du dépôt. Chaque règle dit **où est sa garde** : une garde « à venir » n'existe pas encore, la règle
 tient alors à la relecture.
-- **Aucun `fetch`, `XMLHttpRequest`, `WebSocket` ni `EventSource` hors de `src/api/`** : garde à venir (test d'architecture, F5b).
-  **Pas d'`import.meta.env.VITE_*`** : garde à venir (même test). **Pas de `dangerouslySetInnerHTML`** : garde en place
-  (oxlint `react/no-danger`). **Pas de `<div onClick>`**, d'`<img>` sans `alt`, de `<label>` orphelin : garde en place (oxlint `jsx-a11y`).
+- **Aucun `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon` ni import d'`openapi-fetch` hors de `src/api/`** : garde en place
+  (`src/architecture.test.ts`). Le même test refuse, **partout dans `src/`** (`src/api/` compris) : `VITE_*`, le nom de l'ancien fournisseur
+  d'authentification (aussi dans `package.json`), `dangerouslySetInnerHTML`, `innerHTML`, `eval`, `new Function`, `popLayout` ; il lit le
+  texte, commentaires compris, hors tests et schéma généré. **Une nouvelle règle** se pose dans `REGLES` avec son leurre dans `LEURRES`
+  (un test refuse une règle sans leurre). `dangerouslySetInnerHTML` est aussi gardé par oxlint (`react/no-danger`).
+  **Pas de `<div onClick>`**, d'`<img>` sans `alt`, de `<label>` orphelin : garde en place (oxlint `jsx-a11y`).
 - **Aucun texte en dur dans le JSX** : un catalogue par domaine, `src/textes/<domaine>.ts` (fonctions typées, pluriels par
   `Intl.PluralRules('fr')`). Les mots de la marque et les légendes du banc font exception. Pas de garde automatique prévue :
   relecture.
