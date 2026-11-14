@@ -85,12 +85,12 @@ create table public.shopping_line (                       -- l'ÉTAT gardé d'un
   primary key (household_id, line_key)
 );
 create table public.cook_substitution (                    -- « Remplacer » : la recette de la session note le remplacement
-  session_id uuid not null references public.cook_session(id) on delete cascade, recipe_id uuid not null references public.recipe(id),
-  from_food_id uuid not null references public.food(id), to_food_id uuid not null references public.food(id),
+  session_id uuid not null references public.cook_session(id) on delete cascade, recipe_id uuid not null,                               -- sans clé étrangère (A3)
+  from_food_id uuid not null, to_food_id uuid not null,       -- sans clé étrangère (A3)
   to_amount numeric not null check (to_amount > 0), to_unit text not null, primary key (session_id, recipe_id, from_food_id)
 );
 create table public.cook_need_override (                   -- « Je les ai », « Garde-les », « On fait sans »
-  session_id uuid not null references public.cook_session(id) on delete cascade, food_id uuid not null references public.food(id),
+  session_id uuid not null references public.cook_session(id) on delete cascade, food_id uuid not null,                                   -- sans clé étrangère (A3)
   mode text not null check (mode in ('have','kept','without')), primary key (session_id, food_id)
 );
 alter table public.stock_item add column shopping_line_id text;           -- nulle : l'ancienne appli n'écrit pas cette colonne

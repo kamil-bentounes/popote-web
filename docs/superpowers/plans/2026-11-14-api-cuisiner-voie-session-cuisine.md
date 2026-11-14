@@ -169,21 +169,23 @@ def cherche(inst, precedent=None, essais=None):
     n = len(inst.etapes)
     essais = essais if essais is not None else ESSAIS_PAR_ETAPE * n          # proportionnel à la taille
     rng = random.Random(graine_de(inst.session, empreinte(inst)))             # semé par la session ET les entrées : mêmes entrées, même plan
-    candidats = [sequentiel(inst), ordre_du_menu(inst)]                       # « l'une après l'autre » est TOUJOURS un candidat (s'il est valide)
-    if precedent: candidats.append(ordre_de(precedent))
+    candidats = [(*sequentiel(inst), frozenset({0})),                         # « l'une après l'autre » : UN SEUL cuisinier, TOUJOURS un candidat (s'il est valide)
+                 (*ordre_du_menu(inst), None)]
+    if precedent: candidats.append((*ordre_de(precedent), None))
     meilleur = None
     def propose(plan):
         nonlocal meilleur
         if plan is not None and (meilleur is None or cle(plan, precedent) < cle(meilleur, precedent)):
             meilleur = plan
-    for ordre, fusions in candidats: propose(genere(applique_les_fusions(inst, fusions), ordre))
+    for ordre, fusions, restreint in candidats: propose(genere(applique_les_fusions(inst, fusions), ordre, restreint))
     for _ in range(int(essais * PART_ALEATOIRE)):
         fusions = tuple(rng.random() < 0.5 for _ in candidats_de_fusion(inst))
         propose(genere(applique_les_fusions(inst, fusions), priorite_bruitee(inst, rng)))
     ordre = ordre_de(meilleur) if meilleur else ordre_du_menu(inst)[0]
     for _ in range(essais - int(essais * PART_ALEATOIRE)):                    # recherche locale : permutations voisines de la meilleure liste
-        i = rng.randrange(len(ordre) - 1); ordre = echange(ordre, i, i + 1)
-        propose(genere(inst_de(meilleur), ordre))
+        i = rng.randrange(len(ordre) - 1)
+        voisin = echange(ordre_de(meilleur), i, i + 1)             # TOUJOURS depuis le meilleur : une escalade, pas une marche aléatoire
+        propose(genere(inst_de(meilleur), voisin))
     return Resultat(plan=meilleur, sequentiel=…, evaluations=essais + len(candidats))
 ```
 
@@ -246,7 +248,8 @@ create unique index cook_session_une_active on public.cook_session (household_id
 create index cook_session_par_foyer on public.cook_session (household_id, state, created_at desc);
 create table public.cook_session_recipe (
   session_id uuid not null references public.cook_session(id) on delete cascade,
-  recipe_id uuid not null references public.recipe(id) on delete restrict,
+  recipe_id uuid not null,                              -- SANS clé étrangère (A3 : l'ancienne appli peut supprimer une recette du foyer) ; `title_copy` ci-dessous
+  title_copy text,
   servings int not null check (servings between 1 and 20), position int not null, dropped_at timestamptz,
   primary key (session_id, recipe_id)
 );
