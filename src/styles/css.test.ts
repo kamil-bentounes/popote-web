@@ -115,7 +115,7 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
   // Les écarts, tous marqués « écart au système » dans composants.css. Chacun est exact : un écart périmé échoue.
   const RETRAITS = [
     ...systeme.filter((l) => l.startsWith('@font-face')), // dans polices.css
-    '.jeu { background: var(--color-creme); color: var(--color-encre); font-family: var(--font-texte); font-weight: 700; font-size: var(--text-texte); line-height: 1.35 }', // devient html (base.css)
+    '.jeu { background: var(--color-creme); color: var(--color-encre); font-family: var(--font-texte); font-weight: 700; font-size: var(--text-texte); line-height: 1.35 }', // devient html et body (base.css) : la taille sur body, pas sur html, pour que `rem` reste 16 px
     '.jeu *, .jeu *::before, .jeu *::after { box-sizing: border-box }', // doublon du preflight
   ]
   const AJOUTS = [
@@ -187,13 +187,25 @@ describe('base.css', () => {
     expect(hors.map((n) => n.toString().slice(0, 60))).toEqual([])
   })
 
-  it('pose sur html le fond crème, l’encre, la police du texte et le reste de ce qu’était `.jeu`', () => {
+  it('pose sur html le fond crème, l’encre et la police du texte, et sur body la taille du texte (ce qu’était `.jeu`)', () => {
     const texte = lisSansCommentaires('base.css')
     expect(texte).toMatch(/html\s*\{[^}]*background:\s*var\(--color-creme\)/)
     expect(texte).toMatch(/html\s*\{[^}]*color-scheme:\s*light/)
     expect(texte).toMatch(/html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/)
     expect(texte).toMatch(/html\s*\{[^}]*font-family:\s*var\(--font-texte\)/)
-    expect(texte).toMatch(/html\s*\{[^}]*font-size:\s*var\(--text-texte\)/)
+    expect(texte).toMatch(/(?:^|\n)\s*body\s*\{[^}]*font-size:\s*var\(--text-texte\)/)
+  })
+
+  it('ne donne aucune taille de police à la racine : `rem` reste 16 px, comme dans le système, où `.jeu` n’est pas `html`', () => {
+    const racines: string[] = []
+    for (const nom of ['base.css', 'composants.css', 'jetons.css', 'polices.css', 'index.css']) {
+      postcss.parse(lis(nom)).walkRules((regle) => {
+        const vise = regle.selectors.some((s) => /^(?:html|:root)(?![\w-])/.test(s.trim()))
+        if (!vise) return
+        regle.walkDecls(/^font(?:-size)?$/, (decl) => void racines.push(`${nom} ${regle.selector} { ${decl.prop}: ${decl.value} }`))
+      })
+    }
+    expect(racines).toEqual([])
   })
 
   it('pose sur body la hauteur et la zone sûre des téléphones', () => {
