@@ -26,9 +26,9 @@ describe('la structure de ci.yml', () => {
     expect(deploie).toContain("if: github.event_name == 'push' && github.ref == 'refs/heads/main'")
   })
 
-  it('compte front, secrets et contrat dans « resultat », qui s’exécute même si l’un d’eux échoue', () => {
+  it('compte front, banc, secrets et contrat dans « resultat », qui s’exécute même si l’un d’eux échoue', () => {
     const resultat = job('resultat')
-    expect(needs(resultat)?.sort()).toEqual(['contrat', 'front', 'secrets'])
+    expect(needs(resultat)?.sort()).toEqual(['banc', 'contrat', 'front', 'secrets'])
     expect(resultat).toMatch(/^ {4}if: always\(\)$/m)
   })
 

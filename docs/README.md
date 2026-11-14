@@ -3,6 +3,7 @@
 | Doc | Contenu |
 |---|---|
 | [`conventions.md`](conventions.md) | Les règles de code du front |
+| [`banc.md`](banc.md) | Le banc des composants et ses contrôles Playwright (`npm run e2e`) |
 | [`../README.md`](../README.md) | Lancer en local, vérifier |
 | [`contrat.md`](contrat.md) | La copie épinglée du contrat de `popote-api`, le client généré, la CI de dérive |
 | [`superpowers/specs/2026-11-12-socle-design.md`](superpowers/specs/2026-11-12-socle-design.md) | La spec du socle (étape 0) : la référence des deux dépôts |

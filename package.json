@@ -13,7 +13,9 @@
     "contrat:genere": "openapi-typescript contrat/openapi.json -o src/api/schema.d.ts && node scripts/genere-routes-protegees.mjs",
     "contrat:verifie": "openapi-typescript contrat/openapi.json -o src/api/schema.d.ts --check && node scripts/genere-routes-protegees.mjs --check",
     "jetons:verifie": "node scripts/verifie-jetons.mjs",
-    "build:verifie": "node scripts/verifie-build.mjs dist"
+    "build:verifie": "node scripts/verifie-build.mjs dist",
+    "build:banc": "tsc -b && vite build --mode banc",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.106.1",

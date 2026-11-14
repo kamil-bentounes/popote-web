@@ -5,7 +5,7 @@ Règles pour toute session d'agent sur `popote-web` (le front de Popote ; l'API 
 ## Commandes
 
 - Installer : `npm ci` · Lancer : `npm run dev` · Lint : `npm run lint` · Types : `npx tsc -b`
-- Tests : `npm test` · Construire : `npm run build`
+- Tests : `npm test` · Construire : `npm run build` · Banc et e2e : `npm run e2e` (voir `docs/banc.md`)
 - Avant de proposer un commit, lint, types, tests et construction doivent passer.
 
 ## Règles
