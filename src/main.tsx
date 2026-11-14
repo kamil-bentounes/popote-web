@@ -1,10 +1,11 @@
 import './styles/index.css'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import { nettoieAncienFrontDe } from './ancien-front'
+import { creeQueryClient } from './api/query-client'
 import { creeRouteur } from './router'
 import { MotionProvider } from './ui/MotionProvider'
 
@@ -12,7 +13,7 @@ nettoieAncienFrontDe(window)
 // Tant que F22 n'a pas refait la PWA, rien ne doit retirer le `sw.js` qui remplace celui de l'ancien front.
 registerSW({ immediate: true })
 
-const queryClient = new QueryClient()
+const queryClient = creeQueryClient()
 const routeur = creeRouteur({ queryClient })
 
 const racine = document.getElementById('root')

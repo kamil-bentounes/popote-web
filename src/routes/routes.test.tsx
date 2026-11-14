@@ -12,12 +12,23 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
 import { StrictMode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ErreurRoute } from '../etats/ErreurRoute'
 import { creeRouteur, optionsDuRouteur } from '../router'
 import { verifieAxe } from '../test/axe'
 import { Route as racineReelle } from './__root'
+
+// `/` mène à `/accueil`, qui lit la session : ici, personne n'est connecté (la garde a ses tests dans `garde-de-session.test.tsx`).
+const serveur = setupServer()
+beforeAll(() => serveur.listen({ onUnhandledFrame: 'error' }))
+beforeEach(() =>
+  serveur.use(http.get('http://localhost:3000/api/v1/me', () => HttpResponse.json({ title: 'x' }, { status: 401, headers: { 'Content-Type': 'application/problem+json' } }))),
+)
+afterEach(() => serveur.resetHandlers())
+afterAll(() => serveur.close())
 
 // Un texte du catalogue qui, sur demande, lève : c'est ce qui fait échouer le VRAI composant de `/entrer`
 // (chargé à la demande), sans toucher à son code.
@@ -69,7 +80,7 @@ function monteAvec(fabriques: Array<(racine: AnyRoute) => AnyRoute>, adresse: st
 const contenu = () => document.getElementById('contenu')
 
 describe('le routeur', () => {
-  it('mène « / » à « /entrer »', async () => {
+  it('mène « / » à « /entrer » quand personne n’est connecté', async () => {
     const { routeur } = monte('/')
     await screen.findByRole('heading', { level: 1 })
     expect(routeur.state.location.pathname).toBe('/entrer')

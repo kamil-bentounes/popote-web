@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
+import { Route as ConnecteRouteImport } from './routes/_connecte'
 import { Route as EntrerRouteImport } from './routes/entrer'
+import { Route as ConnecteAccueilRouteImport } from './routes/_connecte.accueil'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,39 +25,53 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnecteRoute = ConnecteRouteImport.update({
+  id: '/_connecte',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntrerRoute = EntrerRouteImport.update({
   id: '/entrer',
   path: '/entrer',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ConnecteAccueilRoute = ConnecteAccueilRouteImport.update({
+  id: '/accueil',
+  path: '/accueil',
+  getParentRoute: () => ConnecteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/entrer': typeof EntrerRoute
+  '/accueil': typeof ConnecteAccueilRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/entrer': typeof EntrerRoute
+  '/accueil': typeof ConnecteAccueilRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/_connecte': typeof ConnecteRouteWithChildren
   '/entrer': typeof EntrerRoute
+  '/_connecte/accueil': typeof ConnecteAccueilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$' | '/entrer'
+  fullPaths: '/' | '/$' | '/entrer' | '/accueil'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$' | '/entrer'
-  id: '__root__' | '/' | '/$' | '/entrer'
+  to: '/' | '/$' | '/entrer' | '/accueil'
+  id: '__root__' | '/' | '/$' | '/_connecte' | '/entrer' | '/_connecte/accueil'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  ConnecteRoute: typeof ConnecteRouteWithChildren
   EntrerRoute: typeof EntrerRoute
 }
 
@@ -75,6 +91,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_connecte': {
+      id: '/_connecte'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ConnecteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entrer': {
       id: '/entrer'
       path: '/entrer'
@@ -82,12 +105,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_connecte/accueil': {
+      id: '/_connecte/accueil'
+      path: '/accueil'
+      fullPath: '/accueil'
+      preLoaderRoute: typeof ConnecteAccueilRouteImport
+      parentRoute: typeof ConnecteRoute
+    }
   }
 }
+
+interface ConnecteRouteChildren {
+  ConnecteAccueilRoute: typeof ConnecteAccueilRoute
+}
+
+const ConnecteRouteChildren: ConnecteRouteChildren = {
+  ConnecteAccueilRoute: ConnecteAccueilRoute,
+}
+
+const ConnecteRouteWithChildren = ConnecteRoute._addFileChildren(
+  ConnecteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  ConnecteRoute: ConnecteRouteWithChildren,
   EntrerRoute: EntrerRoute,
 }
 export const routeTree = rootRouteImport

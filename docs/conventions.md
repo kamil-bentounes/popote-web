@@ -60,3 +60,19 @@ Tout appel passe par la couche `src/api/` (F5a) : `lit(client.GET(...))` rend le
 `TropDeDemandes` ou `ErreurReseau` ; `litVide` sert les routes sans corps. Une écriture qui crée ou déclenche un effet
 porte `nouvelleCle()` (le contrat la rend obligatoire au type) et, à la reprise, **la même** clé. Les états
 transverses (réveil, limite, réseau, session) s'abonnent à `evenements` de `src/api/evenements.ts`.
+
+**Une ressource = un fichier** de `src/api/ressources/` : ses clés (précises : `['moi']`, plus tard `['budget', mois]`), ses
+`queryOptions` et ses hooks. Aucune invalidation globale : on invalide la clé de la ressource touchée. Les réglages de reprise
+vivent dans `src/api/reprises.ts` : une lecture est rejouée deux fois au plus sur une coupure du réseau, un 502, un 503 ou un
+504 (jamais sur un 4xx) ; une écriture n'est rejouée que par `optionsEcriture`, qui exige `cle` (la clé d'idempotence, de
+`nouvelleCle()`) **dans les variables** de la mutation, jamais fabriquée dans `mutationFn` : TanStack Query rejoue avec les mêmes
+variables, donc la même clé.
+
+La clé se fabrique **une fois par intention** (état ou ref du composant), non à chaque clic ni dans la fonction de la mutation :
+deux clics avec deux clés sont deux envois. Après un succès, on en fabrique une neuve, sinon le serveur rejoue l'ancienne réponse.
+Elle est typée `CleIdempotence` (sortie de `nouvelleCle()` seule) et vérifiée à l'exécution. Le client de requêtes ne reprend les
+écritures en pause au retour du réseau que monté : `QueryClientProvider` le fait, un test appelle `queryClient.mount()`.
+
+**Un `retour` ou toute adresse venue de l'adresse du navigateur passe par `cheminSur`** (`src/api/chemin-sur.ts`) avant d'être
+suivie : il n'accepte qu'un chemin de l'appli. Le routeur recopie les paramètres inconnus : on lit `retour` par `Route.useSearch()`,
+jamais par `location.search`. Les routes qui exigent une session sont les enfants de `src/routes/_connecte.tsx`.
