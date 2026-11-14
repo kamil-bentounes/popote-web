@@ -6,10 +6,11 @@ const TITRES: Array<[string, string]> = [
 
 export const section: Section = {
   reference: 'Typographie',
+  colonne: 'pleine',
   cas: [
     {
       legende: 'Fredoka et Nunito',
-      cle: 'echelle',
+      reference: 'Typographie', // un bloc seul : sa légende est le `h2` de sa section
       rendu: (
         <div className="bloc" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {TITRES.map(([taille, texte]) => (
