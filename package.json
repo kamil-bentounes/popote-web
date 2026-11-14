@@ -60,7 +60,7 @@
       "typescript": "$typescript"
     },
     "workbox-build": {
-      "glob": "14.0.4"
+      "glob": "^14.0.4"
     }
   }
 }
