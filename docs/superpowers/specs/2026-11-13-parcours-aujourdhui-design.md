@@ -13,7 +13,7 @@ Popote, l'assistant qui répond et agit, à l'écrit comme à la voix.
   120 g de protéines ; Léa n'a pas réglé les siens. Un soir de semaine, Sam a déjà noté son déjeuner (1 240 kcal,
   68 g). En stock : 12 parts de chili au congélateur et 6 parts de lasagnes au frigo, soit 18 parts. Tout est inventé.
 
-## 1. Décisions du propriétaire (13/11/2026)
+## 1. Décisions du propriétaire (13/11/2026, complétées le 14/11/2026)
 
 | Sujet | Décision |
 |---|---|
@@ -27,6 +27,7 @@ Popote, l'assistant qui répond et agit, à l'écrit comme à la voix.
 | Le budget sur l'accueil | La tuile Budget dit ce qui reste du mois ; un appui ouvre le budget. |
 | Deux objectifs | L'énergie (kcal) et les protéines (g). Rien d'autre. |
 | Cuisiner | Lancer une session est toujours possible, quel que soit l'état de la semaine ou du frigo. |
+| Choses à faire (14/11) | Une part à jeter (périmée) est toujours la chose n° 1 de l'accueil, devant toutes les autres. Après « Jeté », un bouton « Annuler » reste 6 secondes. |
 
 ## 2. Hors périmètre
 
@@ -100,12 +101,24 @@ réduit). Elle tient en une phrase et porte son bouton dans la bulle :
 
 | Priorité | Chose | Texte | Bouton |
 |---|---|---|---|
-| 1 | Une portion décongelée depuis trop longtemps | Une part de chili décongelée depuis le 5 novembre : à jeter. | Jeté |
+| 1 | Une part à jeter (périmée) | Une part de chili décongelée depuis le 5 novembre : à jeter. | Jeté |
 | 2 | Des portions à sortir du congélateur pour le prochain repas prévu | Sors 2 parts de chili pour demain midi. | Je les sors |
 
-- L'API choisit la chose et son ordre (P2) ; l'écran ne trie rien. D'autres mondes ajouteront les leurs.
+- **Une part à jeter est toujours la chose n° 1** (décision du propriétaire, 14/11/2026). Dès qu'une part est à jeter,
+  pour quelque raison que ce soit (les seuils sont ceux du parcours du frigo), sa chose passe devant toutes les autres,
+  celles des autres mondes comprises ; la bulle ne propose rien d'autre tant qu'il en reste. S'il y en a plusieurs,
+  la plus ancienne d'abord.
+- L'API choisit la chose et son ordre (P1, P2) ; l'écran ne trie rien. D'autres mondes ajouteront les leurs, toujours après
+  une part à jeter.
 - Après l'appui : la bulle confirme 2,3 s (« **Merci !** Frigo propre. », « **2 parts sorties !** Prêtes pour demain
   midi. »), la tuile concernée met sa phrase à jour avec un petit rebond, puis la bulle passe à la chose suivante.
+  Exception : « Jeté » garde sa confirmation 6 secondes, avec « Annuler » (ci-dessous).
+- **Après « Jeté », « Annuler » reste 6 secondes** (décision du propriétaire, 14/11/2026). Pendant ce délai, la bulle
+  garde « **Merci !** Frigo propre. » et son bouton « Jeté » est remplacé par « Annuler ». Un appui remet la part dans
+  son état d'avant : la bulle dit « **C'est annulé.** », la tuile Frigo reprend sa phrase d'avant et la chose revient
+  avec son bouton « Jeté ». Sans appui, au bout de 6 secondes le bouton disparaît et la bulle passe à la chose
+  suivante : plus rien ne se défait d'ici. Le délai ne court pas tant que le bouton a le focus ou le pointeur, et il
+  vaut aussi avec « mouvement réduit » (ce n'est pas une animation). « Je les sors » n'a pas d'« Annuler ».
 - L'appui suit la politique de mutation du § 5, avec ses trois cas, jamais confondus :
   - **En attente** (l'appareil est hors ligne) : la bulle dit « **Part dès que le réseau revient.** Je le garde d'ici
     là. », son bouton laisse la place au lien « Annuler », et le bandeau hors ligne de F21 est affiché. La tuile ne
@@ -119,6 +132,10 @@ réduit). Elle tient en une phrase et porte son bouton dans la bulle :
     joindre la cuisine. » avec le bouton « Vérifier », qui relit P1 et n'envoie aucune écriture.
   - **Refusé** (le serveur a répondu par une erreur) : la bulle dit « **Oups, ça n'a pas marché.** Réessaie. » et
     garde son bouton, qui rejoue la même opération avec la même clé : réappuyer est sans effet de plus (P2).
+  - **L'« Annuler » d'un « Jeté »** suit la même politique : une clé d'opération, les trois cas, rien dans le stockage
+    du navigateur. Hors ligne, « Jeté » est en attente et son « Annuler » est celui de l'attente (ci-dessus, sans
+    délai de 6 secondes). Un appui parti avant la 6e seconde va jusqu'à sa réponse ; le serveur n'accepte l'annulation
+    que dans les 30 secondes qui suivent le « Jeté » (P2).
 - Plus rien à faire : la bulle revient à une phrase calme. Si plus aucun repas n'est prévu (ni ce soir ni ensuite)
   et qu'aucune session n'est en cours, elle invite : « **On cuisine dimanche ?** Touche « Cuisiner », ou dis-le-moi. »
   Le jour proposé est celui de la dernière session (dimanche par défaut) ; si c'est aujourd'hui : « **On cuisine
@@ -520,7 +537,7 @@ Le contrat (routes, noms, formats) est fixé par le socle. L'écran a besoin de 
 | N° | Besoin |
 |---|---|
 | P1 | **L'état du foyer pour la personne**, en une lecture : le jour courant, le repas du moment (midi ou soir) et le moment de la salutation ; l'état du repas (§ 4.3) avec l'identifiant du repas affiché, sa version et l'identifiant de la saisie qu'« Annuler » défait, le nom court du plat, sa photo, si l'autre a noté sa part ; la journée (valeur et objectif pour l'énergie et les protéines, ou « objectifs pas réglés ») ; la série ; la couleur de la personne ; pour chaque monde, un état et les valeurs de sa phrase (§ 4.5) ; la chose à faire courante (§ 4.2) ; la disponibilité de Popote et son heure de retour. Aucun texte rédigé. Rien de ce qui appartient à l'autre membre, sauf ce que le § 6 nomme. |
-| P2 | **Régler une chose à faire** (sortir, jeter). La réponse rend la chose suivante, ou rien, et la ligne du monde mise à jour. Si l'autre membre l'a déjà réglée, la réponse est la même, sans erreur. |
+| P2 | **Régler une chose à faire** (sortir, jeter). La réponse rend la chose suivante, ou rien, et la ligne du monde mise à jour. Si l'autre membre l'a déjà réglée, la réponse est la même, sans erreur. Une part à jeter passe toujours en tête de ce que P1 rend comme chose à faire (§ 4.2). **Annuler un « Jeté »** : la réponse de « Jeté » rend de quoi l'annuler ; l'annulation remet chaque part jetée dans l'état d'avant, n'est acceptée que dans les 30 secondes qui suivent, et rejouée ou déjà faite elle rend la même réponse, sans erreur. |
 | P3 | **Noter le repas prévu comme mangé, et annuler une saisie désignée par son identifiant.** L'écriture porte sa cible (jour, repas, version) et sa clé d'opération ; elle ne déduit rien de l'heure. Une demande rejouée ne note qu'une fois. Le retrait de stock est atomique : si la dernière part est prise, le refus est un conflit relisible qui dit qui l'a prise (prénom). Un état affiché périmé est refusé et P1 à jour est rendu. La réponse rend l'identifiant de la saisie, la journée, la série et la ligne du frigo à jour. |
 | P4 | **Ajouter des aliments à un repas** (dessert, encas, autre chose, plusieurs d'un coup), chacun avec sa quantité, ses valeurs et la marque « estimé » s'il y a lieu ; le tout forme une saisie, annulable par P3 grâce à l'identifiant que P4 rend ; mêmes règles de cible, de clé et de conflit de stock que P3. Les valeurs d'un aliment connu sont recalculées par le serveur à partir de la quantité. Un plat déjà noté pour ce repas et cette personne n'est pas noté deux fois. |
 | P5 | **Parler à Popote** : envoyer un message, recevoir sa réponse au fil de l'eau. Une réponse est faite de segments de texte (simple ou en gras) et, s'il y a lieu, d'un bloc typé : récapitulatif à lignes (marque, réponses possibles), dosage, destination à ouvrir (prise dans une liste fermée d'écrans). La validation désigne un bloc par son identifiant et sa version ; le serveur écrit ce bloc, rien d'autre, et consomme atomiquement la version courante, liée à la personne, au fil et au jour : ancienne version, autre personne, bloc expiré ou action hors liste sont refusés par un conflit. Rien n'est écrit avant la validation ; un bloc validé deux fois n'agit qu'une fois ; un bloc en attente survit à la mise en veille du serveur et porte son jour. Les écritures possibles sont celles du § 6. Le socle fixe combien de temps le fil est gardé. |
@@ -569,6 +586,9 @@ s'agite ni d'ondes (un anneau fixe dit « écoute ») ; les chiffres des jauges 
 - « Mangé », « Annuler », une chose réglée, un dessert ajouté : le résultat est annoncé, et le focus va à un endroit
   fixé d'avance (le bouton qui a remplacé celui qu'on a touché ; après la fermeture de la feuille, l'élément qui
   l'avait ouverte).
+- « Annuler » après « Jeté » : son nom accessible est « Annuler le jet » ; il reçoit le focus quand il remplace « Jeté »,
+  et la bulle (région `status`) annonce « Merci ! Frigo propre. ». Quand il disparaît, le focus va sur le bouton de la
+  chose suivante, sinon sur la bulle. Le délai de 6 secondes ne court pas tant qu'il a le focus.
 - La feuille est un dialogue : focus piégé, Échap ferme, le fil est un `log` dont les nouveaux messages sont annoncés.
   Les marques disent leur sens en mots (« compris », « estimé », « à préciser »).
 - Le mode vocal marche aussi sans voix ni son : tout ce qui est dit est écrit, et le récapitulatif se valide avec
@@ -619,6 +639,13 @@ s'agite ni d'ondes (un anneau fixe dit « écoute ») ; les chiffres des jauges 
     est traité comme un nom : le récapitulatif l'affiche tel quel et rien d'autre ne change. Popote ne peut ni
     inviter, ni retirer quelqu'un, ni supprimer un compte, quelle que soit la demande.
 15. *Sur PC (1440 px) et sur téléphone (390 px)*, chaque écran correspond à sa capture de référence.
+16. *Étant donné* une part à jeter, deux parts à sortir et, dans un autre monde, une chose à faire, *quand* Sam ouvre
+    l'accueil, *alors* la bulle propose d'abord de jeter ; la chose suivante ne vient qu'après « Jeté » (ou son
+    « Annuler » de 6 secondes), et jamais devant une part à jeter.
+17. *Quand* Sam touche « Jeté », *alors* la bulle dit « Merci ! Frigo propre. » avec « Annuler » pendant 6 secondes ;
+    « Annuler » remet la part dans son état d'avant, la tuile Frigo reprend sa phrase et la chose revient avec « Jeté » ;
+    sans appui, le bouton disparaît au bout de 6 secondes et la bulle passe à la chose suivante ; *hors ligne*,
+    « Annuler » retire l'écriture en attente, sans délai.
 
 ## 14. Points à confirmer
 
@@ -633,5 +660,5 @@ concernées (le plan dit lesquelles).
 | C4 | La voix de Popote | elle répond à voix haute dans le mode vocal (§ 7) ; le choix de la voix reste à faire |
 | C5 | Seuils du frigo (« à jeter », « à sortir ») et compte des parts de la tuile | fixés par le parcours du frigo ; la règle du § 4.5 est provisoire |
 | C6 | Source des photos de plats | à décider avec le parcours « Cuisiner » ; sans photo, un carré de couleur avec l'initiale du plat |
-| C7 | Textes d'états que le prototype ne joue pas | « Objectif protéines atteint. », « C'est annulé. », « Tu es déjà à ton objectif d'énergie. », « Oups, ça n'a pas marché. », « Pas sûr que ce soit réglé. », le bouton « Vérifier » d'une chose à faire, « Annuler » d'une écriture en attente, les tuiles « Vide », « À régler ensemble », « Session en cours », « déjà noté », le refus du micro, « Je te l'affiche. », « Je n'ai pas réussi à répondre. », l'étiquette illisible, le silence de 8 secondes, les variantes de midi, « Je vérifie… », « Pas sûr que ce soit noté. », « Oups, pas noté. Réessaie. », « Le repas a changé. », « Sam vient de prendre la dernière part. » : proposés par la spec |
+| C7 | Textes d'états que le prototype ne joue pas | « Objectif protéines atteint. », « C'est annulé. », « Tu es déjà à ton objectif d'énergie. », « Oups, ça n'a pas marché. », « Pas sûr que ce soit réglé. », le bouton « Vérifier » d'une chose à faire, « Annuler » d'une écriture en attente, « Annuler » après « Jeté » (6 secondes), les tuiles « Vide », « À régler ensemble », « Session en cours », « déjà noté », le refus du micro, « Je te l'affiche. », « Je n'ai pas réussi à répondre. », l'étiquette illisible, le silence de 8 secondes, les variantes de midi, « Je vérifie… », « Pas sûr que ce soit noté. », « Oups, pas noté. Réessaie. », « Le repas a changé. », « Sam vient de prendre la dernière part. » : proposés par la spec |
 | C8 | Valider à la voix | seulement en réponse à la question de Popote, micro coupé pendant qu'elle parle (§ 7). Remarque de la relecture : la fenêtre de 10 secondes n'authentifie pas la voix, un « oui » dit par la télévision ou par l'autre personne peut valider ; garder la voix, mais peut-être avec une formule liée à l'action (« oui, note le dîner ») ou un geste d'écoute explicite. Le bouton « Valider » existe de toute façon. |

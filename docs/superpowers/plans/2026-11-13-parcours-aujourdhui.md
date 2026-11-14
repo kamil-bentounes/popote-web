@@ -111,7 +111,12 @@ plan du socle. **Coupe prévue :** en-tête, bulle et repas (H2a) ; jauges et tu
 **Pourquoi :** spec § 4.2. **Dépend de :** H2 ; P2, plan du socle.
 
 - [ ] La chose courante remplace la salutation après 1,5 s ; son bouton la règle ; confirmation, tuile mise à jour,
-  chose suivante prise dans la réponse.
+  chose suivante prise dans la réponse. Une part à jeter est toujours la chose n° 1 : l'écran ne trie rien, il montre la
+  chose rendue par l'API (spec § 4.2).
+- [ ] « Jeté » : la confirmation reste 6 secondes avec « Annuler » (nom accessible « Annuler le jet ») ; un appui remet la
+  part (« C'est annulé. », la tuile reprend sa phrase, la chose revient avec « Jeté ») ; au bout de 6 secondes le bouton
+  disparaît et la bulle passe à la suivante ; le délai est suspendu tant que le bouton a le focus ou le pointeur, et vaut
+  aussi avec « mouvement réduit » ; l'« Annuler » suit la politique de mutation (P2, plan du socle).
 - [ ] Les trois cas de la politique de mutation pour « Je les sors » et « Jeté » (spec § 4.2) : en attente (« Part
   dès que le réseau revient. », « Annuler », la tuile ne bouge pas), incertain (« Je vérifie… », « Pas sûr que ce
   soit réglé. », « Vérifier »), refusé (« Oups, ça n'a pas marché. », le bouton reste).
@@ -120,7 +125,12 @@ plan du socle. **Coupe prévue :** en-tête, bulle et repas (H2a) ; jauges et tu
   POST ne part au retour du réseau ; requête partie puis deux reprises sans réponse : état incertain, « Vérifier »
   relit P1 et n'émet aucun POST (chose disparue : réglée ; chose encore là : l'état reste incertain, le bouton devient « Réessayer », jamais « refusé » sans erreur du serveur) ; refus du serveur (« Oups, ça
   n'a pas marché. », le bouton reste, rien ne change, réappuyer rejoue la même clé) ; l'annonce et le focus après
-  l'appui ; mouvement réduit (pas de délai).
+  l'appui ; mouvement réduit (pas de délai pour la chose à faire ; les 6 secondes d'« Annuler » restent) ; une part à jeter
+  et une autre chose à faire : la part à jeter vient d'abord, même si l'autre chose vient d'un autre monde ; « Jeté » :
+  « Annuler » apparaît 6 secondes, un appui annule (une seule requête, sa clé), le délai ne court pas pendant le focus,
+  après 6 secondes le bouton disparaît et la chose suivante s'affiche ; « Annuler » hors ligne : celui de l'attente, sans
+  délai ; l'appui sur « Annuler » à la 6e seconde va jusqu'au bout ; l'annulation refusée par le serveur (hors des
+  30 secondes) : « Oups, ça n'a pas marché. » sans changer la tuile.
 
 ### H4 : « Mangé », « Annuler », l'échec
 
@@ -216,7 +226,7 @@ l'étiquette (H6c) ; une phrase (H6d).
 
 ### H9 : Les scénarios au clic et les captures
 
-**Pourquoi :** spec § 13. **Dépend de :** toutes les tâches. **Coupe prévue :** scénarios 1 à 8, puis 9 à 15.
+**Pourquoi :** spec § 13. **Dépend de :** toutes les tâches. **Coupe prévue :** scénarios 1 à 8, puis 9 à 17.
 
 - [ ] Un scénario Playwright par critère d'acceptation, sur l'environnement d'essai, avec deux navigateurs pour le
   scénario à deux personnes (4) et un assistant aux réponses fixées pour les scénarios de Popote.
