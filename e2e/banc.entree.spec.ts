@@ -49,9 +49,12 @@ test('les éléments d’un écran partent invisibles, rapetissés et plus bas, 
   await ouvreLeBanc(page)
   const { depart, arrivees } = await rejoue(page)
   expect(depart).toHaveLength(4)
+  // « À peine commencé », non « exactement au départ » : WebKit lance déjà l'animation du rang 0 quand on lit (opacité de 0,008 constatée en CI).
   for (const { opacity, transform } of depart) {
-    expect(opacity).toBe('0')
-    expect(transform, 'départ translaté et rapetissé (matrice 2D, jamais « none »)').toMatch(/^matrix\(0\.92, 0, 0, 0\.92, 0, 36\)$/)
+    expect(Number(opacity)).toBeLessThan(0.2)
+    const [echelle, decalage] = [/^matrix\(([\d.]+),/.exec(transform)?.[1], /,\s*([\d.]+)\)$/.exec(transform)?.[1]].map(Number)
+    expect(echelle, `rapetissé (transformation lue : ${transform})`).toBeLessThan(0.97)
+    expect(decalage, `plus bas (transformation lue : ${transform})`).toBeGreaterThan(20)
   }
   expect(arrivees.every(Number.isFinite), 'chaque élément annonce son arrivée').toBe(true)
   expect([...arrivees].sort((a, b) => a - b), 'ils arrivent dans l’ordre des rangs').toEqual(arrivees)
