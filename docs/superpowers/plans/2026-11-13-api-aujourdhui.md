@@ -138,7 +138,7 @@ Règles du corps (la spec § 4 fait foi pour les phrases ; ces codes sont ceux q
 - `journey.goals_set` faux : `goal` vaut `null` aux deux jauges (le front montre la bande « Tes objectifs ? »). Objectif
   « réglé » = ligne de `nutrition_target_courante` avec `kcal > 0` (R20). `value` : entiers (R10).
 - `chore` : `null` ou
-  `{ "kind": "discard_thawed", "dish_short_name", "portion_ids": [uuid…], "thawed_on": "2026-11-05" }` (priorité 1) ou
+  `{ "kind": "discard_thawed", "dish_short_name", "portion_ids": [uuid…], "thawed_on": "2026-11-05" }` (priorité 1 : **toujours en tête**, même devant une chose d'un autre monde, décision du 14/11/2026) ou
   `{ "kind": "take_out", "dish_short_name", "portion_ids": [uuid…], "for": { "day", "meal" } }` (priorité 2). Le front
   renvoie `portion_ids` à P2 : **la chose est une valeur, pas une ligne** (voir P2).
 - `worlds.week.state` : `upcoming` (1 ou 2 repas dans `next`, le jour du premier se déduit de `day`) | `nothing_planned`.
@@ -146,7 +146,7 @@ Règles du corps (la spec § 4 fait foi pour les phrases ; ces codes sont ceux q
   `portions` compte les parts encore à manger, frigo et congélateur, parts à jeter exclues ; `dishes` le nombre de plats
   distincts ; `single_dish` : `{ "short_name", "portions" }` quand il n'y a qu'un plat. **Règle provisoire C5**,
   constantes isolées (§ « Les fournisseurs »).
-- `worlds.budget` : **sept états typés, par priorité** (spec Budget de la session design, relue ; sous réserve de l'accord de Kamil), union discriminée par `state`, **sans drapeau de mise en avant** (la tuile Budget n'est jamais mise en avant : cette marque reste à Cuisiner) :
+- `worlds.budget` : **sept états typés, par priorité** (spec Budget de la session design, relue ; sous réserve de l'accord du propriétaire), union discriminée par `state`, **sans drapeau de mise en avant** (la tuile Budget n'est jamais mise en avant : cette marque reste à Cuisiner) :
   1. `not_set` (budget pas posé : « À régler ensemble », **sans chiffre**) ; 2. `bank_access` (`reason`: `renew` | `stopped`) ; 3. `share_to_confirm` ; 4. `monthly_review` (`month`: `YYYY-MM`) ;
   5. `transfer_due` (`amount_cents`, `late`: booléen) ; 6. `to_sort` (`count`) ; 7. `remaining` (`remaining_cents`, `month`).
   **Ce plan n'émet que `not_set`** tant que le Budget n'est pas livré ; l'union entière est posée dès maintenant (ajouter une valeur d'énumération plus tard serait signalé par `oasdiff`), pour que le plan d'API du Budget (branche `docs/plan-api-budget`) branche ses sept états en remplaçant seulement `private.etat_monde_budget`, sans retoucher P1. Un montant n'existe que dans les variantes 5 et 7 ; il n'apparaît jamais dans une notification et Popote ne le dit jamais à voix haute (spec § 7).
@@ -163,6 +163,7 @@ Chaque écriture rend un `TodayPatch` : **les mêmes clés que P1, seulement cel
 | Route | Clés rendues |
 |---|---|
 | P2 `POST /me/chore-resolutions` | `chore` (la suivante ou `null`), `worlds.fridge`, `outcome` |
+| P2 bis `POST /me/chore-resolutions/{resolution_id}/cancellations` (annuler un « Jeté », 14/11/2026) | `chore`, `worlds.fridge`, `outcome` |
 | P3/P4 `POST /me/meal-entries` | `meal_row`, `journey`, `streak`, `worlds.fridge`, `worlds.week`, `chore`, `outcome`, `entry` |
 | P3 `POST /me/meal-entries/{id}/cancellations` | idem |
 
@@ -214,6 +215,18 @@ Corps `{ "kind": "discard_thawed" | "take_out", "portion_ids": [uuid, 1 à 50] }
 elle est encore éligible (`discard_thawed` : `decongelee` et échue ; `take_out` : au congélateur, `au_frais`) ; sinon elle est
 **ignorée sans erreur**, même celle d'un autre foyer ou inconnue (aucun oracle d'existence). L'autre membre l'a déjà réglée :
 `resolved: 0`, même réponse, la chose suivante dans le `patch`. Seules les erreurs `401`, `403 aucun_foyer`, `422`, `429`, `503`.
+
+**P2 bis : annuler un « Jeté »** (14/11/2026 : après « Jeté », « Annuler » reste 6 secondes à l'écran).
+`POST /api/v1/me/chore-resolutions/{resolution_id}/cancellations`, `Idempotency-Key` obligatoire, sans corps. La réponse
+de P2 pour `discard_thawed` rend `resolution_id` (la ligne de journal de ce « Jeté ») et `undo_until` (l'instant de la base
++ 30 s) ; `take_out` n'en rend pas. `200 { "restored": n, "patch": TodayPatch }` : chaque part que ce « Jeté » a passée à `jetee`
+**et qui l'est encore** retrouve `decongelee`, son `expires_at` inchangé (elle est donc toujours échue : la chose revient en
+tête avec « Jeté », comme la spec le dit) ; une part déjà reprise ou repassée à un autre état est ignorée. Déjà annulé ou
+rejeu : `200` identique, sans effet. `404 reglement_introuvable` (inconnu **ou** d'un autre foyer, même corps) ; `409
+annulation_trop_tard` après 30 s (le front n'offre que 6 s : la marge couvre le réseau, et empêche de ressusciter une part
+jetée depuis longtemps) ; l'horloge est `public.maintenant()`, jamais un instant du client. **Limite écrite :** les cases `prevu`
+que « Jeté » avait libérées (`portion_id := null`) ne sont pas rattachées de nouveau ; le repas redemande une barquette
+à la planification.
 
 ### P6 : aliments, habitudes, dosage
 
@@ -369,7 +382,9 @@ $$;
   (R3). `state` : `empty` si `portions = 0 and to_discard = 0`, sinon `to_discard`, sinon `to_take_out`, sinon `ok`.
 - **Chose à faire** (`private.chose_a_faire`) : (1) `discard_thawed` : le plat dont une part décongelée est échue, le plus ancien d'abord ;
   (2) `take_out` : le **prochain** repas du foyer qui a des parts à sortir ; `portion_ids` = ces parts (≤ 50). Ordre : priorité, puis
-  échéance, puis identifiant de part (déterministe : deux membres voient la même chose).
+  échéance, puis identifiant de part (déterministe : deux membres voient la même chose). **Toute chose « à jeter » vient avant toute autre
+  chose à faire, y compris celles que d'autres mondes ajouteront** (décision du 14/11/2026) : la priorité est un rang global, pas un rang du frigo. « À jeter » reste ce
+  que la constante provisoire dit (parts décongelées échues) tant que le parcours du frigo n'a pas défini la péremption des parts non décongelées.
 - **Cuisine** : `in_progress` si `current_cycle()` existe et son état est dans `etats_de_session_en_cours()` ; sinon `suggest` (`highlight`)
   si la semaine n'a **aucun** repas prévu ni ce soir ni ensuite (ma case du repas `nothing_planned` **et** `week.state = nothing_planned`) ; sinon `new_session`.
 - **Budget** : `select jsonb_build_object('state','not_set')`. Le plan **n'invente aucune règle** du Budget ; le plan d'API du Budget remplace cette fonction (même signature) et rend l'un des sept états.
@@ -709,9 +724,10 @@ grant select on public.meal_entry, public.meal_entry_line to authenticated;   --
 **Pourquoi :** P2. **Dépend de :** A5. **Fichiers :** `supabase/migrations/<M6>_regler_une_chose.sql`, `src/popote_api/api/choses.py`, `schemas/choses.py`, `tests/integration/test_regler_une_chose.py`, `tests/db/regler-une-chose.test.ts`, matrice.
 
 - [ ] `public.regle_une_chose(p_kind text, p_portions uuid[], p_today_day date, p_today_meal text) returns jsonb`, `security definer` (foyer explicite) : verrouille les parts `for update` **triées par identifiant**, relit l'état sous verrou : `discard_thawed` → `decongelee` et `expires_at <= public.maintenant()` → **comme `ecarte_des_parts` (0122), libère d'abord les cases `prevu` du foyer qui réclamaient la part** (`portion_id := null`), **les cases étant verrouillées `for update order by id` après les parts** (comme `choisir_un_repas`, pas de `40P01`), puis `state = 'jetee'` (seule écriture sur la case d'un autre membre de tout le plan : assumée, la part n'existe plus, testée) ; `take_out` → `congelateur` + `au_frais` → `location = 'frigo'`, `frozen_at = null`, `state = 'decongelee'` (+24 h posé par `tg_portion_peremption`, à l'horloge de la base). Les autres parts (réglées par l'autre, d'un autre foyer, inconnues) : **ignorées**, comptées dans `skipped`, **réponse identique** pour un identifiant d'un autre foyer et un identifiant inconnu. Rend `{resolved, skipped}` et le patch.
-- [ ] Route `POST /me/chore-resolutions` : `{kind, portion_ids}` (1 à 50, uniques), `Idempotency-Key` ; patch : `chore` (la suivante), `worlds.fridge`, `outcome` (`done`, `partly_done`, `already_done`).
-- Cas de test : « Jeté » → `jetee`, la tuile ne dit plus « à jeter », chose suivante rendue, **aucune case `prevu` ne pointe plus la part jetée** ; « Je les sors » (2 parts de chili) → au frigo, `decongelee` ; l'autre membre l'a déjà réglée → `resolved: 0`, `200`, même forme ; part non éligible (pas échue) jamais jetée ; 51 identifiants → `422` ; doublons → `422` ; deux membres en même temps : une transition, une ligne de journal, aucun `40P01` (deux connexions, deux ordres) ; **« Jeté » contre « Mangé » de l'autre membre sur la même part, et contre un choix de repas qui verrouille deux cases** : aucun `40P01` ; ne touche jamais une part `mangee`.
-- Mutations : jeter sans relire l'état ; ne pas trier par identifiant ; ne pas libérer les cases ; `404` pour une part d'un autre foyer.
+- [ ] Route `POST /me/chore-resolutions` : `{kind, portion_ids}` (1 à 50, uniques), `Idempotency-Key` ; patch : `chore` (la suivante), `worlds.fridge`, `outcome` (`done`, `partly_done`, `already_done`). Pour `discard_thawed`, la réponse rend aussi `resolution_id` et `undo_until`.
+- [ ] **Annuler un « Jeté » (14/11/2026)** : `public.annule_un_jete(p_resolution uuid) returns jsonb`, `security definer` (foyer explicite), mêmes verrous que `regle_une_chose` (parts triées par identifiant, puis cases) ; route `POST /me/chore-resolutions/{resolution_id}/cancellations` (P2 bis) ; refuse après 30 s (`409 annulation_trop_tard`), inconnu ou d'un autre foyer : `404 reglement_introuvable`, même corps.
+- Cas de test : « Jeté » → `jetee`, la tuile ne dit plus « à jeter », chose suivante rendue, **aucune case `prevu` ne pointe plus la part jetée** ; « Je les sors » (2 parts de chili) → au frigo, `decongelee` ; l'autre membre l'a déjà réglée → `resolved: 0`, `200`, même forme ; part non éligible (pas échue) jamais jetée ; 51 identifiants → `422` ; doublons → `422` ; deux membres en même temps : une transition, une ligne de journal, aucun `40P01` (deux connexions, deux ordres) ; **« Jeté » contre « Mangé » de l'autre membre sur la même part, et contre un choix de repas qui verrouille deux cases** : aucun `40P01` ; ne touche jamais une part `mangee` ; **annuler un « Jeté »** : la part redevient `decongelee`, la tuile redit « à jeter » et la chose revient en tête ; rejeu et double appui : `200` identique ; à 31 s : `409 annulation_trop_tard`, la part reste `jetee` ; résolution d'un autre foyer : `404` (même corps qu'inconnue) ; l'autre membre a repris la part entre-temps : ignorée, `restored: 0` ; un « Jeté » contre son annulation en parallèle : aucun `40P01` ; **ordre des choses** : une part à jeter passe devant un `take_out` même plus ancien et devant une chose posée par un fournisseur fictif d'un autre monde ; `take_out` n'a pas de `resolution_id`.
+- Mutations : jeter sans relire l'état ; annuler sans vérifier les 30 s ; annuler une part déjà reprise ; lire l'heure du client ; classer la chose à jeter derrière une autre ; ne pas trier par identifiant ; ne pas libérer les cases ; `404` pour une part d'un autre foyer.
 - **Retour arrière :** retirer la route ; `drop function`.
 
 ### A10 : Aliments, habitudes, dosage (P6)
@@ -761,6 +777,7 @@ grant select on public.meal_entry, public.meal_entry_line to authenticated;   --
 5. **Dosage : l'énergie plafonne, les protéines ne servent qu'à départager** (spec : « approchent l'objectif sans le dépasser »), sans objectif d'énergie : `usual` même avec un objectif de protéines ; et la route refuse quand Popote se repose (`409 popote_au_repos`, P9). **Le dosage ne baisse jamais une ligne à zéro et ne dépasse jamais l'habitude** : choix de ce plan (la spec ne dit pas). Le front masque le dosage quand
    `popote.available` est faux (§ 8) ; le serveur refuse aussi (`409 popote_au_repos`).
 6. **`color_slot`** (1 ou 2, ancienneté) : le plan ne crée pas de colonne de couleur ; si la personne doit pouvoir la choisir, c'est le parcours des réglages.
+7. **Décisions du 14/11/2026 sur la bulle** : (a) une chose « à jeter » est toujours la n° 1, devant toute autre chose, d'où qu'elle vienne ; (b) après « Jeté », « Annuler » reste 6 secondes à l'écran ; ce plan ajoute P2 bis et une fenêtre serveur de 30 s (la spec dit « dans les 30 secondes », § 4.2). Reste ouvert : « à jeter » ne couvre toujours que les parts décongelées échues (point 4), donc une part du frigo périmée sans décongélation n'est toujours pas signalée, alors que le propriétaire dit « toute part à jeter (périmée) » : à reprendre par le parcours du frigo (C5).
 
 ## Défauts provisoires, en attente de la session design
 
@@ -771,8 +788,8 @@ Chacun est isolé dans **une constante** (un seul endroit à changer) et vaut ta
 | C1 série | jours consécutifs avec au moins une case `mange`, aujourd'hui compris | `SERIE_ETAT_COMPTE = 'mange'` et `FENETRE_SERIE_JOURS = 366` (`private.serie_de`) |
 | C2 midi et soir | « lunch » avant 15 h ; de 0 h à 5 h : `lunch` et salutation `evening` | `HEURE_FIN_DEJEUNER = 15`, `SALUTATION_JOUR = (5, 18)` (`domain/moment.py`) |
 | Couleur de la personne | `color_slot` 1 ou 2 par ancienneté ; pas de colonne | `private.rang_d_anciennete` |
-| Tuile Budget | l'API n'émet que `not_set` (« À régler ensemble », sans chiffre) ; **tranché** par la spec Budget de la session design (sept états, jamais mise en avant), sous réserve de l'accord de Kamil | `private.etat_monde_budget` |
-| Plat du frigo périmé sans décongélation | non signalé comme chose à faire | `private.seuils_du_frigo()` |
+| Tuile Budget | l'API n'émet que `not_set` (« À régler ensemble », sans chiffre) ; **tranché** par la spec Budget de la session design (sept états, jamais mise en avant), sous réserve de l'accord du propriétaire | `private.etat_monde_budget` |
+| Plat du frigo périmé sans décongélation | non signalé comme chose à faire (la règle « à jeter, n° 1 » du 14/11 lui sera appliquée dès que le parcours du frigo le signale) | `private.seuils_du_frigo()` |
 
 ## Sources vérifiées
 

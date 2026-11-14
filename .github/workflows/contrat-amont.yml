@@ -1,0 +1,60 @@
+name: Contrat d'amont
+# Appelé par `ci.yml` (push et demande de fusion) et par `contrat-quotidien.yml`.
+on:
+  workflow_call:
+    inputs:
+      strict:
+        description: "Une rupture d'amont fait échouer le contrôle (sinon : un avertissement)"
+        type: boolean
+        required: true
+permissions: {}
+jobs:
+  contrat-amont:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      # Mêmes version et somme que la CI de `popote-api` (recalculée à la main là-bas) : les changer ensemble.
+      OASDIFF_VERSION: "1.35.0"
+      OASDIFF_SHA256: "a8023002fcb2eaa7f5758148a9303cb63d33b939886df312268bc0fc7b939140"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Installer oasdiff (version figée, somme vérifiée)
+        run: |
+          set -euo pipefail
+          archive="oasdiff_${OASDIFF_VERSION}_linux_amd64.tar.gz"
+          curl --silent --show-error --fail --location --max-time 60 --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/oasdiff/oasdiff/releases/download/v${OASDIFF_VERSION}/$archive"
+          echo "$OASDIFF_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" oasdiff
+      - name: Les essais du script, avec le vrai oasdiff
+        run: OASDIFF="$RUNNER_TEMP/oasdiff" npx vitest run scripts/contrat-amont
+      - name: La rupture d'amont
+        id: amont
+        # Strict : rouge, donc vu. Sinon : l'étape échoue sans faire échouer le job, et l'étape suivante annonce.
+        continue-on-error: ${{ !inputs.strict }}
+        run: |
+          code=0
+          bash scripts/contrat-amont.sh || code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          exit "$code"
+        env:
+          OASDIFF: ${{ runner.temp }}/oasdiff
+      - name: Avertir d'un écart avec l'amont
+        if: steps.amont.outcome == 'failure'
+        env:
+          CODE: ${{ steps.amont.outputs.code }}
+        run: |
+          case "$CODE" in
+            1) echo "::warning title=Contrat d'amont::popote-api a rompu son contrat depuis la copie du front. Sans rapport avec cette demande de fusion ; à reprendre selon docs/contrat.md." ;;
+            2) echo "::warning title=Contrat d'amont::amont injoignable (GitHub ou popote-api) : rien n'a pu être comparé. Sans rapport avec cette demande de fusion." ;;
+            *) echo "::warning title=Contrat d'amont::le contrôle a échoué (code $CODE) : voir le journal de l'étape." ;;
+          esac
