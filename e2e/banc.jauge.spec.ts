@@ -35,6 +35,8 @@ async function remplit(page: Page): Promise<Image[]> {
       images.push(image)
       vuPose ||= image.anime
       if (vuPose && !image.anime) break
+      // Sous mouvement réduit (1 ms) l'attribut n'est peut-être jamais vu posé : la barre arrivée et au repos suffit.
+      if (!vuPose && !image.anime && Math.abs(image.part - 0.85) < 0.005) break
     }
     // Quelques images de plus : une barre qui « repart » après avoir fini serait vue ici.
     for (let i = 0; i < 12; i++) {
@@ -65,10 +67,27 @@ test('les rayures ne défilent que pendant le remplissage : posées, elles tourn
 
 test('au chargement, aucune jauge ne reste « en train de se remplir » : même celle qui part de zéro et y reste', async ({ page }) => {
   await ouvreLeBanc(page)
+  // `[data-anime]` est absent avant que Motion démarre : on attend d'abord que la dernière barre ait atteint sa part.
+  await expect.poll(() => page.locator('[data-cas^="Bornes"] .jauge > i').nth(1).evaluate((b) => parseFloat(getComputedStyle(b).width) / (b.parentElement!.getBoundingClientRect().width - 6))).toBeCloseTo(1, 2)
   await expect(page.locator('[data-section="Jauge qui se remplit"] [role=progressbar]')).toHaveCount(4)
   await expect(page.locator('[data-anime]')).toHaveCount(0)
   const animations = await page.locator('.jauge > i').evaluateAll((barres) => barres.map((b) => getComputedStyle(b).animationName))
   expect(animations.every((nom) => nom === 'none')).toBe(true)
+})
+
+test('une jauge qui repart avant d’avoir fini finit elle aussi au repos, à sa dernière valeur, sans `data-anime`', async ({ page }) => {
+  await ouvreLeBanc(page)
+  const cadre = page.locator(REMPLISSAGE)
+  await cadre.scrollIntoViewIfNeeded()
+  const rejoue = page.locator('[data-section="Jauge qui se remplit"] [data-cas^="Les rayures"] .lien')
+  await rejoue.click() // 15 -> 85
+  await expect(cadre.locator('i')).toHaveAttribute('data-anime', '')
+  // En plein remplissage : la barre a dépassé 30 % sans avoir fini.
+  await expect.poll(() => cadre.locator('i').evaluate((b) => parseFloat(getComputedStyle(b).width) / (b.parentElement!.getBoundingClientRect().width - 6))).toBeGreaterThan(0.3)
+  await rejoue.click() // 85 -> 15, avant la fin du précédent
+  await expect(cadre.locator('i')).not.toHaveAttribute('data-anime', '', { timeout: 5000 })
+  await expect.poll(() => cadre.locator('i').evaluate((b) => parseFloat(getComputedStyle(b).width) / (b.parentElement!.getBoundingClientRect().width - 6))).toBeCloseTo(0.15, 2)
+  expect(await cadre.locator('i').evaluate((b) => getComputedStyle(b).animationName)).toBe('none')
 })
 
 test('les bornes se voient : vide (le seul trait d’encre du bord), pleine de bord à bord, 150 comme 100', async ({ page }) => {

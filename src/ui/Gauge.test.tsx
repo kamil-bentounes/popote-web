@@ -121,6 +121,12 @@ describe('Gauge', () => {
     expect(jauge).toHaveAttribute('data-exemple', 'oui')
   })
 
+  it.each(['', '   '])('refuse un nom vide (%j) : une barre sans nom', (nom) => {
+    const silence = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    expect(() => dansLeFournisseur(<Gauge name={nom} value={10} />)).toThrow(RangeError)
+    silence.mockRestore()
+  })
+
   it('n’a aucune violation axe', async () => {
     const { container } = dansLeFournisseur(<><Gauge name="Énergie" value={64} /><Gauge name="Protéines" value={56} tone="ciel" /></>)
     expect(await verifieAxe(container)).toEqual([])

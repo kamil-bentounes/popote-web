@@ -27,6 +27,8 @@ export type GaugeProps = Omit<HTMLAttributes<HTMLDivElement>, Interactif | `aria
  */
 export function Gauge({ name, value, tone = 'tomate', className, ...reste }: GaugeProps) {
   const reduit = useMouvementReduit()
+  // Une barre sans nom n'aurait pour nom que `aria-label=""` : on refuse, comme `EffectRow` refuse un sens inconnu.
+  if (typeof name !== 'string' || name.trim() === '') throw new RangeError('Gauge : `name` est vide')
   const part = borneLaPart(value)
   const [anime, setAnime] = useState(false)
   return (

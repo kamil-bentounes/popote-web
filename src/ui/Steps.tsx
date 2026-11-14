@@ -24,16 +24,20 @@ export type StepsProps = Omit<HTMLAttributes<HTMLOListElement>, Interactif | `ar
 /**
  * Le suivi en étapes du système (`.suivi`) : une liste ordonnée, dont la longueur est lue par les lecteurs d'écran. Une étape faite
  * montre une coche, `data-fait`, et dit « faite » en texte ; une étape à venir dit « à venir » : jamais la couleur seule (WCAG 1.4.1).
- * La dernière étape faite est l'étape courante (`aria-current="step"`). L'étape qui se remplit joue son remplissage par Motion
+ * La dernière étape faite est l'étape courante (choix du plan : quand tout est fait, c'est la dernière) (`aria-current="step"`). L'étape qui se remplit joue son remplissage par Motion
  * (`variantesRemplissage`, qui remplace `@keyframes remplit`). Elle ne se touche pas.
  */
 export function Steps({ name, steps, className, ...reste }: StepsProps) {
   const reduit = useMouvementReduit()
+  // Une liste sans nom n'aurait pour nom que `aria-label=""` : on refuse, comme `EffectRow` refuse un sens inconnu.
+  if (typeof name !== 'string' || name.trim() === '') throw new RangeError('Steps : `name` est vide')
   const courante = steps.findLastIndex((etape) => etape.done)
   return (
-    <ol {...sans(sansInteraction(reste), A_NOUS)} aria-label={name} className={classes('suivi', className)}>
+    // `role="list"` : WebKit retire la sémantique d'une liste dont `list-style` vaut `none` (le preflight de Tailwind et `.suivi` le posent), et avec elle l'annonce du nombre d'étapes.
+    // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- le rôle redit la liste, exprès : c'est ce qui la garde une liste pour VoiceOver
+    <ol {...sans(sansInteraction(reste), A_NOUS)} role="list" aria-label={name} className={classes('suivi', className)}>
       {steps.map(({ label, done }, rang) => (
-        <li key={label} data-fait={done ? '' : undefined} aria-current={rang === courante ? 'step' : undefined}>
+        <li key={rang} data-fait={done ? '' : undefined} aria-current={rang === courante ? 'step' : undefined}>
           <i aria-hidden="true">{done && <m.span className="suivi-remplit" {...variantesRemplissage(reduit)} />}</i>
           {done && <Coche />}
           {label}

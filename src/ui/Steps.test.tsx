@@ -99,25 +99,49 @@ describe('Steps', () => {
     dansLeFournisseur(<Steps name="Suivi" steps={INVITATION} {...glisse} />)
     const liste = screen.getByRole('list', { name: 'Suivi' })
     expect(liste).not.toHaveAttribute('aria-labelledby')
-    expect(liste).not.toHaveAttribute('role')
+    expect(liste).toHaveAttribute('role', 'list')
     expect(liste).not.toHaveAttribute('tabindex')
     expect(liste).not.toHaveAttribute('style')
   })
 
   it('refuse par le type une liste sans nom, un rôle et un gestionnaire', () => {
-    // @ts-expect-error une liste de suivi se nomme
-    dansLeFournisseur(<Steps steps={INVITATION} />)
+    const silence = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    // @ts-expect-error une liste de suivi se nomme (et sans nom, à l'exécution, elle lève)
+    expect(() => dansLeFournisseur(<Steps steps={INVITATION} />)).toThrow(RangeError)
+    silence.mockRestore()
     // @ts-expect-error ni de rôle
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- le rôle est refusé par le type : c'est le sujet du test
     dansLeFournisseur(<Steps name="Suivi" steps={INVITATION} role="tablist" />)
     // @ts-expect-error ni de gestionnaire
     dansLeFournisseur(<Steps name="Suivi" steps={INVITATION} onClick={() => undefined} />)
-    expect(screen.getAllByRole('list')).toHaveLength(3)
+    expect(screen.getAllByRole('list')).toHaveLength(2)
   })
 
   it('laisse passer `className` et les attributs de données', () => {
     dansLeFournisseur(<Steps name="Suivi" steps={INVITATION} className="mt-2" data-exemple="oui" />)
     expect(screen.getByRole('list')).toHaveClass('suivi', 'mt-2')
     expect(screen.getByRole('list')).toHaveAttribute('data-exemple', 'oui')
+  })
+
+  it('deux étapes de même nom ne se confondent pas : chacune est rendue, avec son propre état', () => {
+    const erreur = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    dansLeFournisseur(<Steps name="Suivi" steps={[{ label: 'Choisi', done: true }, { label: 'Choisi', done: false }]} />)
+    expect(screen.getAllByRole('listitem').map((li) => li.hasAttribute('data-fait'))).toEqual([true, false])
+    // React dit « two children with the same key » par `console.error` : une clé fondée sur le libellé le ferait.
+    expect(erreur).not.toHaveBeenCalled()
+    erreur.mockRestore()
+  })
+
+  it('garde le rôle `list` en dur (WebKit retire celui d’une liste sans puces) ; l’appelant ne le remplace pas', () => {
+    const glisse = { role: 'tablist' } as object
+    const { container } = dansLeFournisseur(<Steps name="Suivi" steps={INVITATION} {...glisse} />)
+    expect(container.querySelector('ol')).toHaveAttribute('role', 'list')
+  })
+
+  it.each(['', '   '])('refuse un nom vide (%j) : une liste sans nom', (nom) => {
+    const silence = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    expect(() => dansLeFournisseur(<Steps name={nom} steps={INVITATION} />)).toThrow(RangeError)
+    silence.mockRestore()
   })
 
   it('n’a aucune violation axe', async () => {

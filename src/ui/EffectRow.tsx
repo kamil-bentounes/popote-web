@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react'
 import { etatsVisuels } from '../textes/etats-visuels'
 import { classes } from './classes'
 import { Coche, Croix, Fleche } from './icones'
-import { sansInteraction, type Interactif } from './nonInteractif'
+import { sans, sansInteraction, type Interactif } from './nonInteractif'
 
 export type Sens = 'perd' | 'reste' | 'change'
 
@@ -38,6 +38,8 @@ export function EffectRow({ sens, className, children, ...reste }: EffectRowProp
 }
 
 /** La surface des lignes d'effet : un bloc du système, qui est une liste (un `<li>` hors de toute liste est invalide). */
-export function EffectList({ className, ...reste }: HTMLAttributes<HTMLUListElement>) {
-  return <ul {...reste} className={classes('bloc px-[14px] py-1', className)} />
+export function EffectList({ className, ...reste }: Omit<HTMLAttributes<HTMLUListElement>, 'role'>) {
+  // `role="list"` : voir `Steps` (WebKit retire la sémantique d'une liste sans puces).
+  // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- le rôle redit la liste, exprès
+  return <ul {...sans(reste, ['role'])} role="list" className={classes('bloc px-[14px] py-1', className)} />
 }

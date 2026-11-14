@@ -79,6 +79,12 @@ describe('EffectRow', () => {
     expect(screen.getByRole('listitem')).toHaveAttribute('data-exemple', 'oui')
   })
 
+  it('garde le rôle `list` en dur (WebKit retire celui d’une liste sans puces) ; l’appelant ne le remplace pas', () => {
+    const glisse = { role: 'menu' } as object
+    render(<EffectList {...glisse}><EffectRow sens="reste">Oui</EffectRow></EffectList>)
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list')
+  })
+
   it('n’a aucune violation axe', async () => {
     const { container } = render(trois)
     expect(await verifieAxe(container)).toEqual([])
