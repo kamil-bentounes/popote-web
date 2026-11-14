@@ -11,8 +11,8 @@ describe('fusionne', () => {
       { reference: 'Bloc, pastille, tampon, avatar', cas: [cas('Tampon'), cas('Avatars')] },
     ]
     expect(fusionne(sections)).toEqual([
-      { titre: 'Bloc, pastille, tampon, avatar', cas: [cas('Bloc'), cas('Tampon'), cas('Avatars')] },
-      { titre: 'Couleurs', cas: [cas('crème')] },
+      { titre: 'Bloc, pastille, tampon, avatar', reference: 'Bloc, pastille, tampon, avatar', cas: [cas('Bloc'), cas('Tampon'), cas('Avatars')] },
+      { titre: 'Couleurs', reference: 'Couleurs', cas: [cas('crème')] },
     ])
   })
 
@@ -21,6 +21,12 @@ describe('fusionne', () => {
     expect(titreDe(sansPendant)).toBe('Anneaux de focus')
     expect(titreDe({ reference: 'Couleurs', cas: [] })).toBe('Couleurs')
     expect(fusionne([sansPendant, { reference: 'Couleurs', cas: [cas('crème')] }]).map((s) => s.titre)).toEqual(['Anneaux de focus', 'Couleurs'])
+  })
+
+  it('garde la section de la référence qui sert à l’appariement, même sous un autre titre ; rien pour une section sans pendant', () => {
+    const [nuances, sansPendant] = fusionne([{ reference: 'Couleurs', titre: 'Nuances', cas: [] }, { titre: 'Anneaux de focus', cas: [] }])
+    expect(nuances).toEqual({ titre: 'Nuances', reference: 'Couleurs', cas: [] })
+    expect(sansPendant?.reference).toBeUndefined()
   })
 
   it('un titre explicite l’emporte sur la référence', () => {

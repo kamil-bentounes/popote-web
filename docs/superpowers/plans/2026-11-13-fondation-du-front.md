@@ -1508,6 +1508,27 @@ Typographie portent une `cle`, sans `reference`.
   `http://127.0.0.1`** (« TLS handshake » sur chaque fichier ; Chromium épargne l'adresse locale) : le banc est donc servi avec la CSP de `wrangler.jsonc` **sans** cette directive (`--var CSP:`, lue dans le fichier par
   `playwright.config.ts`, comme le prévoyaient les constats de F1 pour F22) ; sur l'essai, en https, elle n'a pas d'effet. Le nom de la directive du style injecté (`style-src` ou `style-src-elem`) est accepté sous les deux formes.
 
+### Constats de F8b (la comparaison avec `reference.html`, 13/11/2026) : ils priment sur le texte de F8
+
+- **Ce que F8b livre** : `e2e/comparaison.spec.ts` (un test par projet), `e2e/comparaison/appariement.ts` (l'appariement, fonction pure), `rendu-index.ts` (l'index), `ecrit-index.ts` (la commande qui réunit les `donnees.json` des projets en
+  `captures/comparaison/index.html`, que la CI dépose en artefact `comparaison`). **Écarts au plan** : le code est en TypeScript (le plan disait `index.mjs` et `scripts/capture-index.test.mjs`) : un module `.mjs` importé d'un test
+  TypeScript n'a pas de types, et Node 22.18 et plus lit le TypeScript sans option ; ses tests sont `e2e/comparaison/*.test.ts` (le projet `scripts` de Vitest les inclut). L'index est écrit après les tests par une commande, non par
+  chaque projet : trois projets en parallèle ne peuvent pas se partager un fichier.
+- **Règles d'appariement** : le début d'une légende se compare sans casse ni espaces multiples, mais mot pour mot ; **l'égalité exacte l'emporte sur le début** (« tomate » désigne « tomate », non « tomate foncée » : sans cela cinq
+  couleurs étaient ambiguës) ; un début qui désigne zéro ou plusieurs légendes, deux cas de même légende, deux cas qui désignent la même légende, une légende de la référence absente du banc **dans une section déjà portée** : le test échoue.
+  Une section de la référence que le banc n'a pas encore n'échoue pas (l'index la nomme) : **on porte une section en entier** (F9 porte tout « Bouton », F12 tout « Bloc, pastille, tampon, avatar »…). Un cas ou une section sans `reference`
+  est signalé « sans pendant », jamais une erreur.
+- **`cle` disparaît de `Cas`** : une pastille de couleur a pour légende son texte, un bloc seul sans `<small>` (Typographie) celle du `h2` de sa section ; les deux passent par `reference`. La référence est lue **dans le navigateur, après exécution de la
+  page** (les légendes de la marmite sont générées par son script) : `.cas` et sa `<small>`, sinon `.nuance`, sinon le `.bloc` seul.
+- **`colonne` sur `Section`** : la référence donne à chaque grille sa largeur minimale de colonne (150 px les couleurs, 160 les marmites, 320 les scènes, 230 par défaut ; la typographie n'a pas de grille). Sans elle, le banc rendait les couleurs à 248 px
+  au lieu de 160 : 17 lignes sur 32 portaient un écart rouge. Chaque lot de composants la déclare pour sa section (`colonne: 160`, `320`, ou `'pleine'`).
+- **Premier constat de la comparaison, à corriger hors de F8b : le texte du banc est 3,1 % plus grand que celui de la référence.** Cause (mesurée : 60 px contre 61,875 px pour `--text-titre-xl`) : la référence pose `font-size: var(--text-texte)`
+  (16,5 px) sur `.jeu`, donc sur `body`, et les tailles des jetons sont en `rem` ; F7 a fait de `.jeu` la règle `html` de `base.css`, ce qui fait de 16,5 px le `rem` de toute l'appli, donc **toutes les tailles en `rem` (titres, texte, notes) grandissent de 3,1 %**
+  (et `--spacing` de Tailwind). Le test de F7 (`css.test.ts`, `html { font-size: var(--text-texte) }`) l'exige en l'état. Correction : `font-size` sur `body`, `html` garde le reste ; le test change avec. Visible dans l'index sur « Fredoka et Nunito »
+  (écart de 5 à 6 px de hauteur, repère rouge). Les autres écarts de dimension se lisent dans l'index de la CI.
+- **Captures** : `animations: 'disabled'` (les animations CSS finies vont à leur état final, les infinies reviennent à leur début, des deux côtés) et `?fige` (Motion à son état final) ; l'état de repos de F14 et suivants se compare donc, non leur mouvement. La page de
+  référence s'ouvre dans une seconde page du même contexte, **non surveillée** par la garde : ses erreurs ne font pas échouer le test (elle a ses scripts et styles en ligne, hors de notre CSP).
+
 ---
 
 ## Sources (vérifiées en ligne ou par essai le 13/11/2026)

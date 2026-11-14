@@ -60,6 +60,16 @@ jobs:
       - run: npx playwright test
         env:
           BANC_CONSTRUIT: "1" # le serveur des tests sert le `dist` contrôlé ci-dessus
+      # La comparaison avec reference.html : une ligne par cas, les deux captures côte à côte (e2e/comparaison.spec.ts).
+      - name: Index de la comparaison
+        if: always()
+        run: node e2e/comparaison/ecrit-index.ts captures/comparaison
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: comparaison
+          path: captures/comparaison/
+          retention-days: 7
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() # aussi quand le délai du job l'arrête (le cas probable d'un navigateur qui se fige)
         with:
