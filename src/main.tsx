@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import { nettoieAncienFrontDe } from './ancien-front'
 import { creeRouteur } from './router'
+import { MotionProvider } from './ui/MotionProvider'
 
 nettoieAncienFrontDe(window)
 // Tant que F22 n'a pas refait la PWA, rien ne doit retirer le `sw.js` qui remplace celui de l'ancien front.
@@ -19,7 +20,9 @@ if (!racine) throw new Error('#root introuvable dans index.html')
 createRoot(racine).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={routeur} />
+      <MotionProvider>
+        <RouterProvider router={routeur} />
+      </MotionProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

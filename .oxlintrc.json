@@ -7,12 +7,18 @@
     "react/exhaustive-deps": "error",
     "react/only-export-components": ["warn", { "allowConstantExport": true }],
     "react/no-danger": "error",
+    // `strict` de LazyMotion ne lève qu'en développement et en test : en production un `motion.div` égaré passerait sans bruit (+38 ko).
+    "no-restricted-imports": ["error", { "paths": [{ "name": "motion/react", "importNames": ["motion"], "message": "Importer `m` : import * as m from 'motion/react-m'." }] }],
     "jsx-a11y/click-events-have-key-events": "error",
     "jsx-a11y/no-static-element-interactions": "error",
     "jsx-a11y/alt-text": "error",
     "jsx-a11y/label-has-associated-control": "error"
   },
   // Un fichier de route exporte `Route` (un objet, pas un composant) : le routeur gère lui-même le rechargement à chaud.
-  "overrides": [{ "files": ["src/routes/**"], "rules": { "react/only-export-components": "off" } }],
+  "overrides": [
+    { "files": ["src/routes/**"], "rules": { "react/only-export-components": "off" } },
+    // Ce test importe `motion` exprès : il prouve que `strict` refuse un composant `motion`.
+    { "files": ["src/ui/MotionProvider.test.tsx"], "rules": { "no-restricted-imports": "off" } }
+  ],
   "ignorePatterns": ["src/routeTree.gen.ts", "src/api/schema.d.ts", "dist", ".wrangler"]
 }
