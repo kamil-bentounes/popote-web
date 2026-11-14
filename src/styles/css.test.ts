@@ -80,7 +80,7 @@ describe('composants.css', () => {
     composants.walkAtRules('media', (media) => {
       if (/prefers-reduced-motion:\s*reduce/.test(media.params)) media.walkRules((r) => void coupes.push(...r.selectors))
     })
-    const attendus = ['.soleil', '.jauge > i', '.cases[data-etat="faux"]', '.marmite svg', '.marmite .yeux', '.tampon', '.feuille']
+    const attendus = ['.soleil', '.jauge > i', '.cases[data-etat="faux"]', '.marmite svg', '.marmite .yeux', '.feuille']
     expect(attendus.filter((attendu) => !coupes.includes(attendu))).toEqual([])
   })
 
@@ -125,6 +125,8 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     // L'entrée d'écran passe par Motion (`Enter`, `mouvement.ts`) : la règle CSS et ses images clés n'existent plus (D11 : pas d'animation en double).
     '.entre { animation: entre var(--duree-entree) var(--ease-rebond) both; animation-delay: calc(var(--rang, 0) * var(--decalage-entree)) }',
     '@keyframes entre { from { opacity: 0; transform: translateY(36px) scale(0.92) } to { opacity: 1; transform: none } }',
+    // L'arrivée du tampon passe par Motion aussi (`Stamp`, `variantesTampon`) : ses images clés n'existent plus.
+    '@keyframes tampon { from { transform: rotate(-40deg) scale(0) } to { transform: rotate(8deg) scale(1) } }',
   ]
   const AJOUTS = [
     '.cases:focus-within, .avatar:focus-visible { outline: 4px solid var(--color-encre); outline-offset: 3px }',
@@ -143,8 +145,10 @@ describe('composants.css est le CSS du système, aux écarts près', () => {
     ['.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse 0.7s ease-in-out infinite alternate }', '.marmite[data-etat="ecoute"] .ondes { opacity: 1; animation: pulse-ondes 0.7s ease-in-out infinite alternate }'],
     // Le libellé du champ est un vrai `<label for>` (F9) : le `<label>` n'enveloppe plus le champ ni son aide : le nom du champ est son libellé seul (revue 11).
     ['.champ > span { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }', '.champ > label { display: block; margin: 0 0 6px 4px; font-size: var(--text-libelle) }'],
-    // `.entre` n'existe plus (voir RETRAITS) : le mouvement réduit de l'entrée est la politique de `mouvement.ts`.
-    ['@media (prefers-reduced-motion: reduce) :: .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }', '@media (prefers-reduced-motion: reduce) :: .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }'],
+    // `.tampon` n'a plus d'animation CSS (voir RETRAITS) : son mouvement réduit est celui de `variantesTampon`. Son inclinaison de repos (8 degrés) reste.
+    ['.tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-tampon); background: var(--color-tomate); color: var(--color-encre); font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg); animation: tampon var(--duree-entree) var(--ease-rebond) both }', '.tampon { display: inline-block; padding: 5px 12px; border: var(--trait) solid var(--color-encre); border-radius: var(--radius-tampon); background: var(--color-tomate); color: var(--color-encre); font-family: var(--font-titre); font-size: var(--text-tampon); transform: rotate(8deg) }'],
+    // `.entre` n'existe plus, ni l'animation de `.tampon` (voir RETRAITS) : le mouvement réduit de l'entrée et du tampon est la politique de `mouvement.ts`.
+    ['@media (prefers-reduced-motion: reduce) :: .entre, .tampon, .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }', '@media (prefers-reduced-motion: reduce) :: .feuille, .suivi div[data-fait] i::after { animation-duration: 1ms !important; animation-delay: 0ms !important }'],
     ['@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none }', '@media (prefers-reduced-motion: reduce) :: .bouton, .jauge > i { transition: none !important }'],
   ]
 

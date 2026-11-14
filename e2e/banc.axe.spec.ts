@@ -17,10 +17,11 @@ const BALISES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
  */
 // Au téléphone et sous WebKit (390 px) : le texte du soleil et la légende du tampon ; au PC : le texte du soleil seul.
 const incompletsAdmis = (projet: string) => (projet === 'pc' ? 1 : 2)
-// 162 mesurés au PC (161 au téléphone) avec F14a : l'entrée d'écran en ajoute 7 (154 et 153 avec F12). Même marge qu'avant (9), pour WebKit, non joué en local.
-const REUSSITES_MIN = 152
-// Le plancher global ne voit pas la perte d'une section entière de F12 (la bulle seule : 7 sur 154 ; l'entrée d'écran, mesurée une fois ses éléments posés : 7). Un plancher par section, mesuré, le voit.
-const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 14, Bulle: 7, 'Entrée d’écran': 7 }
+// 177 mesurés au PC (176 au téléphone) avec F14b : le décor en ajoute 10, le tampon qui arrive 4, le tampon du bloc 1 (162 et 161 avec F14a). Même marge qu'avant (9), pour WebKit, non joué en local.
+const REUSSITES_MIN = 167
+// Le plancher global ne voit pas la perte d'une section entière de F12 (la bulle seule : 7 sur 154 ; l'entrée d'écran, mesurée une fois ses éléments posés : 7 ; le décor : 10 sur 177). Un plancher par section, mesuré, le voit.
+// Le décor : titre et note de chaque scène, sur le sol (jamais sur le dégradé du soleil, que `incompletsAdmis` ne laisse pas passer).
+const REUSSITES_PAR_SECTION: Record<string, number> = { 'Bloc, pastille, tampon, avatar': 15, Bulle: 7, 'Entrée d’écran': 7, Décor: 10, Tampon: 4 }
 
 async function mesure(page: Page, include: string) {
   const { violations, incomplete, passes } = await new AxeBuilder({ page }).include(include).withTags(BALISES).analyze()
